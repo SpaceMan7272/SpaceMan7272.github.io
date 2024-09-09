@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chat App</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background-color: #f0f0f0;
+        }
+        .chat-container {
+            width: 80%;
+            max-width: 800px;
+            background-color: #fff;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+        }
+        .chat-box {
+            padding: 20px;
+            height: 300px;
+            overflow-y: auto;
+            border-bottom: 1px solid #ddd;
+            background-color: #fafafa;
+        }
+        .input-container {
+            display: flex;
+            padding: 10px;
+            border-top: 1px solid #ddd;
+            background-color: #fff;
+        }
+        .input-container input[type="text"],
+        .input-container input[type="file"] {
+            flex: 1;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            margin-right: 10px;
+            font-size: 16px;
+        }
+        .input-container button {
+            padding: 10px 15px;
+            border: none;
+            border-radius: 4px;
+            background-color: #28a745;
+            color: white;
+            font-size: 16px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+        .input-container button:hover {
+            background-color: #218838;
+        }
+        #nameDisplay {
+            padding: 10px;
+            border-bottom: 1px solid #ddd;
+            background-color: #fff;
+            text-align: center;
+            font-size: 18px;
+            color: #333;
+        }
+        #autoRefreshButton {
+            background-color: #007bff;
+        }
+        #autoRefreshButton.active {
+            background-color: #dc3545;
+        }
+        #autoRefreshButton:hover {
+            background-color: #0056b3;
+        }
+        #autoRefreshButton.active:hover {
+            background-color: #c82333;
+        }
+        .message {
+            margin-bottom: 10px;
+        }
+        .message strong {
+            color: #333;
+        }
+        .message span {
+            color: #888;
+        }
+        .message img {
+            max-width: 100%;
+            height: auto;
+            border-radius: 4px;
+        }
+    </style>
+</head>
+<body>
+    <div class="chat-container">
+        <div id="nameDisplay">Name: Not set</div>
+        <div class="chat-box" id="chatBox"></div>
+        <div class="input-container">
+            <input type="text" id="nameInput" placeholder="Enter your name" />
+            <button onclick="saveName()">Save Name</button>
+        </div>
+        <div class="input-container">
+            <input type="file" id="fileInput" />
+            <input type="text" id="messageInput" placeholder="Enter your message" />
+            <button onclick="sendMessage()">Send</button>
+        </div>
+        <div class="input-container">
+            <button id="autoRefreshButton" onclick="toggleAutoRefresh()">Start Auto Refresh</button>
+        </div>
+    </div>
+    <script>
+        let autoRefreshInterval = null;
+
+        window.onload = function() {
+            loadMessages();
+            loadName();
+            checkAutoRefreshStatus();
+        };
+
+        function saveName() {
+            const nameInput = document.getElementById('nameInput');
+            const name = nameInput.value.trim();
+
+            if (name) {
+                localStorage.setItem('userName', name);
+                nameInput.value = ''; // Clear the input field after saving
+                document.getElementById('nameDisplay').innerText = `Name: ${name}`; // Update display
+            } else {
+                alert('Please enter a name.');
+            }
+        }
+
+        function sendMessage() {
+            const name = localStorage.getItem('userName');
+            if (!name) {
+                alert('Please save your name first.');
+                return;
+            }
+
+            const messageInput = document.getElementById('messageInput');
+            const fileInput = document.getElementById('fileInput');
+            const message = messageInput.value.trim();
+            const file = fileInput.files[0];
+
+            let messageData = { name, message, timestamp: new Date().toISOString() };
+
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(event) {
+                    messageData.image = event.target.result;
+                    saveMessage(messageData);
+                };
+                reader.readAsDataURL(file);
+                fileInput.value = ''; // Clear the file input field after reading
+            } else {
+                saveMessage(messageData);
+            }
+        }
+
+        function saveMessage(messageData) {
+            const messages = JSON.parse(localStorage.getItem('messages')) || [];
+            messages.push(messageData);
+            localStorage.setItem('messages', JSON.stringify(messages));
+
+            document.getElementById('messageInput').value = ''; // Clear the message input field after sending
+            loadMessages();
+        }
+
+        function loadMessages() {
+            const chatBox = document.getElementById('chatBox');
+            const messages = JSON.parse(localStorage.getItem('messages')) || [];
+
+            chatBox.innerHTML = messages.map(msg => {
+                const date = new Date(msg.timestamp);
+                return `<div class="message">
+                            <strong>${msg.name}</strong> <span>(${date.toLocaleString()}):</span> 
+                            ${msg.message ? `<p>${msg.message}</p>` : ''}
+                            ${msg.image ? `<img src="${msg.image}" alt="Image" />` : ''}
+                        </div>`;
+            }).join('');
+        }
+
+        function loadName() {
+            const savedName = localStorage.getItem('userName');
+            if (savedName) {
+                document.getElementById('nameInput').value = savedName;
+                document.getElementById('nameDisplay').innerText = `Name: ${savedName}`;
+            }
+        }
+
+        function toggleAutoRefresh() {
+            const button = document.getElementById('autoRefreshButton');
+
+            if (autoRefreshInterval) {
+                clearInterval(autoRefreshInterval);
+                autoRefreshInterval = null;
+                button.textContent = 'Start Auto Refresh';
+                button.classList.remove('active');
+            } else {
+                autoRefreshInterval = setInterval(function() {
+                    location.reload();
+                }, 3141.59);
+                button.textContent = 'Stop Auto Refresh';
+                button.classList.add('active');
+            }
+        }
+
+        function checkAutoRefreshStatus() {
+            if (autoRefreshInterval) {
+                document.getElementById('autoRefreshButton').textContent = 'Stop Auto Refresh';
+                document.getElementById('autoRefreshButton').classList.add('active');
+            } else {
+                document.getElementById('autoRefreshButton').textContent = 'Start Auto Refresh';
+                document.getElementById('autoRefreshButton').classList.remove('active');
+            }
+        }
+    </script>
+</body>
+</html>
