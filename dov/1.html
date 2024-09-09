@@ -1,0 +1,45 @@
+<html>
+    <div class="game"> 
+        <iframe width="100%" height="100%" src="https://dash.infinityfree.com/accounts/if0_36763122" 
+        title="YouTube video player" 
+        frameborder="0" 
+        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
+        allowfullscreen controls id="game" >
+        </iframe> 
+        </div>
+        </div>
+
+        <script>
+                    function openGame() {
+            var win = window.open();
+            var url = "#"; // Replace with your desired URL
+            var iframe = win.document.createElement('iframe');
+            iframe.style.width = "100%";
+            iframe.style.height = "100%";
+            iframe.style.border = "none";
+            iframe.src = url;
+            win.document.body.appendChild(iframe);
+        }
+        
+        // Add an event listener to the document for the keydown event
+        document.addEventListener('keydown', function(event) {
+            if (event.key === 'c' || event.keyCode === 67) {
+                // Redirect to the Clever URL
+                window.location.href = 'https://clever.com/oauth/authorize?channel=clever&client_id=4c63c1cf623dce82caac&confirmed=true&district_id=56b4e597ca2cb70100000009&redirect_uri=https%3A%2F%2Fclever.com%2Fin%2Fauth_callback&response_type=code&state=8254eb2b7240c2b7afdadb1c6a1b4ae89baac4f84cb8597c2276b59d861892f1';
+            } else if (event.key === '=' || event.keyCode === 187) {
+                // Redirect to index.html
+                window.location.href = '../index.html';
+            } else if (event.key === 'z' || event.keyCode === 90) {
+                // Execute openGame() function to open a game in a new window
+                openGame();
+            }
+        });
+
+        document.addEventListener('contextmenu', function(event) {
+    // Prevent the default right-click context menu from showing
+    event.preventDefault();
+});
+
+        </script>
+</html>
+
