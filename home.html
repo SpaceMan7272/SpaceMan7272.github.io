@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="stylesheet" href="home.css" />
+    
+  </head>
+  <body>
+    
+
+    <nav id="topnav">
+    <a id="logo" class="nav-link" href="home.html">urmom.gov</a>
+    <a class="nav-link" href="chat.html">Chat</a>
+    <a class="nav-link" href="games.html">Games</a>
+    <a class="nav-link" href="app.html">Apps</a>
+    <a class="nav-link" href="other.html">Other</a>
+    <a class="nav-link" href="dev.html">DEV</a>
+    
+    <button class="logout-btn">Logout</button>
+    </nav>
+      
+    <p>
+      Press "Z" to Logout
+      <br>
+      Press "C" to open a Unmarked Window (Progress won't be Saved)
+      <br>
+      Press "=" to redirect to Clever Login Page (Recomeneed to Save password)
+      <br>
+      Press "/" to return to Home Page (only on chat)
+      <br>
+      IO AND MULTI DON"T WORK
+    </p>
+      
+    <script>
+      function openGame() {
+var win = window.open();
+var url = "#"; // Replace with your desired URL
+var iframe = win.document.createElement('iframe');
+iframe.style.width = "100%";
+iframe.style.height = "100%";
+iframe.style.border = "none";
+iframe.src = url;
+win.document.body.appendChild(iframe);
+}
+
+// Add an event listener to the document for the keydown event
+document.addEventListener('keydown', function(event) {
+if (event.key === 'c' || event.keyCode === 67) {
+  // Redirect to the Clever URL
+  window.location.href = 'https://clever.com/oauth/authorize?channel=clever&client_id=4c63c1cf623dce82caac&confirmed=true&district_id=56b4e597ca2cb70100000009&redirect_uri=https%3A%2F%2Fclever.com%2Fin%2Fauth_callback&response_type=code&state=8254eb2b7240c2b7afdadb1c6a1b4ae89baac4f84cb8597c2276b59d861892f1';
+} else if (event.key === '=' || event.keyCode === 187) {
+  // Redirect to index.html
+  window.location.href = 'index.html';
+} else if (event.key === 'z' || event.keyCode === 90) {
+  // Execute openGame() function to open a game in a new window
+  openGame();
+}
+});
+
+document.addEventListener('contextmenu', function(event) {
+// Prevent the default right-click context menu from showing
+event.preventDefault();
+});
+
+</script>
+ 
+    <script src="./home.js"></script>
+  </body>
+</html>

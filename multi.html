@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="stylesheet" href="game.css" />
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Patrick+Hand+SC&display=swap" rel="stylesheet">
+  </head>
+  <body>
+    
+
+    <nav id="topnav">
+    <a id="logo" class="nav-link" href="home.html">urmom.gov</a>
+      <input id="searchbar" 
+             onkeyup="search_animal()" 
+             type="text" name="search" 
+             placeholder="Search things..">
+    <button class="logout-btn">Logout</button>
+    </nav>
+
+
+    <div class="container">
+      <ul id='list'>
+        <br>
+        <br>
+      
+        <li class="things"><a href="multi/1.html">Were Impostors - Kill Together</a></li>
+        <li class="things"><a href="multi/2.html">Duel of Wizards</a></li>
+        <li class="things"><a href="multi/3.html">Giant Slayers 3 - Endgame</a></li>
+        <li class="things"><a href="multi/4.html">Shadow Archers</a></li>
+        <li class="things"><a href="multi/5.html">Squid Game - Tug of War</a></li>
+        <li class="things"><a href="multi/6.html">Sultimate Robo Duel 3D</a></li>
+        <li class="things"><a href="multi/7.html">Night City Racing</a></li>
+        <li class="things"><a href="multi/8.html">Moto X3M 2</a></li>
+        <li class="things"><a href="multi/9.html">Red and Blue Stickman Huggy</a></li>
+        <li class="things"><a href="multi/10.html">Guess Who Multiplayer</a></li>
+        <li class="things"><a href="multi/11.html">House of Hazards</a></li>
+        <li class="things"><a href="multi/12.html">Raft Wars</a></li>
+        <li class="things"><a href="multi/13.html">Air Hockey Glow (2 Players)</a></li>
+        <li class="things"><a href="multi/14.html">Air Hockey Glow (2 Players)</a></li>
+        <li class="things"><a href="multi/15.html">Battleship</a></li>
+        <li class="things"><a href="multi/16.html">Billiards Pool 8</a></li>
+        <li class="things"><a href="multi/17.html">Boxing Stars</a></li>
+        <li class="things"><a href="multi/18.html">Boxing Stars</a></li>
+        <li class="things"><a href="multi/19.html">Grandmaster Chess</a></li>
+        <li class="things"><a href="multi/20.html">Cycling Hero</a></li>
+        <li class="things"><a href="multi/21.html">Drive Dead 3D</a></li>
+        <li class="things"><a href="multi/22.html">Drunken Boxing</a></li>
+        <li class="things"><a href="multi/23.html">Drunken Duel</a></li>
+        <li class="things"><a href="multi/24.html">Extreme Cycling</a></li>
+        <li class="things"><a href="multi/25.html">Grand Extreme Racing</a></li>
+        <li class="things"><a href="multi/26.html">Fish Soccer</a></li>
+        <li class="things"><a href="multi/27.html">Food Pusher Challenge</a></li>
+        <li class="things"><a href="multi/28.html">Getaway Shootout</a></li>
+        <li class="things"><a href="multi/29.html">Head Soccer 2022</a></li>
+        <li class="things"><a href="multi/30.html">Heli Battle</a></li>
+        <li class="things"><a href="multi/31.html">Horse Derby Racing</a></li>
+        <li class="things"><a href="multi/32.html">Ludo Fever</a></li>
+        <li class="things"><a href="multi/33.html">Mini Cars Soccer</a></li>
+        <li class="things"><a href="multi/34.html">Super Mini Racing</a></li>
+        <li class="things"><a href="multi/35.html">Monster Race 3D</a></li>
+        <li class="things"><a href="multi/36.html">Noob Ninja Guardian</a></li>
+        <li class="things"><a href="multi/37.html">Paper Fighter 3D</a></li>
+        <li class="things"><a href="multi/38.html">Street Shadow - Classic Fighter</a></li>
+        <li class="things"><a href="multi/39.html">Skibidi Toilet Friends</a></li>
+        <li class="things"><a href="multi/40.html">Speed Boat Extreme Racing</a></li>
+        <li class="things"><a href="multi/41.html">Sprinter Heroes</a></li>
+        <li class="things"><a href="multi/42.html">Party Stickman (4 Player)</a></li>
+        <li class="things"><a href="multi/43.html">Tank Duel 3D</a></li>
+        <li class="things"><a href="multi/44.html">Temple of Boom</a></li>
+        <li class="things"><a href="multi/45.html">Tennis Masters</a></li>
+        <li class="things"><a href="multi/46.html">Tug the Table</a></li>
+        <li class="things"><a href="multi/47.html">Two Stunts</a></li>
+        <li class="things"><a href="multi/48.html">UNO Online</a></li>
+        <li class="things"><a href="multi/49.html">Wrassling</a></li>
+        <li class="things"><a href="multi/50.html">Russia</a></li>
+                
+      </ul>
+  </div>
+  
+  <script src="./script.js"></script>
+     
+ 
+    <script>
+      function search_animal() {
+  let input = document.getElementById('searchbar').value
+  input = input.toLowerCase();
+  let x = document.getElementsByClassName('things');
+
+  for (i = 0; i < x.length; i++) {
+    if (!x[i].innerHTML.toLowerCase().includes(input)) {
+      x[i].style.display = "none";
+    }
+    else {
+      x[i].style.display = "list-item";
+    }
+  }
+}
+    </script>
+    <script>
+      function openGame() {
+var win = window.open();
+var url = "#"; // Replace with your desired URL
+var iframe = win.document.createElement('iframe');
+iframe.style.width = "100%";
+iframe.style.height = "100%";
+iframe.style.border = "none";
+iframe.src = url;
+win.document.body.appendChild(iframe);
+}
+
+// Add an event listener to the document for the keydown event
+document.addEventListener('keydown', function(event) {
+if (event.key === 'c' || event.keyCode === 67) {
+  // Redirect to the Clever URL
+  window.location.href = 'https://clever.com/oauth/authorize?channel=clever&client_id=4c63c1cf623dce82caac&confirmed=true&district_id=56b4e597ca2cb70100000009&redirect_uri=https%3A%2F%2Fclever.com%2Fin%2Fauth_callback&response_type=code&state=8254eb2b7240c2b7afdadb1c6a1b4ae89baac4f84cb8597c2276b59d861892f1';
+} else if (event.key === '=' || event.keyCode === 187) {
+  // Redirect to index.html
+  window.location.href = 'index.html';
+} else if (event.key === 'z' || event.keyCode === 90) {
+  // Execute openGame() function to open a game in a new window
+  openGame();
+}
+});
+
+document.addEventListener('contextmenu', function(event) {
+// Prevent the default right-click context menu from showing
+event.preventDefault();
+});
+
+</script>
+  </body>
+</html>

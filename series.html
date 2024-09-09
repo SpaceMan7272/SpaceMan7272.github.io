@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="stylesheet" href="game.css" />
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Patrick+Hand+SC&display=swap" rel="stylesheet">
+  </head>
+  <body>
+    
+
+    <nav id="topnav">
+    <a id="logo" class="nav-link" href="home.html">urmom.gov</a>
+      <input id="searchbar" 
+             onkeyup="search_animal()" 
+             type="text" name="search" 
+             placeholder="Search things..">
+    <button class="logout-btn">Logout</button>
+    </nav>
+
+
+    <div class="container">
+      <ul id='list'>
+        <br>
+        <br>
+      
+        <li class="things"><a href="series/1.html">Vex 3</a></li>
+        <li class="things"><a href="series/2.html">Vex 4</a></li>
+        <li class="things"><a href="series/3.html">Vex 5</a></li>
+        <li class="things"><a href="series/4.html">Vex 6</a></li>
+        <li class="things"><a href="series/5.html">Vex 7</a></li>
+        <li class="things"><a href="series/6.html">Vex 8</a></li>
+        <li class="things"><a href="series/7.html">Basket Random</a></li>
+        <li class="things"><a href="series/8.html">Soccer Random</a></li>
+        <li class="things"><a href="series/9.html">Volley Random</a></li>
+        <li class="things"><a href="series/10.html">Boxing Random</a></li>
+        <li class="things"><a href="series/11.html">Stick Duel Battle</a></li>
+        <li class="things"><a href="series/12.html">Stick Duel Revenge</a></li>
+        <li class="things"><a href="series/13.html">Stick Duel The War</a></li>
+        <li class="things"><a href="series/14.html">Stick Duel Shadow Fight</a></li>
+        <li class="things"><a href="series/15.html">Rooftop Snipers</a></li>
+        <li class="things"><a href="series/16.html">Rooftop Snipers 2</a></li>
+        <li class="things"><a href="series/17.html">Super Mario Rush 2</a></li>
+        <li class="things"><a href="series/18.html">Super Mario Riders</a></li>
+        <li class="things"><a href="series/19.html">Super Mario Rush</a></li>
+        <li class="things"><a href="series/20.html">Fireboy and Watergirl: The Forest Temple</a></li>
+        <li class="things"><a href="series/21.html">Fireboy and Watergirl 2: The Light Temple</a></li>
+        <li class="things"><a href="series/22.html">Fireboy and Watergirl 3: The Ice Temple</a></li>
+        <li class="things"><a href="series/23.html">Fireboy and Watergirl 4: The Crystal Temple</a></li>
+        <li class="things"><a href="series/24.html">Fireboy and Watergirl 5: Elements</a></li>
+        <li class="things"><a href="series/25.html">Fireboy and Watergirl 6: Fairy Tales</a></li>
+        <li class="things"><a href="series/26.html">Duck Life</a></li>
+        <li class="things"><a href="series/27.html">Duck Life 2</a></li>
+        <li class="things"><a href="series/28.html">Duck Life 3 Evolution</a></li>
+        <li class="things"><a href="series/29.html">Duck Life 4</a></li>
+        <li class="things"><a href="series/30.html">Duck Life 5</a></li>
+        <li class="things"><a href="series/31.html">Duck Life 6</a></li>
+        <li class="things"><a href="series/32.html">Duck Life 7</a></li>
+        <li class="things"><a href="series/33.html">Learn to Fly</a></li>
+        <li class="things"><a href="series/34.html">Learn to Fly 2</a></li>
+        <li class="things"><a href="series/35.html">Gameonl Duck Life</a></li>
+        <li class="things"><a href="series/36.html">Penalty Kick Online</a></li>
+        <li class="things"><a href="series/37.html">Penalty Shooters 2</a></li>
+        <li class="things"><a href="series/38.html">FNAF</a></li>
+        <li class="things"><a href="series/39.html">FNAF 2</a></li>
+        <li class="things"><a href="series/40.html">FNAF 3</a></li>
+        <li class="things"><a href="series/41.html">FNAF 4</a></li>
+        <li class="things"><a href="series/42.html">FNF</a></li>
+        <li class="things"><a href="series/43.html">FNF Hit Single Real</a></li>
+        <li class="things"><a href="series/44.html">FNF vs Huggy Wuggy</a></li>
+        <li class="things"><a href="series/45.html">FNF vs Nonsense</a></li>
+        <li class="things"><a href="series/46.html">FNF vs Impostor Human Hijinks</a></li>
+        <li class="things"><a href="series/47.html">FNF vs Ace</a></li>
+        <li class="things"><a href="series/48.html">FNF Disney Club</a></li>
+        <li class="things"><a href="series/49.html">FNF Indie Cross</a></li>
+        <li class="things"><a href="series/50.html">FNF vs Impostor</a></li>
+        
+     
+
+
+      </ul>
+  </div>
+  
+  <script src="./script.js"></script>
+     
+ 
+    <script>
+      function search_animal() {
+  let input = document.getElementById('searchbar').value
+  input = input.toLowerCase();
+  let x = document.getElementsByClassName('things');
+
+  for (i = 0; i < x.length; i++) {
+    if (!x[i].innerHTML.toLowerCase().includes(input)) {
+      x[i].style.display = "none";
+    }
+    else {
+      x[i].style.display = "list-item";
+    }
+  }
+}
+    </script>
+    <script>
+      function openGame() {
+var win = window.open();
+var url = "#"; // Replace with your desired URL
+var iframe = win.document.createElement('iframe');
+iframe.style.width = "100%";
+iframe.style.height = "100%";
+iframe.style.border = "none";
+iframe.src = url;
+win.document.body.appendChild(iframe);
+}
+
+// Add an event listener to the document for the keydown event
+document.addEventListener('keydown', function(event) {
+if (event.key === 'c' || event.keyCode === 67) {
+  // Redirect to the Clever URL
+  window.location.href = 'https://clever.com/oauth/authorize?channel=clever&client_id=4c63c1cf623dce82caac&confirmed=true&district_id=56b4e597ca2cb70100000009&redirect_uri=https%3A%2F%2Fclever.com%2Fin%2Fauth_callback&response_type=code&state=8254eb2b7240c2b7afdadb1c6a1b4ae89baac4f84cb8597c2276b59d861892f1';
+} else if (event.key === '=' || event.keyCode === 187) {
+  // Redirect to index.html
+  window.location.href = 'index.html';
+} else if (event.key === 'z' || event.keyCode === 90) {
+  // Execute openGame() function to open a game in a new window
+  openGame();
+}
+});
+
+document.addEventListener('contextmenu', function(event) {
+// Prevent the default right-click context menu from showing
+event.preventDefault();
+});
+
+</script>
+  </body>
+</html>

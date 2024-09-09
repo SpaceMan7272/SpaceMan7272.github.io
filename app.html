@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="stylesheet" href="game.css" />
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Patrick+Hand+SC&display=swap" rel="stylesheet">
+  </head>
+  <body>
+    
+
+    <nav id="topnav">
+    <a id="logo" class="nav-link" href="home.html">urmom.gov</a>
+      <input id="searchbar" 
+             onkeyup="search_animal()" 
+             type="text" name="search" 
+             placeholder="Search things..">
+    <button class="logout-btn">Logout</button>
+    </nav>
+
+
+    <div class="container">
+      <ul id='list'>
+        <br>
+        <br>
+      
+        <li class="things"><a href="app/1.html">Clock Clock</a></li>
+        <li class="things"><a href="app/2.html">Spotify</a></li>
+        <li class="things"><a href="app/3.html">GitHub</a></li>
+        <li class="things"><a href="app/4.html">Visual Studio Code</a></li>
+        <li class="things"><a href="app/5.html">CodePen</a></li>
+        <li class="things"><a href="app/6.html">YouTube</a></li>
+        <li class="things"><a href="app/7.html">Reddit</a></li>
+        <li class="things"><a href="app/8.html">Discord</a></li>
+        <li class="things"><a href="app/9.html">Human Skull Reading Paper</a></li>
+        <li class="things"><a href="app/10.html">Bird Songs</a></li>
+        <li class="things"><a href="app/11.html">Windows 11</a></li>
+        <li class="things"><a href="app/12.html">ChatMan</a></li>
+        <li class="things"><a href="app/13.html">Rail</a></li>
+        <li class="things"><a href="app/14.html">gpyt</a></li>
+        <li class="things"><a href="app/15.html">Collaborating Pilot</a></li>
+        <li class="things"><a href="app/16.html">Rom Emulator</a></li>
+        <li class="things"><a href="app/17.html">Steam</a></li>
+        <li class="things"><a href="app/18.html">Impossibly Silly Activites</a></li>
+        <li class="things"><a href="app/19.html">Nice Math Fun</a></li>
+        <li class="things"><a href="app/20.html">Texas Instrument Communications Force</a></li>
+
+      </ul>
+  </div>
+  
+  <script src="./script.js"></script>
+     
+ 
+    <script>
+      function search_animal() {
+  let input = document.getElementById('searchbar').value
+  input = input.toLowerCase();
+  let x = document.getElementsByClassName('things');
+
+  for (i = 0; i < x.length; i++) {
+    if (!x[i].innerHTML.toLowerCase().includes(input)) {
+      x[i].style.display = "none";
+    }
+    else {
+      x[i].style.display = "list-item";
+    }
+  }
+}
+    </script>
+
+<script>
+  function openGame() {
+var win = window.open();
+var url = "#"; // Replace with your desired URL
+var iframe = win.document.createElement('iframe');
+iframe.style.width = "100%";
+iframe.style.height = "100%";
+iframe.style.border = "none";
+iframe.src = url;
+win.document.body.appendChild(iframe);
+}
+
+// Add an event listener to the document for the keydown event
+document.addEventListener('keydown', function(event) {
+if (event.key === 'c' || event.keyCode === 67) {
+// Redirect to the Clever URL
+window.location.href = 'https://clever.com/oauth/authorize?channel=clever&client_id=4c63c1cf623dce82caac&confirmed=true&district_id=56b4e597ca2cb70100000009&redirect_uri=https%3A%2F%2Fclever.com%2Fin%2Fauth_callback&response_type=code&state=8254eb2b7240c2b7afdadb1c6a1b4ae89baac4f84cb8597c2276b59d861892f1';
+} else if (event.key === '=' || event.keyCode === 187) {
+// Redirect to index.html
+window.location.href = 'index.html';
+} else if (event.key === 'z' || event.keyCode === 90) {
+// Execute openGame() function to open a game in a new window
+openGame();
+}
+});
+
+document.addEventListener('contextmenu', function(event) {
+// Prevent the default right-click context menu from showing
+event.preventDefault();
+});
+
+</script>
+
+  </body>
+</html>
