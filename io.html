@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>io</title>
+    <style>
+        body {
+            margin: 0;
+            font-family: Arial, sans-serif;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+        .menu-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 20px;
+            background-color: #333;
+            color: white;
+            transition: transform 0.3s ease;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 1000;
+        }
+        .menu-left {
+            cursor: pointer;
+            display: flex;
+            gap: 10px;
+        }
+        .menu-center {
+            display: flex;
+            gap: 20px;
+            justify-content: flex-start;
+            flex-grow: 1;
+            max-width: 100%;
+            overflow-x: auto;
+            white-space: nowrap;
+            padding-right: 20px;
+        }
+        .menu-center a {
+            color: white;
+            text-decoration: none;
+            padding: 8px 12px;
+            border-radius: 4px;
+            transition: background-color 0.3s;
+        }
+        .menu-center a:hover {
+            background-color: #555;
+        }
+        .menu-right {
+            cursor: pointer;
+        }
+        .fullscreen-btn, .toggle-bar-btn {
+            background-color: #444;
+            padding: 8px 12px;
+            border: none;
+            color: white;
+            cursor: pointer;
+            border-radius: 4px;
+        }
+        .fullscreen-btn:hover, .toggle-bar-btn:hover {
+            background-color: #555;
+        }
+        .game-container {
+            flex-grow: 1;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background-color: #f1f1f1;
+            margin-top: 60px; /* Prevent game content from hiding behind the fixed menu bar */
+        }
+        iframe {
+            width: 100%;
+            height: 100%;
+            border: none;
+        }
+        .popup {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.8);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            visibility: hidden;
+            opacity: 0;
+            transition: visibility 0.3s, opacity 0.3s;
+        }
+        .popup.active {
+            visibility: visible;
+            opacity: 1;
+        }
+        .popup-content {
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            position: relative;
+            max-height: 90vh;
+            overflow-y: auto;
+            width: 80%;
+        }
+        .popup-content .close-btn {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            font-size: 20px;
+            cursor: pointer;
+        }
+        .search-bar {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 10px;
+            border-radius: 4px;
+            border: 1px solid #ccc;
+        }
+        .game-list {
+            list-style-type: none;
+            padding: 0;
+            margin: 0;
+        }
+        .game-list li {
+            margin-bottom: 10px;
+        }
+        .game-list li a {
+            color: #333;
+            text-decoration: none;
+            padding: 10px;
+            background-color: #f1f1f1;
+            border-radius: 4px;
+            display: block;
+        }
+        .game-list li a:hover {
+            background-color: #ddd;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="menu-bar" id="menuBar">
+        <div class="menu-left">
+            <button class="fullscreen-btn" onclick="toggleGameFullScreen()">Fullscreen</button>
+            <button class="toggle-bar-btn" onclick="toggleMenuBar()">Hide Bar</button>
+        </div>
+        <div class="menu-center">
+            <a href="index.html">Home</a>
+            <a href="sing.html">Single</a>
+            <a href="multi.html">Multi</a>
+            <a href="ser.html">Series</a>
+            <a href="io.html">IO</a>
+            <a href="oth.html">Other</a>
+            <a href="dev.html">Dev</a>
+            <a href="search.html">o-</a>
+        </div>
+        <div class="menu-right">
+            <span style="font-size: 30px; cursor: pointer;" onclick="togglePopup()">=</span>
+        </div>
+    </div>
+
+    <div class="game-container" id="gameContainer">
+        <iframe id="gameFrame" src="https://agar.io/?" title="Game"></iframe>
+    </div>
+
+    <div class="popup" id="popup">
+        <div class="popup-content">
+            <span class="close-btn" onclick="togglePopup()">×</span>
+            <input type="text" class="search-bar" id="searchBar" placeholder="Search games..." onkeyup="filterGames()">
+            <ul class="game-list" id="gameList">
+                <li><a href="https://agar.io/?">agar.io</a></li>
+                <li><a href="https://red-ball4.com/aquaparkio">aquaparkio</a></li>
+                <li><a href="https://nezn4komec.github.io/Nezn4komec/index.html">Nezn4komec</a></li>
+                <li><a href="https://www.modd.io/play/cqf7n82tk/">modd.io</a></li>
+                <li><a href="https://blackhole-io.com/">blackhole-io</a></li>
+                <li><a href="https://iogames.space/blockor-io.embed">blockor-io</a></li>
+                <li><a href="https://www.gameflare.com/embed/brutesio/">brutesio</a></li>
+                <li><a href="https://cardgames.io/">cardgames.io</a></li>
+                <li><a href="https://www.cirus.io/">cirus.io</a></li>
+                <li><a href="https://iogames.space/polytonk.embed">polytonk</a></li>
+                <li><a href="https://iogames.space/defly-io.embed">defly-io</a></li>
+                <li><a href="https://iogames.space/diep-io.embed">diep-io</a></li>
+                <li><a href="https://iogames.space/doblons-io.embed">doblons-io</a></li>
+                <li><a href="https://iogames.onl/dragon-io.embed">dragon-io</a></li>
+                <li><a href="https://iogames.onl/ducklings-io.embed">ducklings-io</a></li>
+                <li><a href="https://iogames.onl/starblast-io.embed">starblast-io</a></li>
+                <li><a href="https://html5.gamedistribution.com/ab331e4a61574ad5a6347cddd96871c8/?gdpr-targeting=1&gd_sdk_referrer_url=https%3A%2F%2Fgameforge.com%2Fen-US%2Flittlegames%2Ffarmers-io%2F">farmers-io</a></li>
+                <li><a href="https://iogames.space/florr-io.embed">florr-io</a></li>
+                <li><a href="https://iogames.space/flappy-royale-io.embed">flappy-royale-io</a></li>
+                <li><a href="https://iogames.onl/germsio.embed">germsio</a></li>
+                <li><a href="https://iogames.onl/hexanautio.embed">hexanautio</a></li>
+                <li><a href="https://iogames.onl/hurricaneio.embed">hurricaneio</a></li>
+                <li><a href="https://iogames.onl/hole-io.embed">hole-io</a></li>
+                <li><a href="https://iogames.onl/viking-hunter.embed">viking-hunter</a></li>
+                <li><a href="https://iogames.space/krunker-io.embed">krunker-io</a></li>
+                <li><a href="https://www.lumen.com/en-us/home.html">lumen.com</a></li>
+                <li><a href="https://iogames.space/matchymatchy-io.embed">matchymatchy-io</a></li>
+                <li><a href="https://iogames.space/minesweeper-io.embed">minesweeper-io</a></li>
+                <li><a href="https://iogames.onl/basketballio.embed">basketballio</a></li>
+                <li><a href="https://iogames.space/oceanar-io.embed">oceanar-io</a></li>
+                <li><a href="https://iogames.onl/pacman-30th-anniversary.embed">pacman-30th-anniversary</a></li>
+                <li><a href="https://iogames.space/paper-io.embed">paper-io</a></li>
+                <li><a href="https://iogames.onl/wings-io.embed">wings-io</a></li>
+                <li><a href="https://iogames.space/astro-race-io.embed">astro-race-io</a></li>
+                <li><a href="https://iogames.space/satelite-io.embed">satelite-io</a></li>
+                <li><a href="https://smashkarts.io/">smashkarts.io</a></li>
+                <li><a href="https://iogames.space/snaker-io.embed">snaker-io</a></li>
+                <li><a href="https://iogames.space/spacewar-io.embed">spacewar-io</a></li>
+                <li><a href="https://iogames.space/surviv-io.embed">surviv-io</a></li>
+                <li><a href="https://iogames.space/tankwars-io.embed">tankwars-io</a></li>
+                <li><a href="https://territorial.io/">territorial.io</a></li>
+                <li><a href="http://iogames.fun/vanar.io.embed">vanar-io</a></li>
+                <li><a href="https://warcall.io/?v=1.0.58">warcall.io</a></li>
+                <li><a href="https://iogames.space/biplanes-ga.embed">biplanes-ga</a></li>
+                <li><a href="https://iogames.space/wormax-io.embed">wormax-io</a></li>
+                <li><a href="https://www.gameflare.com/embed/xgunio/">xgunio</a></li>
+                <li><a href="https://iogames.space/zombsroyale-io.embed">zombsroyale-io</a></li>
+                <li><a href="https://iogames.space/shell-shockers.embed">shell-shockers</a></li>
+                <li><a>justfall.lol</a></li>
+                <li><a href="https://gnhustgames.github.io/1v1lol/">1v1lol</a></li>
+              </ul>
+        </div>
+    </div>
+
+    <script>
+        function toggleGameFullScreen() {
+            const iframe = document.getElementById('gameFrame');
+            if (iframe.requestFullscreen) {
+                iframe.requestFullscreen();
+            } else if (iframe.mozRequestFullScreen) {
+                iframe.mozRequestFullScreen();
+            } else if (iframe.webkitRequestFullscreen) {
+                iframe.webkitRequestFullscreen();
+            } else if (iframe.msRequestFullscreen) {
+                iframe.msRequestFullscreen();
+            }
+        }
+
+        function toggleMenuBar() {
+            const menuBar = document.getElementById('menuBar');
+            const button = document.querySelector('.toggle-bar-btn');
+
+            if (menuBar.style.transform === "translateY(-100%)") {
+                menuBar.style.transform = "translateY(0)";
+                button.textContent = "Hide Bar";
+            } else {
+                menuBar.style.transform = "translateY(-100%)";
+                button.textContent = "Show Bar";
+            }
+        }
+
+        function togglePopup() {
+            const popup = document.getElementById('popup');
+            popup.classList.toggle('active');
+        }
+
+        function filterGames() {
+            const searchQuery = document.getElementById('searchBar').value.toLowerCase();
+            const gameLinks = document.querySelectorAll('.game-list li');
+
+            gameLinks.forEach(function(link) {
+                const gameTitle = link.textContent.toLowerCase();
+                if (gameTitle.indexOf(searchQuery) !== -1) {
+                    link.style.display = '';
+                } else {
+                    link.style.display = 'none';
+                }
+            });
+        }
+
+        document.addEventListener('keydown', function(event) {
+            if (event.ctrlKey && event.altKey && event.key === 'c') {
+                window.location.href = "https://clever.com";
+                setTimeout(function() { window.close(); }, 1000);
+            }
+        });
+    </script>
+
+</body>
+</html>
