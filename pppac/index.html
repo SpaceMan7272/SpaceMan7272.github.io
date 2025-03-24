@@ -1,0 +1,881 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pacman-like Game</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background-color: #000;
+            font-family: Arial, sans-serif;
+            overflow: hidden;
+        }
+        
+        .game-container {
+            position: relative;
+            box-shadow: 0 0 20px rgba(0, 0, 255, 0.5);
+        }
+        
+        canvas {
+            background-color: #111;
+            display: block;
+        }
+        
+        .game-info {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            color: white;
+            font-size: 18px;
+            background-color: rgba(0, 0, 0, 0.7);
+            padding: 10px;
+            border-radius: 5px;
+            z-index: 10;
+        }
+        
+        .health-bar {
+            width: 200px;
+            height: 20px;
+            background-color: #555;
+            margin-top: 5px;
+            border-radius: 3px;
+            overflow: hidden;
+        }
+        
+        .health {
+            width: 100%;
+            height: 100%;
+            background-color: #0f0;
+            transition: width 0.3s ease;
+        }
+        
+        .info-item {
+            margin-bottom: 5px;
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+        
+        .game-over {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            color: white;
+            text-align: center;
+            z-index: 100;
+            animation: pulse 2s infinite;
+        }
+        
+        .game-over h1 {
+            color: red;
+            font-size: 36px;
+            margin-bottom: 10px;
+        }
+        
+        .game-over p {
+            font-size: 24px;
+            margin: 10px 0;
+        }
+        
+        .game-over button {
+            background-color: #f00;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            font-size: 18px;
+            margin-top: 20px;
+            cursor: pointer;
+            border-radius: 5px;
+            transition: background-color 0.3s;
+        }
+        
+        .game-over button:hover {
+            background-color: #ff5555;
+        }
+    </style>
+</head>
+<body>
+    <div class="game-container">
+        <canvas id="gameCanvas"></canvas>
+        <div class="game-info">
+            <div class="info-item">Score: <span id="score">0</span></div>
+            <div class="info-item">Ghosts: <span id="ghostCount">7</span></div>
+            <div class="info-item">Health:</div>
+            <div class="health-bar">
+                <div id="health" class="health"></div>
+            </div>
+            <div class="info-item">Gun Status: <span id="gunStatus">Active</span></div>
+        </div>
+    </div>
+
+    <script>
+        // Game constants
+        const GRID_SIZE = 35;
+        const CELL_SIZE = 16;
+        const PACMAN_SPEED = 5;
+        const GHOST_SPEED = 2;
+        const BULLET_SPEED = 10;
+        const GHOST_SPAWN_INITIAL_INTERVAL = 20000; // 20 seconds
+        const GHOST_SPAWN_INTERVAL_MULTIPLIER = 0.75; // 25% reduction
+        const PACMAN_HEALTH_LOSS_ON_GHOST_COLLISION = 0.07; // 7%
+        const PACMAN_HEALTH_LOSS_ON_GUN_DISAPPEAR = 0.7; // 70%
+        const GUN_DISAPPEAR_CHANCE = 0.17; // 17%
+        const POINTS_PER_GHOST = 10;
+        const INITIAL_GHOST_COUNT = 7;
+
+        // Game variables
+        let canvas, ctx;
+        let pacman, ghosts = [], bullets = [];
+        let walls = [];
+        let score = 0;
+        let gameOver = false;
+        let ghostSpawnInterval = GHOST_SPAWN_INITIAL_INTERVAL;
+        let ghostSpawnTimerId;
+        let lastTime = 0;
+        let gunImage = new Image();
+        let gunSound = new Audio();
+        let explosionParticles = [];
+        let keysPressed = {};
+        
+        // Initialize the game
+        function init() {
+            canvas = document.getElementById('gameCanvas');
+            canvas.width = GRID_SIZE * CELL_SIZE;
+            canvas.height = GRID_SIZE * CELL_SIZE;
+            ctx = canvas.getContext('2d');
+            
+            // Load assets
+            // Gun image (Base64 encoded small 24x24 gun png)
+            gunImage.src = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABgAAAAYCAYAAADgdz34AAAA70lEQVRIS+2VQQ6CMBBFZyQewLghcQduXOhKjQdx4wk8BffAeDPrBjeE+JMvtKUdhjJtNdGFk4ak8/769UOnU/jNClh7GLmu29zzvBeAqzjuichJdY0xbVVV7ZzzIa0PQkTFOe+KophQSp8hhFUIYTeOY9O27R5ASym9cs57SqlerQc/AHbkDMDVcKN4ryyPwhjTEpFKOY5j6/s+p5TqcRwf8zzfJkCxgSzLnCiKzgB2SRsqpVwAJISQaZpeUiDXdXsAR2PM/UcAJRPGmF4IcUiSpEsB/t7BKqD4ixKftm3bUEqD0sH6iyyfNsuyJkmS6wfeyYYZJ64e2QAAAABJRU5ErkJggg==';
+            
+            // Gun sound (Base64 encoded small mp3)
+            gunSound.src = 'data:audio/mp3;base64,SUQzAwAAAAAAD1RSSE5GAAAAA3RsZW4AAAAqVElUMgAAABkAAABnAHUAbgAtAHMAaABvAHQALQAwADEAAAAPVFBFMQAAABIAAABTAG8AdQBuAGQAIABGAFgAAANMWFZJTkcAAAAXVVBMQ5gAAAAAAAAAAAAAAAAAAABDAAAAAEluZm8AAAAPAAAAAwAAAHgAAwAOABMAGAAeACMAPQBCCAANABIAFwAcACIAJwBBAEYATABVAF0AZAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA//sUZAAP8AAAaQAAAAgAAA0gAAABAAABpAAAACAAADSAAAAETEFNRTMuMTAwVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVX/+xRkLI/wAABpAAAACAAADSAAAAEAAAGkAAAAIAAANIAAAARVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVf/7FGRaj/AAAGkAAAAIAAANIAAAAQAAAaQAAAAgAAA0gAAABFVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVV//sUZIQP8AAAaQAAAAgAAA0gAAABAAABpAAAACAAADSAAAAEVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVX/+xRknw/wAABpAAAACAAADSAAAAEAAAGkAAAAIAAANIAAAARVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVQ==';
+
+            // Generate random walls
+            generateRandomWalls();
+            
+            // Create Pacman
+            pacman = {
+                x: Math.floor(GRID_SIZE / 2) * CELL_SIZE,
+                y: Math.floor(GRID_SIZE / 2) * CELL_SIZE,
+                size: CELL_SIZE,
+                direction: { x: 0, y: 0 },
+                health: 1.0,
+                hasGun: true
+            };
+            
+            // Spawn initial ghosts
+            for (let i = 0; i < INITIAL_GHOST_COUNT; i++) {
+                spawnGhost();
+            }
+            
+            // Start ghost spawner
+            ghostSpawnTimerId = setInterval(() => {
+                spawnGhost();
+                ghostSpawnInterval *= GHOST_SPAWN_INTERVAL_MULTIPLIER;
+                clearInterval(ghostSpawnTimerId);
+                ghostSpawnTimerId = setInterval(spawnGhost, ghostSpawnInterval);
+            }, ghostSpawnInterval);
+            
+            // Event listeners
+            document.addEventListener('keydown', handleKeyDown);
+            document.addEventListener('keyup', handleKeyUp);
+            document.addEventListener('click', handleClick);
+            
+            // Start game loop
+            requestAnimationFrame(gameLoop);
+        }
+
+        // Generate random maze-like walls for the game
+        function generateRandomWalls() {
+            // Start with empty walls array
+            walls = [];
+            
+            const wallProbability = 0.25; // 25% chance for a wall
+            
+            // Create a grid of walls with random distribution
+            for (let y = 0; y < GRID_SIZE; y++) {
+                for (let x = 0; x < GRID_SIZE; x++) {
+                    // Don't place walls at the edges for ghost spawning
+                    if (x === 0 || y === 0 || x === GRID_SIZE - 1 || y === GRID_SIZE - 1) {
+                        continue;
+                    }
+                    
+                    // Leave some space around Pacman's starting position
+                    const centerX = Math.floor(GRID_SIZE / 2);
+                    const centerY = Math.floor(GRID_SIZE / 2);
+                    if (Math.abs(x - centerX) < 3 && Math.abs(y - centerY) < 3) {
+                        continue;
+                    }
+                    
+                    // Random wall placement
+                    if (Math.random() < wallProbability) {
+                        walls.push({ x: x * CELL_SIZE, y: y * CELL_SIZE });
+                    }
+                }
+            }
+            
+            // Add some horizontal and vertical wall structures to make it more maze-like
+            for (let i = 0; i < 10; i++) {
+                const x = Math.floor(Math.random() * (GRID_SIZE - 10)) + 5;
+                const y = Math.floor(Math.random() * (GRID_SIZE - 10)) + 5;
+                
+                // Horizontal or vertical wall
+                if (Math.random() < 0.5) {
+                    // Horizontal wall
+                    const length = Math.floor(Math.random() * 7) + 3;
+                    for (let j = 0; j < length; j++) {
+                        if (x + j < GRID_SIZE - 1) {
+                            // Check if there's already a wall here
+                            const pos = { x: (x + j) * CELL_SIZE, y: y * CELL_SIZE };
+                            if (!walls.some(wall => wall.x === pos.x && wall.y === pos.y)) {
+                                walls.push(pos);
+                            }
+                        }
+                    }
+                } else {
+                    // Vertical wall
+                    const length = Math.floor(Math.random() * 7) + 3;
+                    for (let j = 0; j < length; j++) {
+                        if (y + j < GRID_SIZE - 1) {
+                            // Check if there's already a wall here
+                            const pos = { x: x * CELL_SIZE, y: (y + j) * CELL_SIZE };
+                            if (!walls.some(wall => wall.x === pos.x && wall.y === pos.y)) {
+                                walls.push(pos);
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        // Spawn a ghost at a random position on the edge of the grid
+        function spawnGhost() {
+            let x, y;
+            // 0: top, 1: right, 2: bottom, 3: left
+            const side = Math.floor(Math.random() * 4); 
+            
+            switch (side) {
+                case 0: // top
+                    x = Math.floor(Math.random() * GRID_SIZE) * CELL_SIZE;
+                    y = 0;
+                    break;
+                case 1: // right
+                    x = (GRID_SIZE - 1) * CELL_SIZE;
+                    y = Math.floor(Math.random() * GRID_SIZE) * CELL_SIZE;
+                    break;
+                case 2: // bottom
+                    x = Math.floor(Math.random() * GRID_SIZE) * CELL_SIZE;
+                    y = (GRID_SIZE - 1) * CELL_SIZE;
+                    break;
+                case 3: // left
+                    x = 0;
+                    y = Math.floor(Math.random() * GRID_SIZE) * CELL_SIZE;
+                    break;
+            }
+            
+            // Random color for the ghost
+            const colors = ['red', 'cyan', 'pink', 'orange', 'blue', 'green', 'purple', 'magenta'];
+            const color = colors[Math.floor(Math.random() * colors.length)];
+            
+            // Create the ghost object and add it to the array
+            ghosts.push({
+                x: x,
+                y: y,
+                size: CELL_SIZE,
+                color: color,
+                speed: GHOST_SPEED + Math.random() * 1.5, // Some variety in ghost speed
+                directionTimer: 0,
+                directionChangeInterval: 500 + Math.random() * 1000, // Random interval for direction changes
+                currentDirection: { x: 0, y: 0 }
+            });
+            
+            // Update UI to show new ghost count
+            document.getElementById('ghostCount').textContent = ghosts.length;
+        }
+
+        // Handle keydown events
+        function handleKeyDown(e) {
+            if (gameOver) return;
+            
+            // Track keys pressed
+            keysPressed[e.key] = true;
+            
+            // Update Pacman's direction based on key press
+            updatePacmanDirection();
+        }
+        
+        // Handle keyup events
+        function handleKeyUp(e) {
+            // Remove the key from pressed keys
+            delete keysPressed[e.key];
+            
+            // Update Pacman's direction based on remaining pressed keys
+            updatePacmanDirection();
+        }
+        
+        // Update Pacman's direction based on pressed keys
+        function updatePacmanDirection() {
+            // Default to no movement
+            pacman.direction = { x: 0, y: 0 };
+            
+            // Check which keys are pressed
+            if (keysPressed['ArrowUp'] || keysPressed['w']) {
+                pacman.direction.y = -1;
+            } else if (keysPressed['ArrowDown'] || keysPressed['s']) {
+                pacman.direction.y = 1;
+            }
+            
+            if (keysPressed['ArrowLeft'] || keysPressed['a']) {
+                pacman.direction.x = -1;
+            } else if (keysPressed['ArrowRight'] || keysPressed['d']) {
+                pacman.direction.x = 1;
+            }
+            
+            // Normalize diagonal movement
+            if (pacman.direction.x !== 0 && pacman.direction.y !== 0) {
+                const length = Math.sqrt(
+                    pacman.direction.x * pacman.direction.x + 
+                    pacman.direction.y * pacman.direction.y
+                );
+                pacman.direction.x /= length;
+                pacman.direction.y /= length;
+            }
+        }
+
+        // Handle mouse click events for shooting
+        function handleClick(e) {
+            if (gameOver) {
+                // If game is over, clicking restarts the game
+                restartGame();
+                return;
+            }
+            
+            if (!pacman.hasGun) return;
+            
+            // Calculate click direction relative to Pacman
+            const rect = canvas.getBoundingClientRect();
+            const clickX = e.clientX - rect.left;
+            const clickY = e.clientY - rect.top;
+            
+            // Get Pacman's center position
+            const pacmanCenterX = pacman.x + pacman.size / 2;
+            const pacmanCenterY = pacman.y + pacman.size / 2;
+            
+            // Calculate direction vector
+            const dx = clickX - pacmanCenterX;
+            const dy = clickY - pacmanCenterY;
+            const length = Math.sqrt(dx * dx + dy * dy);
+            
+            // Normalize the direction vector
+            const dirX = dx / length;
+            const dirY = dy / length;
+            
+            // Create a new bullet
+            bullets.push({
+                x: pacmanCenterX,
+                y: pacmanCenterY,
+                radius: 4,
+                dirX: dirX,
+                dirY: dirY,
+                speed: BULLET_SPEED,
+                color: '#ffcc00'
+            });
+            
+            // Play gun sound
+            const gunSoundClone = gunSound.cloneNode();
+            gunSoundClone.play();
+            
+            // Check if gun should disappear
+            if (Math.random() < GUN_DISAPPEAR_CHANCE) {
+                gunDisappearEffect();
+            }
+        }
+        
+        // Handle gun disappearing effect
+        function gunDisappearEffect() {
+            pacman.hasGun = false;
+            pacman.health -= PACMAN_HEALTH_LOSS_ON_GUN_DISAPPEAR;
+            document.getElementById('gunStatus').textContent = 'Lost';
+            
+            // Find and kill the nearest ghost
+            let nearestGhost = null;
+            let minDistance = Infinity;
+            
+            for (let i = 0; i < ghosts.length; i++) {
+                const ghost = ghosts[i];
+                const distance = Math.sqrt(
+                    Math.pow(ghost.x - pacman.x, 2) + 
+                    Math.pow(ghost.y - pacman.y, 2)
+                );
+                
+                if (distance < minDistance) {
+                    minDistance = distance;
+                    nearestGhost = i;
+                }
+            }
+            
+            if (nearestGhost !== null && ghosts.length > 0) {
+                // Create explosion particles
+                createExplosion(ghosts[nearestGhost].x, ghosts[nearestGhost].y);
+                
+                // Remove the ghost and add points
+                ghosts.splice(nearestGhost, 1);
+                score += POINTS_PER_GHOST;
+                document.getElementById('score').textContent = score;
+                document.getElementById('ghostCount').textContent = ghosts.length;
+            }
+            
+            // Play gun sound 3 times
+            for (let i = 0; i < 3; i++) {
+                setTimeout(() => {
+                    const sound = gunSound.cloneNode();
+                    sound.play();
+                }, i * 200); // Play each sound with a slight delay
+            }
+        }
+
+        // Create an explosion effect at the given position
+        function createExplosion(x, y) {
+            const particleCount = 50;
+            
+            for (let i = 0; i < particleCount; i++) {
+                const angle = Math.random() * Math.PI * 2;
+                const speed = 1 + Math.random() * 3;
+                
+                explosionParticles.push({
+                    x: x + CELL_SIZE / 2,
+                    y: y + CELL_SIZE / 2,
+                    radius: 1 + Math.random() * 3,
+                    color: `hsl(${Math.random() * 60}, 100%, ${50 + Math.random() * 50}%)`, // Yellows and oranges
+                    dirX: Math.cos(angle) * speed,
+                    dirY: Math.sin(angle) * speed,
+                    life: 30 + Math.floor(Math.random() * 15), // Frames the particle will live
+                    opacity: 1.0
+                });
+            }
+        }
+
+        // Main game loop
+        function gameLoop(timestamp) {
+            // Calculate delta time
+            const deltaTime = timestamp - lastTime || 16.7; // Default to ~60fps if first frame
+            lastTime = timestamp;
+            
+            // Clear the canvas
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+            // Update game if not game over
+            if (!gameOver) {
+                update(deltaTime / 1000); // Convert to seconds for physics calculations
+            }
+            
+            // Draw game elements
+            draw();
+            
+            // Check for game over
+            if (pacman.health <= 0 && !gameOver) {
+                gameOver = true;
+                drawGameOver();
+            }
+            
+            // Continue the game loop
+            requestAnimationFrame(gameLoop);
+        }
+
+        // Update game state
+        function update(deltaTime) {
+            // Move Pacman
+            const newX = pacman.x + pacman.direction.x * PACMAN_SPEED;
+            const newY = pacman.y + pacman.direction.y * PACMAN_SPEED;
+            
+            // Check for wall collisions
+            if (!checkWallCollision(newX, pacman.y)) {
+                pacman.x = Math.max(0, Math.min(canvas.width - pacman.size, newX));
+            }
+            
+            if (!checkWallCollision(pacman.x, newY)) {
+                pacman.y = Math.max(0, Math.min(canvas.height - pacman.size, newY));
+            }
+            
+            // Move ghosts toward Pacman
+            ghosts.forEach(ghost => {
+                // Calculate direction to Pacman
+                const dx = pacman.x - ghost.x;
+                const dy = pacman.y - ghost.y;
+                const length = Math.sqrt(dx * dx + dy * dy);
+                
+                // Move ghost towards Pacman (ghosts can go through walls)
+                ghost.x += (dx / length) * ghost.speed;
+                ghost.y += (dy / length) * ghost.speed;
+                
+                // Check for collision with Pacman
+                if (checkCollision(
+                    ghost.x, ghost.y, ghost.size, 
+                    pacman.x, pacman.y, pacman.size
+                )) {
+                    // Reduce Pacman's health
+                    pacman.health -= PACMAN_HEALTH_LOSS_ON_GHOST_COLLISION;
+                    document.getElementById('health').style.width = `${pacman.health * 100}%`;
+                    
+                    // Update health bar color
+                    updateHealthBarColor();
+                }
+            });
+            
+            // Update bullets
+            for (let i = bullets.length - 1; i >= 0; i--) {
+                const bullet = bullets[i];
+                
+                // Move bullet
+                bullet.x += bullet.dirX * bullet.speed;
+                bullet.y += bullet.dirY * bullet.speed;
+                
+                // Check if bullet is out of bounds
+                if (
+                    bullet.x < 0 || 
+                    bullet.x > canvas.width || 
+                    bullet.y < 0 || 
+                    bullet.y > canvas.height
+                ) {
+                    bullets.splice(i, 1);
+                    continue;
+                }
+                
+                // Check for collisions with ghosts
+                for (let j = ghosts.length - 1; j >= 0; j--) {
+                    const ghost = ghosts[j];
+                    
+                    if (checkPointRectCollision(
+                        bullet.x, bullet.y,
+                        ghost.x, ghost.y, ghost.size
+                    )) {
+                        // Remove bullet and ghost
+                        bullets.splice(i, 1);
+                        ghosts.splice(j, 1);
+                        
+                        // Update ghost count
+                        document.getElementById('ghostCount').textContent = ghosts.length;
+                        
+                        // Add points
+                        score += POINTS_PER_GHOST;
+                        document.getElementById('score').textContent = score;
+                        
+                        // Create explosion particles
+                        createExplosion(ghost.x, ghost.y);
+                        
+                        break; // Bullet has been used
+                    }
+                }
+                
+                // Check for collisions with walls (optional - bullets don't go through walls)
+                if (checkBulletWallCollision(bullet)) {
+                    bullets.splice(i, 1);
+                }
+            }
+            
+            // Update explosion particles
+            for (let i = explosionParticles.length - 1; i >= 0; i--) {
+                const particle = explosionParticles[i];
+                
+                // Move particle
+                particle.x += particle.dirX;
+                particle.y += particle.dirY;
+                
+                // Reduce particle life
+                particle.life--;
+                
+                // Fade out the particle toward the end of its life
+                if (particle.life < 10) {
+                    particle.opacity = particle.life / 10;
+                }
+                
+                // Remove particle if it's dead
+                if (particle.life <= 0) {
+                    explosionParticles.splice(i, 1);
+                }
+            }
+        }
+
+        // Update health bar color based on current health
+        function updateHealthBarColor() {
+            const healthElement = document.getElementById('health');
+            if (pacman.health > 0.6) {
+                healthElement.style.backgroundColor = '#00ff00'; // Green
+            } else if (pacman.health > 0.3) {
+                healthElement.style.backgroundColor = '#ffff00'; // Yellow
+            } else {
+                healthElement.style.backgroundColor = '#ff0000'; // Red
+            }
+        }
+
+        // Check if a bullet collides with any wall
+        function checkBulletWallCollision(bullet) {
+            for (const wall of walls) {
+                if (checkPointRectCollision(
+                    bullet.x, bullet.y,
+                    wall.x, wall.y, CELL_SIZE
+                )) {
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        // Draw all game elements
+        function draw() {
+            // Draw grid lines (optional for debugging)
+            /*
+            ctx.strokeStyle = '#333';
+            ctx.lineWidth = 0.5;
+            for (let i = 0; i <= GRID_SIZE; i++) {
+                ctx.beginPath();
+                ctx.moveTo(i * CELL_SIZE, 0);
+                ctx.lineTo(i * CELL_SIZE, canvas.height);
+                ctx.stroke();
+                
+                ctx.beginPath();
+                ctx.moveTo(0, i * CELL_SIZE);
+                ctx.lineTo(canvas.width, i * CELL_SIZE);
+                ctx.stroke();
+            }
+            */
+            
+            // Draw walls
+            ctx.fillStyle = '#4444aa';
+            walls.forEach(wall => {
+                ctx.fillRect(wall.x, wall.y, CELL_SIZE, CELL_SIZE);
+            });
+            
+            // Draw Pacman
+            ctx.fillStyle = 'yellow';
+            ctx.beginPath();
+            // Calculate mouth angle based on direction
+            let mouthAngle = 0.75; // Default closed mouth
+            if (pacman.direction.x !== 0 || pacman.direction.y !== 0) {
+                // Calculate the angle based on direction
+                mouthAngle = Math.atan2(pacman.direction.y, pacman.direction.x);
+            }
+            ctx.arc(
+                pacman.x + pacman.size / 2, 
+                pacman.y + pacman.size / 2, 
+                pacman.size / 2, 
+                mouthAngle - Math.PI / 4, // Start angle for mouth
+                mouthAngle + Math.PI / 4, // End angle for mouth
+                false
+            );
+            ctx.lineTo(pacman.x + pacman.size / 2, pacman.y + pacman.size / 2);
+            ctx.fill();
+            
+            // Draw gun if Pacman has it
+            if (pacman.hasGun) {
+                ctx.drawImage(
+                    gunImage, 
+                    pacman.x + pacman.size / 2 - 10, 
+                    pacman.y + pacman.size / 2 - 10, 
+                    20, 20
+                );
+            }
+            
+            // Draw ghosts
+            ghosts.forEach(ghost => {
+                // Ghost body
+                ctx.fillStyle = ghost.color;
+                
+                // Main ghost body (semicircle on top of a rectangle)
+                ctx.beginPath();
+                ctx.arc(
+                    ghost.x + ghost.size / 2,
+                    ghost.y + ghost.size / 2 - ghost.size / 4,
+                    ghost.size / 2,
+                    Math.PI,
+                    0,
+                    false
+                );
+                ctx.fillRect(
+                    ghost.x,
+                    ghost.y + ghost.size / 4,
+                    ghost.size,
+                    ghost.size / 2
+                );
+                
+                // Wavy bottom
+                ctx.beginPath();
+                const waveHeight = ghost.size / 8;
+                const startY = ghost.y + ghost.size * 0.75;
+                ctx.moveTo(ghost.x, startY);
+                
+                for (let i = 0; i < 3; i++) {
+                    const waveWidth = ghost.size / 3;
+                    ctx.bezierCurveTo(
+                        ghost.x + waveWidth * i + waveWidth / 2, startY + waveHeight,
+                        ghost.x + waveWidth * i + waveWidth / 2, startY + waveHeight,
+                        ghost.x + waveWidth * (i + 1), startY
+                    );
+                }
+                
+                ctx.lineTo(ghost.x + ghost.size, ghost.y + ghost.size / 4);
+                ctx.lineTo(ghost.x, ghost.y + ghost.size / 4);
+                ctx.fill();
+                
+                // Ghost eyes
+                ctx.fillStyle = 'white';
+                ctx.beginPath();
+                ctx.arc(ghost.x + ghost.size * 0.3, ghost.y + ghost.size * 0.3, ghost.size * 0.2, 0, Math.PI * 2);
+                ctx.arc(ghost.x + ghost.size * 0.7, ghost.y + ghost.size * 0.3, ghost.size * 0.2, 0, Math.PI * 2);
+                ctx.fill();
+                
+                // Ghost pupils - look toward Pacman
+                const eyeX = pacman.x - ghost.x;
+                const eyeY = pacman.y - ghost.y;
+                const eyeLength = Math.sqrt(eyeX * eyeX + eyeY * eyeY);
+                const normalizedEyeX = eyeX / eyeLength;
+                const normalizedEyeY = eyeY / eyeLength;
+                
+                ctx.fillStyle = 'black';
+                ctx.beginPath();
+                ctx.arc(
+                    ghost.x + ghost.size * 0.3 + normalizedEyeX * ghost.size * 0.07,
+                    ghost.y + ghost.size * 0.3 + normalizedEyeY * ghost.size * 0.07,
+                    ghost.size * 0.1,
+                    0,
+                    Math.PI * 2
+                );
+                ctx.arc(
+                    ghost.x + ghost.size * 0.7 + normalizedEyeX * ghost.size * 0.07,
+                    ghost.y + ghost.size * 0.3 + normalizedEyeY * ghost.size * 0.07,
+                    ghost.size * 0.1,
+                    0,
+                    Math.PI * 2
+                );
+                ctx.fill();
+            });
+            
+            // Draw bullets
+            bullets.forEach(bullet => {
+                ctx.fillStyle = bullet.color;
+                ctx.beginPath();
+                ctx.arc(bullet.x, bullet.y, bullet.radius, 0, Math.PI * 2);
+                ctx.fill();
+                
+                // Optional: Add a glow effect to bullets
+                ctx.shadowBlur = 10;
+                ctx.shadowColor = '#ffff00';
+                ctx.beginPath();
+                ctx.arc(bullet.x, bullet.y, bullet.radius, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.shadowBlur = 0; // Reset shadow
+            });
+            
+            // Draw explosion particles
+            explosionParticles.forEach(particle => {
+                ctx.fillStyle = particle.color;
+                ctx.globalAlpha = particle.opacity;
+                ctx.beginPath();
+                ctx.arc(particle.x, particle.y, particle.radius, 0, Math.PI * 2);
+                ctx.fill();
+            });
+            ctx.globalAlpha = 1.0; // Reset alpha
+            
+            // Update health bar
+            document.getElementById('health').style.width = `${pacman.health * 100}%`;
+        }
+
+        // Draw game over screen
+        function drawGameOver() {
+            // Create and display game over elements
+            const gameOverDiv = document.createElement('div');
+            gameOverDiv.className = 'game-over';
+            gameOverDiv.innerHTML = `
+                <h1>GAME OVER</h1>
+                <p>Final Score: ${score}</p>
+                <p>Ghosts Defeated: ${score / POINTS_PER_GHOST}</p>
+                <button id="restartButton">Play Again</button>
+            `;
+            document.querySelector('.game-container').appendChild(gameOverDiv);
+            
+            // Add event listener to restart button
+            document.getElementById('restartButton').addEventListener('click', restartGame);
+        }
+
+        // Restart the game
+        function restartGame() {
+            // Remove game over screen if it exists
+            const gameOverDiv = document.querySelector('.game-over');
+            if (gameOverDiv) {
+                gameOverDiv.remove();
+            }
+            
+            // Reset game variables
+            walls = [];
+            ghosts = [];
+            bullets = [];
+            explosionParticles = [];
+            score = 0;
+            gameOver = false;
+            ghostSpawnInterval = GHOST_SPAWN_INITIAL_INTERVAL;
+            keysPressed = {};
+            
+            // Clear existing timers
+            clearInterval(ghostSpawnTimerId);
+            
+            // Update UI
+            document.getElementById('score').textContent = '0';
+            document.getElementById('ghostCount').textContent = INITIAL_GHOST_COUNT.toString();
+            document.getElementById('gunStatus').textContent = 'Active';
+            document.getElementById('health').style.width = '100%';
+            document.getElementById('health').style.backgroundColor = '#00ff00';
+            
+            // Restart the game
+            init();
+        }
+
+        // Check if Pacman would collide with any wall
+        function checkWallCollision(x, y) {
+            // Check if the new position would collide with any wall
+            for (const wall of walls) {
+                if (checkCollision(
+                    x, y, pacman.size,
+                    wall.x, wall.y, CELL_SIZE
+                )) {
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        // Check if two rectangles collide
+        function checkCollision(x1, y1, size1, x2, y2, size2) {
+            return (
+                x1 < x2 + size2 &&
+                x1 + size1 > x2 &&
+                y1 < y2 + size2 &&
+                y1 + size1 > y2
+            );
+        }
+
+        // Check if a point is inside a rectangle
+        function checkPointRectCollision(pointX, pointY, rectX, rectY, rectSize) {
+            return (
+                pointX >= rectX &&
+                pointX <= rectX + rectSize &&
+                pointY >= rectY &&
+                pointY <= rectY + rectSize
+            );
+        }
+
+        // Start the game when everything is loaded
+        window.onload = init;
+    </script>
+</body>
+</html>
