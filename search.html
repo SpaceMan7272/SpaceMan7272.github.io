@@ -145,7 +145,7 @@
     <div class="menu-bar" id="menuBar">
         <div class="menu-left">
             <button class="fullscreen-btn" onclick="toggleGameFullScreen()">Fullscreen</button>
-            <button class="toggle-bar-btn" onclick="toggleMenuBar()">Hide Bar</button>
+
         </div>
         <div class="menu-center">
             <a href="index.html">Home</a>
@@ -169,6 +169,14 @@
     </div>
 
   
+    <div class="popup" id="popup">
+        <div class="popup-content">
+            <span class="close-btn" onclick="togglePopup()">×</span>
+            <label for="gameLink">Enter Game Link:</label>
+            <input type="text" class="link-input" id="gameLink" placeholder="Enter game URL here..." />
+            <button onclick="loadGame()">Load Game</button>
+        </div>
+    </div>
 
     <script>
         function toggleGameFullScreen() {
@@ -188,10 +196,7 @@
             const menuBar = document.getElementById('menuBar');
             const button = document.querySelector('.toggle-bar-btn');
 
-            if (menuBar.style.transform === "translateY(-100%)") {
-                menuBar.style.transform = "translateY(0)";
-                button.textContent = "Hide Bar";
-            } else {
+        
                 menuBar.style.transform = "translateY(-100%)";
                 button.textContent = "Show Bar";
             }
