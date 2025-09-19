@@ -1,0 +1,1877 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chess LEARN</title>
+    <style>
+        :root {
+            --square-size: 60px;
+            --light-square: #f0d9b5;
+            --dark-square: #b58863;
+            --digital-light: #eae9d2;
+            --digital-dark: #4b7399;
+            --highlight: rgba(155, 199, 0, 0.6);
+            --check-highlight: rgba(255, 0, 0, 0.7);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background-color: #2c3e50;
+            color: #ecf0f1;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding: 10px 20px;
+            background-color: #34495e;
+            border-radius: 8px;
+        }
+
+        h1 {
+            font-size: 24px;
+        }
+
+        #settings-btn {
+            background-color: #3498db;
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: background-color 0.3s;
+        }
+
+        #settings-btn:hover {
+            background-color: #2980b9;
+        }
+
+        .game-container {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 30px;
+            margin-bottom: 20px;
+        }
+
+        .board-container {
+            position: relative;
+        }
+
+        #chess-board {
+            display: grid;
+            grid-template-columns: repeat(8, var(--square-size));
+            grid-template-rows: repeat(8, var(--square-size));
+            border: 5px solid #34495e;
+            border-radius: 5px;
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.3);
+        }
+
+        .square {
+            width: var(--square-size);
+            height: var(--square-size);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            position: relative;
+        }
+
+        .light {
+            background-color: var(--light-square);
+        }
+
+        .dark {
+            background-color: var(--dark-square);
+        }
+
+        .digital .light {
+            background-color: var(--digital-light);
+        }
+
+        .digital .dark {
+            background-color: var(--digital-dark);
+        }
+
+        .piece {
+            width: 80%;
+            height: 80%;
+            background-size: contain;
+            background-repeat: no-repeat;
+            background-position: center;
+            cursor: pointer;
+            z-index: 2;
+            transition: transform 0.3s;
+        }
+
+        .possible-move {
+            position: absolute;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background-color: var(--highlight);
+            z-index: 1;
+        }
+
+        .in-check {
+            animation: pulse 1.5s infinite;
+            box-shadow: 0 0 15px red;
+            transform: scale(1.2);
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(1.2); }
+            50% { transform: scale(1.3); }
+            100% { transform: scale(1.2); }
+        }
+
+        .captured-container {
+            background-color: #34495e;
+            padding: 15px;
+            border-radius: 8px;
+            min-width: 200px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        .captured-container h3 {
+            margin-bottom: 10px;
+            text-align: center;
+            border-bottom: 1px solid #7f8c8d;
+            padding-bottom: 5px;
+        }
+
+        .captured-pieces {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 5px;
+        }
+
+        .captured-piece {
+            width: 30px;
+            height: 30px;
+            background-size: contain;
+            background-repeat: no-repeat;
+        }
+
+        .game-info {
+            background-color: #34495e;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        #status {
+            font-size: 18px;
+            margin-bottom: 10px;
+        }
+
+        #timer-display {
+            font-size: 24px;
+            text-align: center;
+            font-family: monospace;
+        }
+
+        /* Modal Styles */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.7);
+            z-index: 100;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .modal-content {
+            background-color: #2c3e50;
+            padding: 25px;
+            border-radius: 10px;
+            width: 90%;
+            max-width: 500px;
+            max-height: 80vh;
+            overflow-y: auto;
+            box-shadow: 0 5px 25px rgba(0, 0, 0, 0.5);
+        }
+
+        .close {
+            color: #aaa;
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        .close:hover {
+            color: #fff;
+        }
+
+        .settings-group {
+            margin-bottom: 20px;
+        }
+
+        .settings-group h3 {
+            margin-bottom: 10px;
+            border-bottom: 1px solid #7f8c8d;
+            padding-bottom: 5px;
+        }
+
+        .toggle-container, .select-container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin: 10px 0;
+        }
+
+        select, input[type="number"] {
+            background-color: #34495e;
+            color: white;
+            border: 1px solid #7f8c8d;
+            padding: 8px;
+            border-radius: 4px;
+            width: 120px;
+        }
+
+        /* Toggle Switch */
+        .switch {
+            position: relative;
+            display: inline-block;
+            width: 50px;
+            height: 24px;
+        }
+
+        .switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #ccc;
+            transition: .4s;
+            border-radius: 24px;
+        }
+
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 16px;
+            width: 16px;
+            left: 4px;
+            bottom: 4px;
+            background-color: white;
+            transition: .4s;
+            border-radius: 50%;
+        }
+
+        input:checked + .slider {
+            background-color: #3498db;
+        }
+
+        input:checked + .slider:before {
+            transform: translateX(26px);
+        }
+
+        /* Enhanced Explosion animation */
+        @keyframes explode {
+            0% { 
+                transform: scale(1) rotate(0deg); 
+                opacity: 1; 
+                filter: hue-rotate(0deg);
+            }
+            25% {
+                transform: scale(1.8) rotate(90deg);
+                filter: hue-rotate(90deg);
+            }
+            50% { 
+                transform: scale(2.5) rotate(180deg); 
+                opacity: 0.8; 
+                filter: hue-rotate(180deg);
+            }
+            75% {
+                transform: scale(3) rotate(270deg);
+                filter: hue-rotate(270deg);
+            }
+            100% { 
+                transform: scale(3.5) rotate(360deg); 
+                opacity: 0; 
+                filter: hue-rotate(360deg);
+            }
+        }
+
+        .explosion {
+            position: absolute;
+            width: var(--square-size);
+            height: var(--square-size);
+            background: radial-gradient(circle, yellow, orange, red, purple, blue);
+            border-radius: 50%;
+            z-index: 10;
+            animation: explode 0.7s forwards;
+            box-shadow: 0 0 20px 10px rgba(255, 255, 0, 0.7);
+        }
+
+        /* Particle explosion effect */
+        .particle {
+            position: absolute;
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: linear-gradient(45deg, #ff0000, #ff9900, #ffff00, #00ff00, #00ffff, #0000ff, #9900ff, #ff00ff);
+            z-index: 10;
+            animation: particleMove 1s forwards;
+        }
+
+        @keyframes particleMove {
+            0% {
+                transform: translate(0, 0) scale(1);
+                opacity: 1;
+            }
+            100% {
+                transform: translate(var(--tx), var(--ty)) scale(0);
+                opacity: 0;
+            }
+        }
+
+        /* Rotation classes */
+        .rotate-0 { transform: rotate(0deg); }
+        .rotate-90 { transform: rotate(90deg); }
+        .rotate-180 { transform: rotate(180deg); }
+        .rotate-270 { transform: rotate(270deg); }
+
+        /* Enhanced Drugged mode effects */
+        .drugged-board {
+            animation: colorChange 3s infinite alternate, moveBoard 7s infinite alternate, scaleBoard 5s infinite alternate, distortBoard 4s infinite alternate;
+            border: 3px solid transparent;
+            background: linear-gradient(45deg, #ff0000, #ff9900, #ffff00, #00ff00, #00ffff, #0000ff, #9900ff, #ff00ff);
+            background-size: 400% 400%;
+            animation: gradientShift 8s ease infinite, wobble 12s infinite alternate;
+        }
+
+        @keyframes gradientShift {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        @keyframes wobble {
+            0%, 100% { border-radius: 10px; }
+            25% { border-radius: 30px; }
+            50% { border-radius: 50px; }
+            75% { border-radius: 30px; }
+        }
+
+        @keyframes colorChange {
+            0% { filter: hue-rotate(0deg) brightness(1) contrast(1); }
+            25% { filter: hue-rotate(90deg) brightness(1.5) contrast(1.2); }
+            50% { filter: hue-rotate(180deg) brightness(1.2) contrast(1.5); }
+            75% { filter: hue-rotate(270deg) brightness(1.7) contrast(1.3); }
+            100% { filter: hue-rotate(360deg) brightness(1) contrast(1); }
+        }
+
+        @keyframes moveBoard {
+            0% { transform: translate(0, 0); }
+            25% { transform: translate(5px, 10px); }
+            50% { transform: translate(-10px, 5px); }
+            75% { transform: translate(8px, -8px); }
+            100% { transform: translate(0, 0); }
+        }
+
+        @keyframes scaleBoard {
+            0% { transform: scale(1); }
+            33% { transform: scale(0.95); }
+            66% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+
+        @keyframes distortBoard {
+            0%, 100% { border-radius: 5px; }
+            50% { border-radius: 20px; }
+        }
+
+        .drugged-piece {
+            animation: pieceColorChange 2s infinite alternate, pieceScale 3s infinite alternate, pieceSpin 4s infinite linear, pieceWobble 5s infinite alternate;
+            border-radius: 50%;
+            box-shadow: 0 0 10px 5px rgba(255, 255, 255, 0.5);
+        }
+
+        /* Random size class for drugged pieces */
+        .size-small { transform: scale(0.6); }
+        .size-medium { transform: scale(1); }
+        .size-large { transform: scale(1.4); }
+        .size-xlarge { transform: scale(1.8); }
+
+        @keyframes pieceColorChange {
+            0% { 
+                filter: hue-rotate(0deg) brightness(1) saturate(1);
+                box-shadow: 0 0 10px 5px rgba(255, 0, 0, 0.7);
+            }
+            20% { 
+                filter: hue-rotate(72deg) brightness(1.5) saturate(2);
+                box-shadow: 0 0 15px 7px rgba(255, 165, 0, 0.7);
+            }
+            40% { 
+                filter: hue-rotate(144deg) brightness(1.2) saturate(3);
+                box-shadow: 0 0 20px 10px rgba(255, 255, 0, 0.7);
+            }
+            60% { 
+                filter: hue-rotate(216deg) brightness(1.7) saturate(4);
+                box-shadow: 0 0 25px 12px rgba(0, 255, 0, 0.7);
+            }
+            80% { 
+                filter: hue-rotate(288deg) brightness(1.3) saturate(5);
+                box-shadow: 0 0 30px 15px rgba(0, 0, 255, 0.7);
+            }
+            100% { 
+                filter: hue-rotate(360deg) brightness(1) saturate(1);
+                box-shadow: 0 0 10px 5px rgba(128, 0, 128, 0.7);
+            }
+        }
+
+        @keyframes pieceScale {
+            0% { transform: scale(0.6) rotate(0deg); }
+            25% { transform: scale(1.2) rotate(10deg); }
+            50% { transform: scale(0.8) rotate(-10deg); }
+            75% { transform: scale(1.4) rotate(5deg); }
+            100% { transform: scale(1) rotate(0deg); }
+        }
+
+        @keyframes pieceSpin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        @keyframes pieceWobble {
+            0%, 100% { border-radius: 5px; }
+            25% { border-radius: 15px; }
+            50% { border-radius: 25px; }
+            75% { border-radius: 15px; }
+        }
+
+        /* Learning mode highlights */
+        .learning-highlight {
+            background-color: rgba(100, 200, 255, 0.4) !important;
+        }
+
+        @media (max-width: 768px) {
+            :root {
+                --square-size: 40px;
+            }
+            
+            .game-container {
+                flex-direction: column;
+                align-items: center;
+            }
+            
+            .captured-container {
+                width: 100%;
+                max-width: 320px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>Chess</h1>
+        <button id="settings-btn">Settings</button>
+    </header>
+
+    <div class="game-info">
+        <div id="status">White's turn</div>
+        <div id="timer-display">10:00</div>
+    </div>
+
+    <div class="game-container">
+        <div class="board-container">
+            <div id="chess-board" class="wooden">
+                <!-- Board will be generated by JavaScript -->
+            </div>
+        </div>
+
+        <div class="captured-container">
+            <h3>Captured by White</h3>
+            <div id="captured-white" class="captured-pieces"></div>
+        </div>
+
+        <div class="captured-container">
+            <h3>Captured by Black</h3>
+            <div id="captured-black" class="captured-pieces"></div>
+        </div>
+    </div>
+
+    <div id="settings-modal" class="modal">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <h2>Game Settings</h2>
+            
+            <div class="settings-group">
+                <h3>Visual Effects</h3>
+                <div class="toggle-container">
+                    <label>Explosion on Capture</label>
+                    <label class="switch">
+                        <input type="checkbox" id="explosion-toggle">
+                        <span class="slider"></span>
+                    </label>
+                </div>
+                <div class="toggle-container">
+                    <label>King Highlight on Check</label>
+                    <label class="switch">
+                        <input type="checkbox" id="check-highlight-toggle" checked>
+                        <span class="slider"></span>
+                    </label>
+                </div>
+            </div>
+
+            <div class="settings-group">
+                <h3>Timer</h3>
+                <div class="toggle-container">
+                    <label>Enable Timer</label>
+                    <label class="switch">
+                        <input type="checkbox" id="timer-toggle">
+                        <span class="slider"></span>
+                    </label>
+                </div>
+                <div class="select-container">
+                    <label for="timer-time">Time (minutes):</label>
+                    <input type="number" id="timer-time" min="1" max="60" value="10">
+                </div>
+            </div>
+
+            <div class="settings-group">
+                <h3>Board Rotation</h3>
+                <div class="select-container">
+                    <label for="rotation-select">Rotation:</label>
+                    <select id="rotation-select">
+                        <option value="0">0°</option>
+                        <option value="90">90°</option>
+                        <option value="180">180°</option>
+                        <option value="270">270°</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="settings-group">
+                <h3>Sound</h3>
+                <div class="toggle-container">
+                    <label>Enable Sound</label>
+                    <label class="switch">
+                        <input type="checkbox" id="sound-toggle" checked>
+                        <span class="slider"></span>
+                    </label>
+                </div>
+            </div>
+
+            <div class="settings-group">
+                <h3>Board Theme</h3>
+                <div class="select-container">
+                    <label for="theme-select">Theme:</label>
+                    <select id="theme-select">
+                        <option value="wooden">Wooden</option>
+                        <option value="digital">Digital</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="settings-group">
+                <h3>Game Mode</h3>
+                <div class="select-container">
+                    <label for="mode-select">Mode:</label>
+                    <select id="mode-select">
+                        <option value="standard">Standard Chess</option>
+                        <option value="moldy-cheese">Moldy Cheese Chess</option>
+                        <option value="taco">Taco Chess</option>
+                        <option value="milk">Milk Chess</option>
+                        <option value="fortnite">Fortnite Chess</option>
+                        <option value="drugged">Drugged Chess</option>
+                        <option value="gambling">Gambling Chess</option>
+                        <option value="no-rules">No Rules Chess</option>
+                        <option value="puzzles">Puzzles</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="settings-group">
+                <h3>Learning Mode</h3>
+                <div class="toggle-container">
+                    <label>Enable Learning Mode</label>
+                    <label class="switch">
+                        <input type="checkbox" id="learning-toggle">
+                        <span class="slider"></span>
+                    </label>
+                </div>
+            </div>
+
+            <button id="apply-settings" style="width: 100%; padding: 10px; background-color: #3498db; color: white; border: none; border-radius: 5px; cursor: pointer; margin-top: 15px;">Apply Settings</button>
+        </div>
+    </div>
+
+    <script>
+        // Game state and configuration
+        const gameState = {
+            board: [],
+            currentPlayer: 'white',
+            selectedPiece: null,
+            possibleMoves: [],
+            whiteCaptured: [],
+            blackCaptured: [],
+            whiteKingPos: { row: 7, col: 4 },
+            blackKingPos: { row: 0, col: 4 },
+            check: { white: false, black: false },
+            castlingRights: {
+                white: { kingSide: true, queenSide: true },
+                black: { kingSide: true, queenSide: true }
+            },
+            enPassantTarget: null,
+            halfMoveClock: 0,
+            fullMoveNumber: 1,
+            timer: {
+                enabled: false,
+                whiteTime: 600, // 10 minutes in seconds
+                blackTime: 600,
+                interval: null
+            },
+            settings: {
+                explosion: false,
+                checkHighlight: true,
+                timerEnabled: false,
+                timerMinutes: 10,
+                rotation: 0,
+                sound: true,
+                theme: 'wooden',
+                mode: 'standard',
+                learning: false
+            },
+            // Piece images for different modes
+            pieceSets: {
+                standard: {
+                    white: {
+                        king: 'https://images.chesscomfiles.com/chess-themes/pieces/neo/150/wk.png',
+                        queen: 'https://images.chesscomfiles.com/chess-themes/pieces/neo/150/wq.png',
+                        rook: 'https://images.chesscomfiles.com/chess-themes/pieces/neo/150/wr.png',
+                        bishop: 'https://images.chesscomfiles.com/chess-themes/pieces/neo/150/wb.png',
+                        knight: 'https://images.chesscomfiles.com/chess-themes/pieces/neo/150/wn.png',
+                        pawn: 'https://images.chesscomfiles.com/chess-themes/pieces/neo/150/wp.png'
+                    },
+                    black: {
+                        king: 'https://images.chesscomfiles.com/chess-themes/pieces/neo/150/bk.png',
+                        queen: 'https://images.chesscomfiles.com/chess-themes/pieces/neo/150/bq.png',
+                        rook: 'https://images.chesscomfiles.com/chess-themes/pieces/neo/150/br.png',
+                        bishop: 'https://images.chesscomfiles.com/chess-themes/pieces/neo/150/bb.png',
+                        knight: 'https://images.chesscomfiles.com/chess-themes/pieces/neo/150/bn.png',
+                        pawn: 'https://images.chesscomfiles.com/chess-themes/pieces/neo/150/bp.png'
+                    }
+                },
+                'moldy-cheese': {
+                    white: {
+                        king: 'https://i.ibb.co/0Q0q1Z0/cheese-king.png',
+                        queen: 'https://i.ibb.co/4T0y1y0/cheese-queen.png',
+                        rook: 'https://i.ibb.co/0Q0q1Z0/cheese-rook.png',
+                        bishop: 'https://i.ibb.co/4T0y1y0/cheese-bishop.png',
+                        knight: 'https://i.ibb.co/0Q0q1Z0/cheese-knight.png',
+                        pawn: 'https://i.ibb.co/4T0y1y0/cheese-pawn.png'
+                    },
+                    black: {
+                        king: 'https://i.ibb.co/0Q0q1Z0/moldy-king.png',
+                        queen: 'https://i.ibb.co/4T0y1y0/moldy-queen.png',
+                        rook: 'https://i.ibb.co/0Q0q1Z0/moldy-rook.png',
+                        bishop: 'https://i.ibb.co/4T0y1y0/moldy-bishop.png',
+                        knight: 'https://i.ibb.co/0Q0q1Z0/moldy-knight.png',
+                        pawn: 'https://i.ibb.co/4T0y1y0/moldy-pawn.png'
+                    }
+                },
+                'taco': {
+                    white: {
+                        king: 'https://i.ibb.co/0Q0q1Z0/taco-king.png',
+                        queen: 'https://i.ibb.co/4T0y1y0/taco-queen.png',
+                        rook: 'https://i.ibb.co/0Q0q1Z0/taco-rook.png',
+                        bishop: 'https://i.ibb.co/4T0y1y0/taco-bishop.png',
+                        knight: 'https://i.ibb.co/0Q0q1Z0/taco-knight.png',
+                        pawn: 'https://i.ibb.co/4T0y1y0/taco-pawn.png'
+                    },
+                    black: {
+                        king: 'https://i.ibb.co/0Q0q1Z0/salsa-king.png',
+                        queen: 'https://i.ibb.co/4T0y1y0/salsa-queen.png',
+                        rook: 'https://i.ibb.co/0Q0q1Z0/salsa-rook.png',
+                        bishop: 'https://i.ibb.co/4T0y1y0/salsa-bishop.png',
+                        knight: 'https://i.ibb.co/0Q0q1Z0/salsa-knight.png',
+                        pawn: 'https://i.ibb.co/4T0y1y0/salsa-pawn.png'
+                    }
+                },
+                'milk': {
+                    white: {
+                        king: 'https://i.ibb.co/0Q0q1Z0/milk-king.png',
+                        queen: 'https://i.ibb.co/4T0y1y0/milk-queen.png',
+                        rook: 'https://i.ibb.co/0Q0q1Z0/milk-rook.png',
+                        bishop: 'https://i.ibb.co/4T0y1y0/milk-bishop.png',
+                        knight: 'https://i.ibb.co/0Q0q1Z0/milk-knight.png',
+                        pawn: 'https://i.ibb.co/4T0y1y0/milk-pawn.png'
+                    },
+                    black: {
+                        king: 'https://i.ibb.co/0Q0q1Z0/chocolate-king.png',
+                        queen: 'https://i.ibb.co/4T0y1y0/chocolate-queen.png',
+                        rook: 'https://i.ibb.co/0Q0q1Z0/chocolate-rook.png',
+                        bishop: 'https://i.ibb.co/4T0y1y0/chocolate-bishop.png',
+                        knight: 'https://i.ibb.co/0Q0q1Z0/chocolate-knight.png',
+                        pawn: 'https://i.ibb.co/4T0y1y0/chocolate-pawn.png'
+                    }
+                },
+                'fortnite': {
+                    white: {
+                        king: 'https://i.ibb.co/0Q0q1Z0/jonesy-king.png',
+                        queen: 'https://i.ibb.co/4T0y1y0/ramirez-queen.png',
+                        rook: 'https://i.ibb.co/0Q0q1Z0/fortnite-rook.png',
+                        bishop: 'https://i.ibb.co/4T0y1y0/fortnite-bishop.png',
+                        knight: 'https://i.ibb.co/0Q0q1Z0/fortnite-knight.png',
+                        pawn: 'https://i.ibb.co/4T0y1y0/fortnite-pawn.png'
+                    },
+                    black: {
+                        king: 'https://i.ibb.co/0Q0q1Z0/io-king.png',
+                        queen: 'https://i.ibb.co/4T0y1y0/io-queen.png',
+                        rook: 'https://i.ibb.co/0Q0q1Z0/io-rook.png',
+                        bishop: 'https://i.ibb.co/4T0y1y0/io-bishop.png',
+                        knight: 'https://i.ibb.co/0Q0q1Z0/io-knight.png',
+                        pawn: 'https://i.ibb.co/4T0y1y0/io-pawn.png'
+                    }
+                },
+                'drugged': {
+                    white: {
+                        king: 'https://i.ibb.co/0Q0q1Z0/psychedelic-king.png',
+                        queen: 'https://i.ibb.co/4T0y1y0/psychedelic-queen.png',
+                        rook: 'https://i.ibb.co/0Q0q1Z0/psychedelic-rook.png',
+                        bishop: 'https://i.ibb.co/4T0y1y0/psychedelic-bishop.png',
+                        knight: 'https://i.ibb.co/0Q0q1Z0/psychedelic-knight.png',
+                        pawn: 'https://i.ibb.co/4T0y1y0/psychedelic-pawn.png'
+                    },
+                    black: {
+                        king: 'https://i.ibb.co/0Q0q1Z0/psychedelic-king2.png',
+                        queen: 'https://i.ibb.co/4T0y1y0/psychedelic-queen2.png',
+                        rook: 'https://i.ibb.co/0Q0q1Z0/psychedelic-rook2.png',
+                        bishop: 'https://i.ibb.co/4T0y1y0/psychedelic-bishop2.png',
+                        knight: 'https://i.ibb.co/0Q0q1Z0/psychedelic-knight2.png',
+                        pawn: 'https://i.ibb.co/4T0y1y0/psychedelic-pawn2.png'
+                    }
+                },
+              'gambling': {
+    white: {
+        king: 'https://images.chesscomfiles.com/chess-themes/pieces/neo/150/wk.png',
+        queen: 'https://images.chesscomfiles.com/chess-themes/pieces/neo/150/wq.png',
+        rook: 'https://images.chesscomfiles.com/chess-themes/pieces/neo/150/wr.png',
+        bishop: 'https://images.chesscomfiles.com/chess-themes/pieces/neo/150/wb.png',
+        knight: 'https://images.chesscomfiles.com/chess-themes/pieces/neo/150/wn.png',
+        pawn: 'https://images.chesscomfiles.com/chess-themes/pieces/neo/150/wp.png'
+    },
+    black: {
+        king: 'https://images.chesscomfiles.com/chess-themes/pieces/neo/150/bk.png',
+        queen: 'https://images.chesscomfiles.com/chess-themes/pieces/neo/150/bq.png',
+        rook: 'https://images.chesscomfiles.com/chess-themes/pieces/neo/150/br.png',
+        bishop: 'https://images.chesscomfiles.com/chess-themes/pieces/neo/150/bb.png',
+        knight: 'https://images.chesscomfiles.com/chess-themes/pieces/neo/150/bn.png',
+        pawn: 'https://images.chesscomfiles.com/chess-themes/pieces/neo/150/bp.png'
+    }
+},
+                'no-rules': {
+                    white: {
+                        king: 'https://images.chesscomfiles.com/chess-themes/pieces/neo/150/wk.png',
+                        queen: 'https://images.chesscomfiles.com/chess-themes/pieces/neo/150/wq.png',
+                        rook: 'https://images.chesscomfiles.com/chess-themes/pieces/neo/150/wr.png',
+                        bishop: 'https://images.chesscomfiles.com/chess-themes/pieces/neo/150/wb.png',
+                        knight: 'https://images.chesscomfiles.com/chess-themes/pieces/neo/150/wn.png',
+                        pawn: 'https://images.chesscomfiles.com/chess-themes/pieces/neo/150/wp.png'
+                    },
+                    black: {
+                        king: 'https://images.chesscomfiles.com/chess-themes/pieces/neo/150/bk.png',
+                        queen: 'https://images.chesscomfiles.com/chess-themes/pieces/neo/150/bq.png',
+                        rook: 'https://images.chesscomfiles.com/chess-themes/pieces/neo/150/br.png',
+                        bishop: 'https://images.chesscomfiles.com/chess-themes/pieces/neo/150/bb.png',
+                        knight: 'https://images.chesscomfiles.com/chess-themes/pieces/neo/150/bn.png',
+                        pawn: 'https://images.chesscomfiles.com/chess-themes/pieces/neo/150/bp.png'
+                    }
+                }
+            },
+            // Sound effects
+            sounds: {
+                move: new Audio('https://www.soundjay.com/buttons/sounds/button-09.mp3'),
+                capture: new Audio('https://www.soundjay.com/buttons/sounds/button-17.mp3'),
+                check: new Audio('https://www.soundjay.com/buttons/sounds/button-29.mp3'),
+                castle: new Audio('https://www.soundjay.com/buttons/sounds/button-39.mp3'),
+                gameOver: new Audio('https://www.soundjay.com/buttons/sounds/button-08.mp3')
+            }
+        };
+
+        // Initialize the game
+        function initGame() {
+            createBoard();
+            setupPieces();
+            renderBoard();
+            setupEventListeners();
+            updateStatus();
+        }
+
+        // Create the chess board
+        function createBoard() {
+            const board = document.getElementById('chess-board');
+            board.innerHTML = '';
+            
+            for (let row = 0; row < 8; row++) {
+                gameState.board[row] = [];
+                
+                for (let col = 0; col < 8; col++) {
+                    const square = document.createElement('div');
+                    square.className = `square ${(row + col) % 2 === 0 ? 'light' : 'dark'}`;
+                    square.dataset.row = row;
+                    square.dataset.col = col;
+                    
+                    board.appendChild(square);
+                    gameState.board[row][col] = null;
+                }
+            }
+            
+            applyBoardTheme();
+            applyRotation();
+        }
+
+        // Set up the pieces in starting position
+        function setupPieces() {
+            // Set up pawns
+            for (let col = 0; col < 8; col++) {
+                placePiece(1, col, { type: 'pawn', color: 'black' });
+                placePiece(6, col, { type: 'pawn', color: 'white' });
+            }
+            
+            // Set up other pieces
+            const backRank = [
+                'rook', 'knight', 'bishop', 'queen', 'king', 'bishop', 'knight', 'rook'
+            ];
+            
+            for (let col = 0; col < 8; col++) {
+                placePiece(0, col, { type: backRank[col], color: 'black' });
+                placePiece(7, col, { type: backRank[col], color: 'white' });
+            }
+        }
+
+        // Place a piece on the board
+        function placePiece(row, col, piece) {
+            gameState.board[row][col] = piece;
+            
+            if (piece.type === 'king') {
+                if (piece.color === 'white') {
+                    gameState.whiteKingPos = { row, col };
+                } else {
+                    gameState.blackKingPos = { row, col };
+                }
+            }
+        }
+
+        // Render the board with pieces
+        function renderBoard() {
+            // Clear all pieces from the board
+            const squares = document.querySelectorAll('.square');
+            squares.forEach(square => {
+                const pieceEl = square.querySelector('.piece');
+                if (pieceEl) {
+                    square.removeChild(pieceEl);
+                }
+                
+                const moveIndicator = square.querySelector('.possible-move');
+                if (moveIndicator) {
+                    square.removeChild(moveIndicator);
+                }
+                
+                // Remove learning highlights
+                square.classList.remove('learning-highlight');
+            });
+            
+            // Add pieces to the board
+            for (let row = 0; row < 8; row++) {
+                for (let col = 0; col < 8; col++) {
+                    const piece = gameState.board[row][col];
+                    if (piece) {
+                        const square = document.querySelector(`.square[data-row="${row}"][data-col="${col}"]`);
+                        const pieceEl = document.createElement('div');
+                        pieceEl.className = `piece ${gameState.settings.mode === 'drugged' ? 'drugged-piece' : ''}`;
+                        
+                        // For drugged mode, add random size classes
+                        if (gameState.settings.mode === 'drugged') {
+                            const sizes = ['size-small', 'size-medium', 'size-large', 'size-xlarge'];
+                            const randomSize = sizes[Math.floor(Math.random() * sizes.length)];
+                            pieceEl.classList.add(randomSize);
+                            
+                            // Add random animation delays for more chaotic effect
+                            pieceEl.style.animationDelay = `${Math.random() * 2}s, ${Math.random() * 2}s, ${Math.random() * 2}s, ${Math.random() * 2}s`;
+                        }
+                        
+                        pieceEl.style.backgroundImage = `url(${getPieceImage(piece)})`;
+                        square.appendChild(pieceEl);
+                    }
+                }
+            }
+            
+            // Highlight king if in check
+            if (gameState.settings.checkHighlight) {
+                if (gameState.check.white) {
+                    const kingSquare = document.querySelector(`.square[data-row="${gameState.whiteKingPos.row}"][data-col="${gameState.whiteKingPos.col}"]`);
+                    const kingPiece = kingSquare.querySelector('.piece');
+                    if (kingPiece) kingPiece.classList.add('in-check');
+                }
+                
+                if (gameState.check.black) {
+                    const kingSquare = document.querySelector(`.square[data-row="${gameState.blackKingPos.row}"][data-col="${gameState.blackKingPos.col}"]`);
+                    const kingPiece = kingSquare.querySelector('.piece');
+                    if (kingPiece) kingPiece.classList.add('in-check');
+                }
+            }
+            
+            // Update captured pieces display
+            updateCapturedPieces();
+        }
+
+        // Get the image URL for a piece based on current mode
+        function getPieceImage(piece) {
+            const mode = gameState.settings.mode;
+            return gameState.pieceSets[mode]?.[piece.color]?.[piece.type] || 
+                   gameState.pieceSets.standard[piece.color][piece.type];
+        }
+
+        // Update the captured pieces display
+        function updateCapturedPieces() {
+            const whiteContainer = document.getElementById('captured-white');
+            const blackContainer = document.getElementById('captured-black');
+            
+            whiteContainer.innerHTML = '';
+            blackContainer.innerHTML = '';
+            
+            gameState.whiteCaptured.forEach(piece => {
+                const pieceEl = document.createElement('div');
+                pieceEl.className = 'captured-piece';
+                pieceEl.style.backgroundImage = `url(${getPieceImage(piece)})`;
+                whiteContainer.appendChild(pieceEl);
+            });
+            
+            gameState.blackCaptured.forEach(piece => {
+                const pieceEl = document.createElement('div');
+                pieceEl.className = 'captured-piece';
+                pieceEl.style.backgroundImage = `url(${getPieceImage(piece)})`;
+                blackContainer.appendChild(pieceEl);
+            });
+        }
+
+        // Set up event listeners
+        function setupEventListeners() {
+            // Board click event
+            document.getElementById('chess-board').addEventListener('click', handleBoardClick);
+            
+            // Settings button
+            document.getElementById('settings-btn').addEventListener('click', openSettings);
+            
+            // Modal close button
+            document.querySelector('.close').addEventListener('click', closeSettings);
+            
+            // Apply settings button
+            document.getElementById('apply-settings').addEventListener('click', applySettings);
+            
+            // Close modal when clicking outside
+            window.addEventListener('click', (event) => {
+                if (event.target === document.getElementById('settings-modal')) {
+                    closeSettings();
+                }
+            });
+        }
+
+        // Handle board click
+        function handleBoardClick(event) {
+            const square = event.target.closest('.square');
+            if (!square) return;
+            
+            const row = parseInt(square.dataset.row);
+            const col = parseInt(square.dataset.col);
+            
+            // If a piece is already selected
+            if (gameState.selectedPiece) {
+                // Check if the clicked square is a valid move
+                const isValidMove = gameState.possibleMoves.some(move => 
+                    move.row === row && move.col === col
+                );
+                
+                if (isValidMove) {
+                    movePiece(gameState.selectedPiece.row, gameState.selectedPiece.col, row, col);
+                    clearSelection();
+                } else {
+                    // Select a different piece or clear selection
+                    const piece = gameState.board[row][col];
+                    if (piece && piece.color === gameState.currentPlayer) {
+                        selectPiece(row, col);
+                    } else {
+                        clearSelection();
+                    }
+                }
+            } else {
+                // Select a piece if it's the current player's
+                const piece = gameState.board[row][col];
+                if (piece && piece.color === gameState.currentPlayer) {
+                    selectPiece(row, col);
+                }
+            }
+        }
+
+        // Select a piece
+        function selectPiece(row, col) {
+            gameState.selectedPiece = { row, col };
+            
+            if (gameState.settings.mode === 'no-rules') {
+                gameState.possibleMoves = calculatePossibleMovesNoRules(row, col);
+            } else {
+                gameState.possibleMoves = calculatePossibleMoves(row, col);
+            }
+            
+            // Highlight possible moves
+            gameState.possibleMoves.forEach(move => {
+                const square = document.querySelector(`.square[data-row="${move.row}"][data-col="${move.col}"]`);
+                const moveIndicator = document.createElement('div');
+                moveIndicator.className = 'possible-move';
+                square.appendChild(moveIndicator);
+            });
+            
+            // In learning mode, highlight all squares the piece can move to
+            if (gameState.settings.learning) {
+                gameState.possibleMoves.forEach(move => {
+                    const square = document.querySelector(`.square[data-row="${move.row}"][data-col="${move.col}"]`);
+                    square.classList.add('learning-highlight');
+                });
+            }
+        }
+
+        // Clear selection
+        function clearSelection() {
+            gameState.selectedPiece = null;
+            gameState.possibleMoves = [];
+            
+            // Remove move indicators
+            document.querySelectorAll('.possible-move').forEach(el => el.remove());
+            
+            // Remove learning highlights
+            document.querySelectorAll('.learning-highlight').forEach(el => {
+                el.classList.remove('learning-highlight');
+            });
+        }
+
+        // Calculate possible moves for a piece (standard rules)
+        function calculatePossibleMoves(row, col) {
+            const piece = gameState.board[row][col];
+            if (!piece) return [];
+            
+            const moves = [];
+            
+            switch (piece.type) {
+                case 'pawn':
+                    calculatePawnMoves(row, col, piece.color, moves);
+                    break;
+                case 'rook':
+                    calculateRookMoves(row, col, piece.color, moves);
+                    break;
+                case 'knight':
+                    calculateKnightMoves(row, col, piece.color, moves);
+                    break;
+                case 'bishop':
+                    calculateBishopMoves(row, col, piece.color, moves);
+                    break;
+                case 'queen':
+                    calculateQueenMoves(row, col, piece.color, moves);
+                    break;
+                case 'king':
+                    calculateKingMoves(row, col, piece.color, moves);
+                    break;
+            }
+            
+            // Filter out moves that would put or leave the king in check
+            return moves.filter(move => {
+                // Simulate the move
+                const originalPiece = gameState.board[move.row][move.col];
+                gameState.board[move.row][move.col] = piece;
+                gameState.board[row][col] = null;
+                
+                // Update king position if moving the king
+                let kingPos;
+                if (piece.type === 'king') {
+                    kingPos = piece.color === 'white' ? gameState.whiteKingPos : gameState.blackKingPos;
+                    if (piece.color === 'white') {
+                        gameState.whiteKingPos = { row: move.row, col: move.col };
+                    } else {
+                        gameState.blackKingPos = { row: move.row, col: move.col };
+                    }
+                }
+                
+                // Check if the king is in check after the move
+                const inCheck = isKingInCheck(piece.color);
+                
+                // Restore the board
+                gameState.board[row][col] = piece;
+                gameState.board[move.row][move.col] = originalPiece;
+                
+                // Restore king position if moved
+                if (piece.type === 'king') {
+                    if (piece.color === 'white') {
+                        gameState.whiteKingPos = kingPos;
+                    } else {
+                        gameState.blackKingPos = kingPos;
+                    }
+                }
+                
+                return !inCheck;
+            });
+        }
+
+        // Calculate possible moves for no-rules mode
+        function calculatePossibleMovesNoRules(row, col) {
+            const piece = gameState.board[row][col];
+            if (!piece) return [];
+            
+            const moves = [];
+            const color = piece.color;
+            
+            if (piece.type === 'king') {
+                // King can move like a king but can't be captured
+                for (let r = 0; r < 8; r++) {
+                    for (let c = 0; c < 8; c++) {
+                        if (r === row && c === col) continue;
+                        
+                        const target = gameState.board[r][c];
+                        if (!target || target.color !== color) {
+                            moves.push({ row: r, col: c });
+                        }
+                    }
+                }
+            } else {
+                // All other pieces can move anywhere
+                for (let r = 0; r < 8; r++) {
+                    for (let c = 0; c < 8; c++) {
+                        if (r === row && c === col) continue;
+                        
+                        const target = gameState.board[r][c];
+                        if (!target || target.color !== color) {
+                            // Don't allow capturing the opponent's king in no-rules mode
+                            if (!target || target.type !== 'king') {
+                                moves.push({ row: r, col: c });
+                            }
+                        }
+                    }
+                }
+            }
+            
+            return moves;
+        }
+
+        // Calculate pawn moves
+        function calculatePawnMoves(row, col, color, moves) {
+            const direction = color === 'white' ? -1 : 1;
+            const startRow = color === 'white' ? 6 : 1;
+            
+            // Move forward one square
+            if (isInBounds(row + direction, col) && !gameState.board[row + direction][col]) {
+                moves.push({ row: row + direction, col });
+                
+                // Move forward two squares from starting position
+                if (row === startRow && !gameState.board[row + 2 * direction][col]) {
+                    moves.push({ row: row + 2 * direction, col });
+                }
+            }
+            
+            // Capture diagonally
+            for (const colOffset of [-1, 1]) {
+                if (isInBounds(row + direction, col + colOffset)) {
+                    const targetPiece = gameState.board[row + direction][col + colOffset];
+                    if (targetPiece && targetPiece.color !== color) {
+                        moves.push({ row: row + direction, col: col + colOffset });
+                    }
+                    
+                    // En passant
+                    if (gameState.enPassantTarget && 
+                        gameState.enPassantTarget.row === row + direction &&
+                        gameState.enPassantTarget.col === col + colOffset) {
+                        moves.push({ row: row + direction, col: col + colOffset, isEnPassant: true });
+                    }
+                }
+            }
+        }
+
+        // Calculate rook moves
+        function calculateRookMoves(row, col, color, moves) {
+            const directions = [
+                { rowDir: -1, colDir: 0 }, // up
+                { rowDir: 1, colDir: 0 },  // down
+                { rowDir: 0, colDir: -1 }, // left
+                { rowDir: 0, colDir: 1 }   // right
+            ];
+            
+            calculateSlidingMoves(row, col, color, directions, moves);
+        }
+
+        // Calculate knight moves
+        function calculateKnightMoves(row, col, color, moves) {
+            const offsets = [
+                { row: -2, col: -1 }, { row: -2, col: 1 },
+                { row: -1, col: -2 }, { row: -1, col: 2 },
+                { row: 1, col: -2 }, { row: 1, col: 2 },
+                { row: 2, col: -1 }, { row: 2, col: 1 }
+            ];
+            
+            for (const offset of offsets) {
+                const newRow = row + offset.row;
+                const newCol = col + offset.col;
+                
+                if (isInBounds(newRow, newCol)) {
+                    const targetPiece = gameState.board[newRow][newCol];
+                    if (!targetPiece || targetPiece.color !== color) {
+                        moves.push({ row: newRow, col: newCol });
+                    }
+                }
+            }
+        }
+
+        // Calculate bishop moves
+        function calculateBishopMoves(row, col, color, moves) {
+            const directions = [
+                { rowDir: -1, colDir: -1 }, // up-left
+                { rowDir: -1, colDir: 1 },  // up-right
+                { rowDir: 1, colDir: -1 },  // down-left
+                { rowDir: 1, colDir: 1 }    // down-right
+            ];
+            
+            calculateSlidingMoves(row, col, color, directions, moves);
+        }
+
+        // Calculate queen moves
+        function calculateQueenMoves(row, col, color, moves) {
+            // Queen moves like rook and bishop combined
+            calculateRookMoves(row, col, color, moves);
+            calculateBishopMoves(row, col, color, moves);
+        }
+
+        // Calculate king moves
+        function calculateKingMoves(row, col, color, moves) {
+            for (let rowOffset = -1; rowOffset <= 1; rowOffset++) {
+                for (let colOffset = -1; colOffset <= 1; colOffset++) {
+                    if (rowOffset === 0 && colOffset === 0) continue;
+                    
+                    const newRow = row + rowOffset;
+                    const newCol = col + colOffset;
+                    
+                    if (isInBounds(newRow, newCol)) {
+                        const targetPiece = gameState.board[newRow][newCol];
+                        if (!targetPiece || targetPiece.color !== color) {
+                            moves.push({ row: newRow, col: newCol });
+                        }
+                    }
+                }
+            }
+            
+            // Castling
+            if (color === 'white' && row === 7 && col === 4) {
+                // Kingside castling
+                if (gameState.castlingRights.white.kingSide &&
+                    !gameState.board[7][5] &&
+                    !gameState.board[7][6] &&
+                    !isSquareAttacked(7, 4, 'black') &&
+                    !isSquareAttacked(7, 5, 'black') &&
+                    !isSquareAttacked(7, 6, 'black')) {
+                    moves.push({ row: 7, col: 6, isCastling: 'kingSide' });
+                }
+                
+                // Queenside castling
+                if (gameState.castlingRights.white.queenSide &&
+                    !gameState.board[7][3] &&
+                    !gameState.board[7][2] &&
+                    !gameState.board[7][1] &&
+                    !isSquareAttacked(7, 4, 'black') &&
+                    !isSquareAttacked(7, 3, 'black') &&
+                    !isSquareAttacked(7, 2, 'black')) {
+                    moves.push({ row: 7, col: 2, isCastling: 'queenSide' });
+                }
+            } else if (color === 'black' && row === 0 && col === 4) {
+                // Kingside castling
+                if (gameState.castlingRights.black.kingSide &&
+                    !gameState.board[0][5] &&
+                    !gameState.board[0][6] &&
+                    !isSquareAttacked(0, 4, 'white') &&
+                    !isSquareAttacked(0, 5, 'white') &&
+                    !isSquareAttacked(0, 6, 'white')) {
+                    moves.push({ row: 0, col: 6, isCastling: 'kingSide' });
+                }
+                
+                // Queenside castling
+                if (gameState.castlingRights.black.queenSide &&
+                    !gameState.board[0][3] &&
+                    !gameState.board[0][2] &&
+                    !gameState.board[0][1] &&
+                    !isSquareAttacked(0, 4, 'white') &&
+                    !isSquareAttacked(0, 3, 'white') &&
+                    !isSquareAttacked(0, 2, 'white')) {
+                    moves.push({ row: 0, col: 2, isCastling: 'queenSide' });
+                }
+            }
+        }
+
+        // Helper function for sliding pieces (rook, bishop, queen)
+        function calculateSlidingMoves(row, col, color, directions, moves) {
+            for (const dir of directions) {
+                let currentRow = row + dir.rowDir;
+                let currentCol = col + dir.colDir;
+                
+                while (isInBounds(currentRow, currentCol)) {
+                    const targetPiece = gameState.board[currentRow][currentCol];
+                    
+                    if (!targetPiece) {
+                        moves.push({ row: currentRow, col: currentCol });
+                    } else {
+                        if (targetPiece.color !== color) {
+                            moves.push({ row: currentRow, col: currentCol });
+                        }
+                        break;
+                    }
+                    
+                    currentRow += dir.rowDir;
+                    currentCol += dir.colDir;
+                }
+            }
+        }
+
+        // Check if a square is within board bounds
+        function isInBounds(row, col) {
+            return row >= 0 && row < 8 && col >= 0 && col < 8;
+        }
+
+        // Check if a square is attacked by the opponent
+        function isSquareAttacked(row, col, byColor) {
+            // Check for pawn attacks
+            const pawnDirection = byColor === 'white' ? -1 : 1;
+            for (const colOffset of [-1, 1]) {
+                if (isInBounds(row + pawnDirection, col + colOffset)) {
+                    const piece = gameState.board[row + pawnDirection][col + colOffset];
+                    if (piece && piece.type === 'pawn' && piece.color === byColor) {
+                        return true;
+                    }
+                }
+            }
+            
+            // Check for knight attacks
+            const knightOffsets = [
+                { row: -2, col: -1 }, { row: -2, col: 1 },
+                { row: -1, col: -2 }, { row: -1, col: 2 },
+                { row: 1, col: -2 }, { row: 1, col: 2 },
+                { row: 2, col: -1 }, { row: 2, col: 1 }
+            ];
+            
+            for (const offset of knightOffsets) {
+                const newRow = row + offset.row;
+                const newCol = col + offset.col;
+                
+                if (isInBounds(newRow, newCol)) {
+                    const piece = gameState.board[newRow][newCol];
+                    if (piece && piece.type === 'knight' && piece.color === byColor) {
+                        return true;
+                    }
+                }
+            }
+            
+            // Check for king attacks (one square away)
+            for (let rowOffset = -1; rowOffset <= 1; rowOffset++) {
+                for (let colOffset = -1; colOffset <= 1; colOffset++) {
+                    if (rowOffset === 0 && colOffset === 0) continue;
+                    
+                    const newRow = row + rowOffset;
+                    const newCol = col + colOffset;
+                    
+                    if (isInBounds(newRow, newCol)) {
+                        const piece = gameState.board[newRow][newCol];
+                        if (piece && piece.type === 'king' && piece.color === byColor) {
+                            return true;
+                        }
+                    }
+                }
+            }
+            
+            // Check for sliding pieces (rook, bishop, queen)
+            const directions = [
+                { rowDir: -1, colDir: 0 }, // up
+                { rowDir: 1, colDir: 0 },  // down
+                { rowDir: 0, colDir: -1 }, // left
+                { rowDir: 0, colDir: 1 },  // right
+                { rowDir: -1, colDir: -1 }, // up-left
+                { rowDir: -1, colDir: 1 },  // up-right
+                { rowDir: 1, colDir: -1 },  // down-left
+                { rowDir: 1, colDir: 1 }    // down-right
+            ];
+            
+            for (const dir of directions) {
+                let currentRow = row + dir.rowDir;
+                let currentCol = col + dir.colDir;
+                
+                while (isInBounds(currentRow, currentCol)) {
+                    const piece = gameState.board[currentRow][currentCol];
+                    
+                    if (piece) {
+                        if (piece.color === byColor) {
+                            // Check if piece can attack in this direction
+                            if ((dir.rowDir === 0 || dir.colDir === 0) && 
+                                (piece.type === 'rook' || piece.type === 'queen')) {
+                                return true;
+                            }
+                            
+                            if ((dir.rowDir !== 0 && dir.colDir !== 0) && 
+                                (piece.type === 'bishop' || piece.type === 'queen')) {
+                                return true;
+                            }
+                        }
+                        break;
+                    }
+                    
+                    currentRow += dir.rowDir;
+                    currentCol += dir.colDir;
+                }
+            }
+            
+            return false;
+        }
+
+        // Check if the king is in check
+        function isKingInCheck(color) {
+            const kingPos = color === 'white' ? gameState.whiteKingPos : gameState.blackKingPos;
+            return isSquareAttacked(kingPos.row, kingPos.col, color === 'white' ? 'black' : 'white');
+        }
+
+        // Move a piece
+        function movePiece(fromRow, fromCol, toRow, toCol) {
+            const piece = gameState.board[fromRow][fromCol];
+            const targetPiece = gameState.board[toRow][toCol];
+            
+            // Handle capture
+            if (targetPiece) {
+                if (gameState.settings.sound) {
+                    gameState.sounds.capture.currentTime = 0;
+                    gameState.sounds.capture.play().catch(e => console.log("Audio play failed:", e));
+                }
+                
+                if (piece.color === 'white') {
+                    gameState.blackCaptured.push(targetPiece);
+                } else {
+                    gameState.whiteCaptured.push(targetPiece);
+                }
+                
+                // Show enhanced explosion effect if enabled
+                if (gameState.settings.explosion) {
+                    createEnhancedExplosion(toRow, toCol);
+                }
+            } else if (gameState.settings.sound) {
+                gameState.sounds.move.currentTime = 0;
+                gameState.sounds.move.play().catch(e => console.log("Audio play failed:", e));
+            }
+            
+            // Handle special moves
+            const move = gameState.possibleMoves.find(m => m.row === toRow && m.col === toCol);
+            
+            // En passant
+            if (move && move.isEnPassant) {
+                const capturedPawnRow = fromRow;
+                const capturedPawnCol = toCol;
+                
+                if (piece.color === 'white') {
+                    gameState.blackCaptured.push(gameState.board[capturedPawnRow][capturedPawnCol]);
+                } else {
+                    gameState.whiteCaptured.push(gameState.board[capturedPawnRow][capturedPawnCol]);
+                }
+                
+                gameState.board[capturedPawnRow][capturedPawnCol] = null;
+            }
+            
+            // Castling
+            if (move && move.isCastling) {
+                if (move.isCastling === 'kingSide') {
+                    // Move rook
+                    if (piece.color === 'white') {
+                        gameState.board[7][5] = gameState.board[7][7];
+                        gameState.board[7][7] = null;
+                    } else {
+                        gameState.board[0][5] = gameState.board[0][7];
+                        gameState.board[0][7] = null;
+                    }
+                    
+                    if (gameState.settings.sound) {
+                        gameState.sounds.castle.currentTime = 0;
+                        gameState.sounds.castle.play().catch(e => console.log("Audio play failed:", e));
+                    }
+                } else if (move.isCastling === 'queenSide') {
+                    // Move rook
+                    if (piece.color === 'white') {
+                        gameState.board[7][3] = gameState.board[7][0];
+                        gameState.board[7][0] = null;
+                    } else {
+                        gameState.board[0][3] = gameState.board[0][0];
+                        gameState.board[0][0] = null;
+                    }
+                    
+                    if (gameState.settings.sound) {
+                        gameState.sounds.castle.currentTime = 0;
+                        gameState.sounds.castle.play().catch(e => console.log("Audio play failed:", e));
+                    }
+                }
+                
+                // Update castling rights
+                if (piece.color === 'white') {
+                    gameState.castlingRights.white.kingSide = false;
+                    gameState.castlingRights.white.queenSide = false;
+                } else {
+                    gameState.castlingRights.black.kingSide = false;
+                    gameState.castlingRights.black.queenSide = false;
+                }
+            }
+            
+            // Update en passant target
+            gameState.enPassantTarget = null;
+            if (piece.type === 'pawn' && Math.abs(fromRow - toRow) === 2) {
+                gameState.enPassantTarget = {
+                    row: (fromRow + toRow) / 2,
+                    col: fromCol
+                };
+            }
+            
+            // Update castling rights if king or rook moves
+            if (piece.type === 'king') {
+                if (piece.color === 'white') {
+                    gameState.castlingRights.white.kingSide = false;
+                    gameState.castlingRights.white.queenSide = false;
+                } else {
+                    gameState.castlingRights.black.kingSide = false;
+                    gameState.castlingRights.black.queenSide = false;
+                }
+            } else if (piece.type === 'rook') {
+                if (fromRow === 7 && fromCol === 0) {
+                    gameState.castlingRights.white.queenSide = false;
+                } else if (fromRow === 7 && fromCol === 7) {
+                    gameState.castlingRights.white.kingSide = false;
+                } else if (fromRow === 0 && fromCol === 0) {
+                    gameState.castlingRights.black.queenSide = false;
+                } else if (fromRow === 0 && fromCol === 7) {
+                    gameState.castlingRights.black.kingSide = false;
+                }
+            }
+            
+            // Move the piece
+            gameState.board[toRow][toCol] = piece;
+            gameState.board[fromRow][fromCol] = null;
+            
+            // Update king position if moving the king
+            if (piece.type === 'king') {
+                if (piece.color === 'white') {
+                    gameState.whiteKingPos = { row: toRow, col: toCol };
+                } else {
+                    gameState.blackKingPos = { row: toRow, col: toCol };
+                }
+            }
+            
+            // Check for pawn promotion
+            if (piece.type === 'pawn' && (toRow === 0 || toRow === 7)) {
+                // For simplicity, always promote to queen
+                gameState.board[toRow][toCol] = { type: 'queen', color: piece.color };
+            }
+            
+            // Switch player
+            gameState.currentPlayer = gameState.currentPlayer === 'white' ? 'black' : 'white';
+            
+            // Update check status
+            gameState.check.white = isKingInCheck('white');
+            gameState.check.black = isKingInCheck('black');
+            
+            // Play check sound if applicable
+            if ((gameState.check.white || gameState.check.black) && gameState.settings.sound) {
+                gameState.sounds.check.currentTime = 0;
+                gameState.sounds.check.play().catch(e => console.log("Audio play failed:", e));
+            }
+            
+            // Update the board
+            renderBoard();
+            updateStatus();
+            
+            // Check for checkmate or stalemate
+            if (isCheckmate()) {
+                alert(`Checkmate! ${gameState.currentPlayer === 'white' ? 'Black' : 'White'} wins!`);
+                if (gameState.settings.sound) {
+                    gameState.sounds.gameOver.currentTime = 0;
+                    gameState.sounds.gameOver.play().catch(e => console.log("Audio play failed:", e));
+                }
+            } else if (isStalemate()) {
+                alert("Stalemate! The game is a draw.");
+                if (gameState.settings.sound) {
+                    gameState.sounds.gameOver.currentTime = 0;
+                    gameState.sounds.gameOver.play().catch(e => console.log("Audio play failed:", e));
+                }
+            }
+        }
+
+        // Create enhanced explosion effect
+        function createEnhancedExplosion(row, col) {
+            const square = document.querySelector(`.square[data-row="${row}"][data-col="${col}"]`);
+            
+            // Create main explosion
+            const explosion = document.createElement('div');
+            explosion.className = 'explosion';
+            square.appendChild(explosion);
+            
+            // Create particle explosion
+            for (let i = 0; i < 15; i++) {
+                const particle = document.createElement('div');
+                particle.className = 'particle';
+                
+                // Random direction and distance
+                const angle = Math.random() * Math.PI * 2;
+                const distance = 30 + Math.random() * 70;
+                const tx = Math.cos(angle) * distance;
+                const ty = Math.sin(angle) * distance;
+                
+                particle.style.setProperty('--tx', `${tx}px`);
+                particle.style.setProperty('--ty', `${ty}px`);
+                
+                // Random color
+                const hue = Math.random() * 360;
+                particle.style.background = `hsl(${hue}, 100%, 50%)`;
+                
+                // Random size
+                const size = 5 + Math.random() * 10;
+                particle.style.width = `${size}px`;
+                particle.style.height = `${size}px`;
+                
+                // Random delay
+                particle.style.animationDelay = `${Math.random() * 0.3}s`;
+                
+                square.appendChild(particle);
+            }
+            
+            // Remove elements after animation
+            setTimeout(() => {
+                if (square.contains(explosion)) {
+                    square.removeChild(explosion);
+                }
+                document.querySelectorAll('.particle').forEach(particle => {
+                    if (particle.parentNode === square) {
+                        square.removeChild(particle);
+                    }
+                });
+            }, 1000);
+        }
+
+        // Check for checkmate
+        function isCheckmate() {
+            const color = gameState.currentPlayer;
+            
+            // If the king is not in check, it's not checkmate
+            if (!(color === 'white' ? gameState.check.white : gameState.check.black)) {
+                return false;
+            }
+            
+            // Check if any move can get out of check
+            for (let row = 0; row < 8; row++) {
+                for (let col = 0; col < 8; col++) {
+                    const piece = gameState.board[row][col];
+                    if (piece && piece.color === color) {
+                        let moves = [];
+                        if (gameState.settings.mode === 'no-rules') {
+                            moves = calculatePossibleMovesNoRules(row, col);
+                        } else {
+                            moves = calculatePossibleMoves(row, col);
+                        }
+                        if (moves.length > 0) {
+                            return false;
+                        }
+                    }
+                }
+            }
+            
+            return true;
+        }
+
+        // Check for stalemate
+        function isStalemate() {
+            const color = gameState.currentPlayer;
+            
+            // If the king is in check, it's not stalemate
+            if (color === 'white' ? gameState.check.white : gameState.check.black) {
+                return false;
+            }
+            
+            // Check if any legal move exists
+            for (let row = 0; row < 8; row++) {
+                for (let col = 0; col < 8; col++) {
+                    const piece = gameState.board[row][col];
+                    if (piece && piece.color === color) {
+                        let moves = [];
+                        if (gameState.settings.mode === 'no-rules') {
+                            moves = calculatePossibleMovesNoRules(row, col);
+                        } else {
+                            moves = calculatePossibleMoves(row, col);
+                        }
+                        if (moves.length > 0) {
+                            return false;
+                        }
+                    }
+                }
+            }
+            
+            return true;
+        }
+
+        // Update game status display
+        function updateStatus() {
+            const statusEl = document.getElementById('status');
+            let statusText = `${gameState.currentPlayer === 'white' ? 'White' : 'Black'}'s turn`;
+            
+            if (gameState.check.white) {
+                statusText = "White is in check!";
+            } else if (gameState.check.black) {
+                statusText = "Black is in check!";
+            }
+            
+            statusEl.textContent = statusText;
+        }
+
+        // Open settings modal
+        function openSettings() {
+            document.getElementById('settings-modal').style.display = 'flex';
+            
+            // Set current values in the modal
+            document.getElementById('explosion-toggle').checked = gameState.settings.explosion;
+            document.getElementById('check-highlight-toggle').checked = gameState.settings.checkHighlight;
+            document.getElementById('timer-toggle').checked = gameState.settings.timerEnabled;
+            document.getElementById('timer-time').value = gameState.settings.timerMinutes;
+            document.getElementById('rotation-select').value = gameState.settings.rotation;
+            document.getElementById('sound-toggle').checked = gameState.settings.sound;
+            document.getElementById('theme-select').value = gameState.settings.theme;
+            document.getElementById('mode-select').value = gameState.settings.mode;
+            document.getElementById('learning-toggle').checked = gameState.settings.learning;
+        }
+
+        // Close settings modal
+        function closeSettings() {
+            document.getElementById('settings-modal').style.display = 'none';
+        }
+
+        // Apply settings from modal
+        function applySettings() {
+            gameState.settings.explosion = document.getElementById('explosion-toggle').checked;
+            gameState.settings.checkHighlight = document.getElementById('check-highlight-toggle').checked;
+            gameState.settings.timerEnabled = document.getElementById('timer-toggle').checked;
+            gameState.settings.timerMinutes = parseInt(document.getElementById('timer-time').value);
+            gameState.settings.rotation = parseInt(document.getElementById('rotation-select').value);
+            gameState.settings.sound = document.getElementById('sound-toggle').checked;
+            gameState.settings.theme = document.getElementById('theme-select').value;
+            gameState.settings.mode = document.getElementById('mode-select').value;
+            gameState.settings.learning = document.getElementById('learning-toggle').checked;
+            
+            // Apply visual changes
+            applyBoardTheme();
+            applyRotation();
+            
+            // Handle timer
+            if (gameState.timer.interval) {
+                clearInterval(gameState.timer.interval);
+                gameState.timer.interval = null;
+            }
+            
+            if (gameState.settings.timerEnabled) {
+                gameState.timer.whiteTime = gameState.settings.timerMinutes * 60;
+                gameState.timer.blackTime = gameState.settings.timerMinutes * 60;
+                updateTimerDisplay();
+                
+                gameState.timer.interval = setInterval(() => {
+                    if (gameState.currentPlayer === 'white') {
+                        gameState.timer.whiteTime--;
+                    } else {
+                        gameState.timer.blackTime--;
+                    }
+                    
+                    updateTimerDisplay();
+                    
+                    // Check for timeout
+                    if (gameState.timer.whiteTime <= 0) {
+                        clearInterval(gameState.timer.interval);
+                        alert("Time's up! Black wins!");
+                    } else if (gameState.timer.blackTime <= 0) {
+                        clearInterval(gameState.timer.interval);
+                        alert("Time's up! White wins!");
+                    }
+                }, 1000);
+            }
+            
+            // Handle drugged mode
+            const board = document.getElementById('chess-board');
+            if (gameState.settings.mode === 'drugged') {
+                board.classList.add('drugged-board');
+            } else {
+                board.classList.remove('drugged-board');
+            }
+            
+            // Re-render the board with new settings
+            renderBoard();
+            
+            closeSettings();
+        }
+
+        // Apply board theme
+        function applyBoardTheme() {
+            const board = document.getElementById('chess-board');
+            if (gameState.settings.theme === 'digital') {
+                board.classList.add('digital');
+                board.classList.remove('wooden');
+            } else {
+                board.classList.add('wooden');
+                board.classList.remove('digital');
+            }
+        }
+
+        // Apply board rotation
+        function applyRotation() {
+            const boardContainer = document.querySelector('.board-container');
+            boardContainer.className = 'board-container';
+            boardContainer.classList.add(`rotate-${gameState.settings.rotation}`);
+        }
+
+        // Update timer display
+        function updateTimerDisplay() {
+            const timerEl = document.getElementById('timer-display');
+            
+            if (gameState.settings.timerEnabled) {
+                const formatTime = (seconds) => {
+                    const mins = Math.floor(seconds / 60);
+                    const secs = seconds % 60;
+                    return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+                };
+                
+                timerEl.textContent = `White: ${formatTime(gameState.timer.whiteTime)} | Black: ${formatTime(gameState.timer.blackTime)}`;
+            } else {
+                timerEl.textContent = '';
+            }
+        }
+
+        // Initialize the game when the page loads
+        window.addEventListener('load', initGame);
+    </script>
+</body>
+</html>
