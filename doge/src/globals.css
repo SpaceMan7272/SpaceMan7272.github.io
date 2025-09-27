@@ -1,0 +1,17 @@
+@import 'tailwindcss';
+@tailwind utilities;
+@plugin 'tailwind-scrollbar';
+
+@layer base {
+  *,
+  ::after,
+  ::before,
+  ::backdrop,
+  ::file-selector-button {
+    border-color: rgba(255, 255, 255, 0.11);
+  }
+  :root {
+    --ui-scale: 1;
+    --nav-scale: 1;
+  }
+}
