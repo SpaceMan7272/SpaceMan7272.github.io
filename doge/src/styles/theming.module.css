@@ -1,0 +1,182 @@
+.nav-backgroundColor,
+.searchBarColor,
+.searchResultStyle,
+.settings-panelColor,
+.settings-contentColor,
+.appsSearchColor,
+.appItemColor {
+  transition: all 100ms ease-in-out,
+    box-shadow 100ms ease-in-out;
+}
+
+.searchBarColor input::placeholder,
+.appsSearchColor input::placeholder {
+  transition: color 100ms ease-in-out;
+}
+
+.appsSearchColor input {
+  transition: color 100ms ease-in-out;
+}
+
+
+.theme-default {
+  --nav-bg: #0a141bb7;
+  --nav-border: #17253ac5;
+  --search-border: #1f324e;
+  --search-bg: #141d2b;
+  --search-ph: #9baec8;
+  --search-color: #ecf6ff;
+  --settings-panel: #141d2b;
+  --settings-border: #233046;
+  --settings-content: #121b29;
+  --apps-bg: #141d2b;
+  --apps-border: #1f324e;
+  --apps-text: #ecf6ff;
+  --apps-ph: #9baec8;
+  --item-bg: #141d2b;
+  --item-border: #1f324e;
+}
+
+.theme-mocha {
+  --nav-bg: #141313b7;
+  --nav-border: #2b2222c5;
+  --search-border: #362f2f;
+  --search-bg: #241e1e;
+  --search-ph: #b8abab;
+  --search-color: #ecf6ff;
+  --settings-panel: #1f1817;
+  --settings-border: #362f2f;
+  --settings-content: #1a1414;
+  --apps-bg: #291e1e;
+  --apps-border: #3b2e2e;
+  --apps-text: #ecf6ff;
+  --apps-ph: #bea4a4;
+  --item-bg: #271c1c;
+  --item-border: #443535;
+}
+
+.theme-dark {
+  --nav-bg: #0e0e10cc;
+  --nav-border: #22232a;
+  --search-border: #2a2a2f;
+  --search-bg: #151517;
+  --search-ph: #9ca3af;
+  --search-color: #ecf6ff;
+  --settings-panel: #121214;
+  --settings-border: #27272a;
+  --settings-content: #0f0f12;
+  --apps-bg: #151519;
+  --apps-border: #2a2a2f;
+  --apps-text: #f8fafc;
+  --apps-ph: #9ca3af;
+  --item-bg: #151519;
+  --item-border: #2a2a2f;
+}
+
+.theme-light {
+  --nav-bg: #ffffffcc;
+  --nav-border: #e5e7eb;
+  --search-border: #d1d5db;
+  --search-bg: #ffffff;
+  --search-ph: #374151;
+  --search-color: #1a1a1a;
+  --settings-panel: #f8fafc;
+  --settings-border: #e5e7eb;
+  --settings-content: #f3f4f6;
+  --apps-bg: #ffffffb3;
+  --apps-border: #e5e7eb;
+  --apps-text: #111827;
+  --apps-ph: #374151;
+  --item-bg: #ffffff;
+  --item-border: #e5e7eb;
+}
+
+.theme-forest {
+  --nav-bg: #0f1a13b7;
+  --nav-border: #1e2e24c5;
+  --search-border: #2a4937;
+  --search-bg: #14221a;
+  --search-ph: #a9cbb6;
+  --search-color: #ecf6ff;
+  --settings-panel: #121d16;
+  --settings-border: #2a4937;
+  --settings-content: #0f1a13;
+  --apps-bg: #15261c;
+  --apps-border: #2f4f3c;
+  --apps-text: #ecfff3;
+  --apps-ph: #a9cbb6;
+  --item-bg: #15261c;
+  --item-border: #2f4f3c;
+}
+
+.theme-paper {
+  --nav-bg: #fff9ece6;
+  --nav-border: #e8e2cf;
+  --search-border: #e6dec7;
+  --search-bg: #fffaf2;
+  --search-ph: #4b5563;
+  --search-color: #1a1a1a;
+  --settings-panel: #faf4e6;
+  --settings-border: #ebe3cd;
+  --settings-content: #f7f1e3;
+  --apps-bg: #fffcf3;
+  --apps-border: #eae1ca;
+  --apps-text: #1f2937;
+  --apps-ph: #4b5563;
+  --item-bg: #fffbef;
+  --item-border: #e6dec7;
+}
+
+.nav-backgroundColor {
+  background-color: var(--nav-bg);
+  border-bottom: 1px solid var(--nav-border);
+}
+
+.searchBarColor {
+  border: 1px solid var(--search-border);
+  box-shadow: 0 1px 0 0 var(--search-border);
+  background-color: var(--search-bg);
+}
+
+.searchBarColor input {
+  color: var(--search-color);
+}
+
+.searchBarColor input::placeholder {
+  color: var(--search-ph);
+}
+
+.searchResultStyle {
+  background-color: var(--search-bg);
+  border: 1px solid var(--search-border);
+  border-top: 0;
+}
+
+.settings-panelColor {
+  background-color: var(--settings-panel);
+  border-right: 1px solid var(--settings-border);
+}
+
+.settings-contentColor {
+  background-color: var(--settings-content);
+}
+
+.appsSearchColor {
+  background-color: var(--apps-bg);
+  border: 1px solid var(--apps-border);
+}
+
+.appsSearchColor input {
+  color: var(--apps-text);
+  border: none;
+}
+
+.appsSearchColor input::placeholder {
+  color: var(--apps-ph);
+}
+
+.appItemColor {
+  background-color: var(--item-bg);
+  border: 1px solid var(--item-border);
+  box-shadow: 0px 4px 20px -9px rgba(0, 0, 0, 0.25);
+}
