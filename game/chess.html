@@ -363,7 +363,7 @@
         .rotate-180 { transform: rotate(180deg); }
         .rotate-270 { transform: rotate(270deg); }
 
-        /* Enhanced Drugged mode effects */
+        /* Drugged mode effects */
         .drugged-board {
             animation: colorChange 3s infinite alternate, moveBoard 7s infinite alternate, scaleBoard 5s infinite alternate, distortBoard 4s infinite alternate;
             border: 3px solid transparent;
@@ -395,16 +395,16 @@
 
         @keyframes moveBoard {
             0% { transform: translate(0, 0); }
-            25% { transform: translate(5px, 10px); }
-            50% { transform: translate(-10px, 5px); }
-            75% { transform: translate(8px, -8px); }
+            25% { transform: translate(10px, 20px); }
+            50% { transform: translate(-20px, 10px); }
+            75% { transform: translate(16px, -16px); }
             100% { transform: translate(0, 0); }
         }
 
         @keyframes scaleBoard {
             0% { transform: scale(1); }
-            33% { transform: scale(0.95); }
-            66% { transform: scale(1.05); }
+            33% { transform: scale(0.85); }
+            66% { transform: scale(1.15); }
             100% { transform: scale(1); }
         }
 
