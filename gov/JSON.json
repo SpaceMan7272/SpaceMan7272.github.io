@@ -1,0 +1,956 @@
+[
+  {
+    "term": "Article I (Legislative Branch)",
+    "def": "Creates Congress (House and Senate), grants lawmaking powers including taxation, spending, regulation of commerce, and declares war; sets structure, powers, and limits for the legislative branch.",
+    "simdef": "establishes Congress",
+    "unit": "0",
+    "img": "https://via.placeholder.com/150"
+  },
+  {
+    "term": "Article II (Executive Branch)",
+    "def": "Establishes presidency, describes election process, powers like commander-in-chief, appointment and treaty roles, and duties for executing laws; provides removal and impeachment rules.",
+    "simdef": "creates the presidency",
+    "unit": "0",
+    "img": "https://via.placeholder.com/150"
+  },
+  {
+    "term": "Article III (Judicial Branch)",
+    "def": "Establishes Supreme Court and federal judiciary, defines jurisdiction over federal cases, guarantees trial by jury in criminal cases and addresses treason.",
+    "simdef": "creates federal courts",
+    "unit": "0",
+    "img": "https://via.placeholder.com/150"
+  },
+  {
+    "term": "Article IV (States and Federalism)",
+    "def": "Defines state relationships, requires full faith and credit between states, provides for privileges and immunities, and rules for admitting new states.",
+    "simdef": "states must cooperate",
+    "unit": "0",
+    "img": "https://via.placeholder.com/150"
+  },
+  {
+    "term": "Article V (Amendment Process)",
+    "def": "Sets methods to amend Constitution via proposal by two-thirds of Congress or convention, and ratification by three-fourths of states; outlines amendment mechanics.",
+    "simdef": "how to change Constitution",
+    "unit": "0",
+    "img": "https://via.placeholder.com/150"
+  },
+  {
+    "term": "Article VI (Supremacy Clause)",
+    "def": "Establishes Constitution, federal laws, and treaties as supreme law; requires oaths of office and prohibits religious tests for public office.",
+    "simdef": "federal law is supreme",
+    "unit": "0",
+    "img": "https://via.placeholder.com/150"
+  },
+  {
+    "term": "Article VII (Ratification)",
+    "def": "Explains procedure for ratification of the original Constitution by state conventions and declares that ratification establishes the Constitution as binding.",
+    "simdef": "how Constitution was approved",
+    "unit": "0",
+    "img": "https://via.placeholder.com/150"
+  },
+  {
+    "term": "Amendment I",
+    "def": "Protects freedoms of religion, speech, press, assembly, and petition\u2014preventing government from restricting these core civil liberties without compelling reasons.",
+    "simdef": "freedoms of expression and religion",
+    "unit": "0",
+    "img": "https://via.placeholder.com/150"
+  },
+  {
+    "term": "Amendment II",
+    "def": "Acknowledges right to keep and bear arms for security and militia purposes, balanced by legislative regulation; protects private firearm ownership under defined limits.",
+    "simdef": "right to own weapons",
+    "unit": "0",
+    "img": "https://via.placeholder.com/150"
+  },
+  {
+    "term": "Amendment III",
+    "def": "Prohibits quartering soldiers in private homes during peacetime without owner consent, and restricts it in wartime except by law.",
+    "simdef": "no forced housing of soldiers",
+    "unit": "0",
+    "img": "https://via.placeholder.com/150"
+  },
+  {
+    "term": "Amendment IV",
+    "def": "Protects against unreasonable searches and seizures and requires warrants based on probable cause with particularity about place and items.",
+    "simdef": "privacy from arbitrary searches",
+    "unit": "0",
+    "img": "https://via.placeholder.com/150"
+  },
+  {
+    "term": "Amendment V",
+    "def": "Provides due process, grand jury for serious crimes, protection against double jeopardy, forbids self-incrimination, and requires just compensation for takings.",
+    "simdef": "rights of accused and property",
+    "unit": "0",
+    "img": "https://via.placeholder.com/150"
+  },
+  {
+    "term": "Amendment VI",
+    "def": "Guarantees speedy and public trial by impartial jury, notice of accusations, confront witnesses, and right to counsel in criminal prosecutions.",
+    "simdef": "fair criminal trial rights",
+    "unit": "0",
+    "img": "https://via.placeholder.com/150"
+  },
+  {
+    "term": "Amendment VII",
+    "def": "Ensures right to jury trial in civil cases exceeding a monetary threshold and prevents reexamination of facts tried by a jury in federal courts.",
+    "simdef": "jury trials for civil disputes",
+    "unit": "0",
+    "img": "https://via.placeholder.com/150"
+  },
+  {
+    "term": "Amendment VIII",
+    "def": "Prohibits excessive bail or fines and forbids cruel and unusual punishments, guiding humane sentencing and corrections practices.",
+    "simdef": "no cruel punishment or excess fines",
+    "unit": "0",
+    "img": "https://via.placeholder.com/150"
+  },
+  {
+    "term": "Amendment IX",
+    "def": "Affirms that listing specific rights in the Constitution does not deny other rights held by the people, protecting unenumerated liberties.",
+    "simdef": "people have other rights too",
+    "unit": "0",
+    "img": "https://via.placeholder.com/150"
+  },
+  {
+    "term": "Amendment X",
+    "def": "Reserves to the states or the people powers not delegated to the federal government, confirming a federalist division of authority.",
+    "simdef": "states keep leftover powers",
+    "unit": "0",
+    "img": "https://via.placeholder.com/150"
+  },
+  {
+    "term": "Amendment XI",
+    "def": "Limits federal judicial power by restricting suits against states by citizens of another state or foreign citizen without consent.",
+    "simdef": "states have sovereign immunity",
+    "unit": "0",
+    "img": "https://via.placeholder.com/150"
+  },
+  {
+    "term": "Amendment XII",
+    "def": "Revises presidential election procedures, requiring separate Electoral College votes for president and vice president to avoid electoral ties and confusion.",
+    "simdef": "separate president/VP votes",
+    "unit": "0",
+    "img": "https://via.placeholder.com/150"
+  },
+  {
+    "term": "Amendment XIII",
+    "def": "Abolishes slavery and involuntary servitude except as punishment for crime, and authorizes Congress to enforce abolition by law.",
+    "simdef": "ends slavery",
+    "unit": "0",
+    "img": "https://via.placeholder.com/150"
+  },
+  {
+    "term": "Amendment XIV",
+    "def": "Grants citizenship to those born or naturalized in the U.S., ensures equal protection and due process under the law, and addresses apportionment and disqualification from office.",
+    "simdef": "citizenship and equal protection",
+    "unit": "0",
+    "img": "https://via.placeholder.com/150"
+  },
+  {
+    "term": "Amendment XV",
+    "def": "Prohibits denying a citizen the right to vote based on race, color, or previous condition of servitude and empowers Congress to enforce this.",
+    "simdef": "voting rights regardless of race",
+    "unit": "0",
+    "img": "https://via.placeholder.com/150"
+  },
+  {
+    "term": "Amendment XVI",
+    "def": "Authorizes Congress to levy an income tax without apportionment among the states, enabling modern federal fiscal policy.",
+    "simdef": "federal income tax allowed",
+    "unit": "0",
+    "img": "https://via.placeholder.com/150"
+  },
+  {
+    "term": "Amendment XVII",
+    "def": "Establishes direct election of U.S. Senators by voters in each state instead of selection by state legislatures, promoting direct democracy.",
+    "simdef": "senators elected by people",
+    "unit": "0",
+    "img": "https://via.placeholder.com/150"
+  },
+  {
+    "term": "Amendment XVIII",
+    "def": "Established prohibition on manufacture, sale, and transport of intoxicating liquors (later repealed by Amendment XXI); reflected social policy of the time.",
+    "simdef": "prohibition of alcohol\u2014repealed",
+    "unit": "0",
+    "img": "https://via.placeholder.com/150"
+  },
+  {
+    "term": "Amendment XIX",
+    "def": "Prohibits denying the right to vote on account of sex, extending suffrage to women nationwide and empowering Congress to enforce it.",
+    "simdef": "women's voting rights",
+    "unit": "0",
+    "img": "https://via.placeholder.com/150"
+  },
+  {
+    "term": "Amendment XX",
+    "def": "Sets terms for president, vice president, and Congress, shortens lame-duck period, and clarifies presidential succession and start dates.",
+    "simdef": "start/end dates and succession",
+    "unit": "0",
+    "img": "https://via.placeholder.com/150"
+  },
+  {
+    "term": "Amendment XXI",
+    "def": "Repeals the Eighteenth Amendment, ending national prohibition on alcohol and returning regulation primarily to the states.",
+    "simdef": "repealed prohibition",
+    "unit": "0",
+    "img": "https://via.placeholder.com/150"
+  },
+  {
+    "term": "Amendment XXII",
+    "def": "Limits a person to two elected terms as President (or max ten years if succession occurs), constraining presidential tenure.",
+    "simdef": "presidential two-term limit",
+    "unit": "0",
+    "img": "https://via.placeholder.com/150"
+  },
+  {
+    "term": "Amendment XXIII",
+    "def": "Grants District of Columbia residents electors in the Electoral College as though it were a state, allowing DC presidential voting representation.",
+    "simdef": "DC gets electoral votes",
+    "unit": "0",
+    "img": "https://via.placeholder.com/150"
+  },
+  {
+    "term": "Amendment XXIV",
+    "def": "Prohibits poll taxes in federal elections, removing a financial barrier that historically disenfranchised many voters.",
+    "simdef": "no poll tax for voting",
+    "unit": "0",
+    "img": "https://via.placeholder.com/150"
+  },
+  {
+    "term": "Amendment XXV",
+    "def": "Clarifies presidential succession, vice-presidential vacancy filling, and procedures for declaring a president unable to perform duties.",
+    "simdef": "rules for presidential succession",
+    "unit": "0",
+    "img": "https://via.placeholder.com/150"
+  },
+  {
+    "term": "Amendment XXVI",
+    "def": "Lowers the voting age to eighteen for all federal, state, and local elections, expanding democratic participation among younger citizens.",
+    "simdef": "voting age 18",
+    "unit": "0",
+    "img": "https://via.placeholder.com/150"
+  },
+  {
+    "term": "Amendment XXVII",
+    "def": "Prevents laws affecting congressional compensation from taking effect until after the next election of representatives, reducing self-interested pay changes.",
+    "simdef": "delays congressional pay changes",
+    "unit": "0",
+    "img": "https://via.placeholder.com/150"
+  }
+  {
+    "term": "Anti-Federalists",
+    "def": "Opposed ratifying the Constitution fearing a too-powerful national government, demanded protections for individual rights and stronger state authority.",
+    "simdef": "opposed strong central government",
+    "unit": "1",
+    "img": "https://via.placeholder.com/150"
+  },
+  {
+    "term": "Articles of Confederation",
+    "def": "First national government framework with weak central authority, limited taxing power, and difficulties coordinating states; succeeded in Northwest Ordinance but failed to govern effectively.",
+    "simdef": "weak national government",
+    "unit": "1",
+    "img": "https://via.placeholder.com/150"
+  },
+  {
+    "term": "Connecticut Compromise",
+    "def": "Bicameral legislature plan combining equal state representation in the Senate with population-based House apportionment, resolving large vs small state conflicts.",
+    "simdef": "Senate equal, House by population",
+    "unit": "1",
+    "img": "https://via.placeholder.com/150"
+  },
+  {
+    "term": "Popular Sovereignty",
+    "def": "Principle that political power rests with the people who authorize government, exercised through voting and consent to be governed.",
+    "simdef": "people hold ultimate power",
+    "unit": "1",
+    "img": "https://via.placeholder.com/150"
+  },
+  {
+    "term": "Declaration of Independence",
+    "def": "1776 document by Thomas Jefferson stating colonies' independence, asserting natural rights and influenced by Locke’s ideas about life, liberty, and pursuit of happiness.",
+    "simdef": "statement of independence and rights",
+    "unit": "1",
+    "img": "https://via.placeholder.com/150"
+  },
+  {
+    "term": "State Capture",
+    "def": "When private interests unduly influence government decision-making and regulations to benefit themselves, undermining public interest and democratic processes.",
+    "simdef": "private control of government",
+    "unit": "1",
+    "img": "https://via.placeholder.com/150"
+  },
+  {
+    "term": "Northwest Ordinance",
+    "def": "Established rules for settling Northwest Territory, created process for statehood, prohibited slavery in region, and set civil liberties precedent.",
+    "simdef": "how new states formed northwest",
+    "unit": "1",
+    "img": "https://via.placeholder.com/150"
+  },
+  {
+    "term": "Federalist Papers",
+    "def": "Collection of essays by Hamilton, Madison, and Jay arguing for Constitution ratification, explaining design choices like checks and balances and federalism.",
+    "simdef": "essays supporting Constitution",
+    "unit": "1",
+    "img": "https://via.placeholder.com/150"
+  },
+  {
+    "term": "Federalist",
+    "def": "Supporter of the Constitution favoring stronger national government to ensure order, promote commerce, and provide common defense.",
+    "simdef": "supports strong central government",
+    "unit": "1",
+    "img": "https://via.placeholder.com/150"
+  },
+  {
+    "term": "Limited Government",
+    "def": "Principle that government powers are restricted by law, constitution, and rights to prevent arbitrary rule and protect individual liberty.",
+    "simdef": "govt power is limited",
+    "unit": "1",
+    "img": "https://via.placeholder.com/150"
+  },
+  {
+    "term": "Natural Rights",
+    "def": "Rights inherent to individuals (life, liberty, property) that governments should protect; basis for modern human rights and Declaration ideals.",
+    "simdef": "basic human rights",
+    "unit": "1",
+    "img": "https://via.placeholder.com/150"
+  },
+  {
+    "term": "New Jersey Plan",
+    "def": "Proposed unicameral legislature with equal state representation and more limited national powers, protecting small states’ interests.",
+    "simdef": "equal state representation alternative",
+    "unit": "1",
+    "img": "https://via.placeholder.com/150"
+  },
+  {
+    "term": "Shay’s Rebellion",
+    "def": "1786–87 uprising by indebted farmers in Massachusetts protesting economic injustices and weak central government, prompting calls for stronger federal authority.",
+    "simdef": "farmers' revolt exposing weaknesses",
+    "unit": "1",
+    "img": "https://via.placeholder.com/150"
+  },
+  {
+    "term": "Unalienable Rights",
+    "def": "Fundamental rights that cannot be surrendered or taken away, like life, liberty, and the pursuit of happiness; government exists to protect them.",
+    "simdef": "rights that cannot be taken away",
+    "unit": "1",
+    "img": "https://via.placeholder.com/150"
+  },
+  {
+    "term": "Virginia Plan",
+    "def": "Proposal for a strong national government with bicameral legislature apportioned by population, empowering large states with greater representation.",
+    "simdef": "population-based representation plan",
+    "unit": "1",
+    "img": "https://via.placeholder.com/150"
+  },
+  {
+    "term": "Necessary and Proper Clause",
+    "def": "Grants Congress authority to make laws needed to execute enumerated powers, enabling implied powers and flexible governance (also called Elastic Clause).",
+    "simdef": "allows laws needed to carry out powers",
+    "unit": "1",
+    "img": "https://via.placeholder.com/150"
+  },
+  {
+    "term": "Federalism",
+    "def": "Division of power between national and state governments where both levels have independent authority and shared responsibilities under a constitution.",
+    "simdef": "shared national and state power",
+    "unit": "1",
+    "img": "https://via.placeholder.com/150"
+  },
+  {
+    "term": "Delegated powers of Congress",
+    "def": "Enumerated powers include taxing, spending, coining money, regulating commerce, declaring war, raising armies, establishing post offices, and making laws necessary to execute powers.",
+    "simdef": "Congress's listed powers",
+    "unit": "1",
+    "img": "https://via.placeholder.com/150"
+  },
+  {
+    "term": "Reserved powers",
+    "def": "Powers not delegated to the federal government nor prohibited to states are reserved to states or people, e.g., education, policing, local gov, licensing, intrastate commerce.",
+    "simdef": "state-only powers",
+    "unit": "1",
+    "img": "https://via.placeholder.com/150"
+  },
+  {
+    "term": "Delegated powers of the President",
+    "def": "Includes commander-in-chief, treaty negotiation, appointment of officers, veto legislation, pardons, and executing laws, subject to checks like Senate confirmation and impeachment.",
+    "simdef": "presidential listed powers",
+    "unit": "1",
+    "img": "https://via.placeholder.com/150"
+  },
+  {
+    "term": "Supremacy Clause",
+    "def": "Constitution and federal laws made under it are supreme over state laws, and judges must follow federal law when conflicts arise.",
+    "simdef": "federal law overrides state law",
+    "unit": "1",
+    "img": "https://via.placeholder.com/150"
+  },
+  {
+    "term": "Direct Democracy",
+    "def": "System where citizens vote directly on laws and policies rather than electing representatives, practical in small political communities.",
+    "simdef": "people vote on laws directly",
+    "unit": "1",
+    "img": "https://via.placeholder.com/150"
+  },
+  {
+    "term": "Participatory Democracy",
+    "def": "Emphasizes broad citizen participation in politics and civic life to influence policy outcomes beyond just voting in periodic elections.",
+    "simdef": "active citizen engagement",
+    "unit": "1",
+    "img": "https://via.placeholder.com/150"
+  },
+  {
+    "term": "Representative Democracy",
+    "def": "Citizens elect officials to make policy and govern on their behalf, combining popular sovereignty with professional governance for scale.",
+    "simdef": "people elect policymakers",
+    "unit": "1",
+    "img": "https://via.placeholder.com/150"
+  },
+  {
+    "term": "Elite Theory",
+    "def": "Claims a small, wealthy, or influential group dominates politics and decision-making, limiting broad democratic influence.",
+    "simdef": "power concentrated in elites",
+    "unit": "1",
+    "img": "https://via.placeholder.com/150"
+  },
+  {
+    "term": "Hyperpluralism",
+    "def": "When many competing interest groups prevent coherent policy by fragmenting power and pushing contradictory demands, producing gridlock or over-compromise.",
+    "simdef": "too many groups cause gridlock",
+    "unit": "1",
+    "img": "https://via.placeholder.com/150"
+  },
+  {
+    "term": "Loose Constructionist",
+    "def": "Interprets the Constitution flexibly, allowing broader federal powers under implied clauses like Necessary and Proper to adapt to modern needs.",
+    "simdef": "broad reading of Constitution",
+    "unit": "1",
+    "img": "https://via.placeholder.com/150"
+  },
+  {
+    "term": "Strict Constructionist",
+    "def": "Interprets Constitution narrowly, limiting federal power to those explicitly listed and resisting implied or broad readings.",
+    "simdef": "narrow reading of Constitution",
+    "unit": "1",
+    "img": "https://via.placeholder.com/150"
+  },
+  {
+    "term": "Pluralism",
+    "def": "Theory that politics is competition among diverse interest groups, where compromise and bargaining produce public policy reflecting many voices.",
+    "simdef": "many groups influence policy",
+    "unit": "1",
+    "img": "https://via.placeholder.com/150"
+  },
+  {
+    "term": "Public Policy",
+    "def": "A system of laws, regulatory measures, actions, and funding priorities a government uses to address public problems and goals.",
+    "simdef": "government course of action",
+    "unit": "1",
+    "img": "https://via.placeholder.com/150"
+  },
+  {
+    "term": "Unitary system",
+    "def": "Government structure where nearly all power is centralized in the national government, with subnational units exercising delegated authority.",
+    "simdef": "centralized national government",
+    "unit": "1",
+    "img": "https://via.placeholder.com/150"
+  },
+  {
+    "term": "Federal System",
+    "def": "Power is constitutionally divided between central and regional governments, each with autonomous authority in certain policy areas.",
+    "simdef": "shared central and regional authority",
+    "unit": "1",
+    "img": "https://via.placeholder.com/150"
+  },
+  {
+    "term": "Republic",
+    "def": "Form of government where public offices are filled by elected representatives and the head of state is not a hereditary monarch.",
+    "simdef": "representative government",
+    "unit": "1",
+    "img": "https://via.placeholder.com/150"
+  },
+  {
+    "term": "Checks and Balances",
+    "def": "System where each branch (legislative, executive, judicial) restrains others: Congress makes laws, President vetoes, Courts review constitutionality; examples: veto, judicial review, Senate confirmations.",
+    "simdef": "branches limit one another",
+    "unit": "1",
+    "img": "https://via.placeholder.com/150"
+  },
+  {
+    "term": "Separation of Powers",
+    "def": "Divides government functions among branches (legislative, executive, judicial) to prevent concentration of power and protect liberties.",
+    "simdef": "split government powers",
+    "unit": "1",
+    "img": "https://via.placeholder.com/150"
+  },
+  {
+    "term": "Rule of Law",
+    "def": "All people and institutions are subject to and accountable under laws fairly applied and enforced, preventing arbitrary governance.",
+    "simdef": "law governs everyone equally",
+    "unit": "1",
+    "img": "https://via.placeholder.com/150"
+  },
+  {
+    "term": "Implied Powers",
+    "def": "Federal powers not explicitly in the Constitution but inferred from listed powers via clauses like Necessary and Proper to implement government functions.",
+    "simdef": "powers implied by listed ones",
+    "unit": "1",
+    "img": "https://via.placeholder.com/150"
+  },
+  {
+    "term": "Concurrent Powers",
+    "def": "Authorities exercised by both federal and state governments such as taxing, borrowing, establishing courts, and maintaining infrastructure.",
+    "simdef": "shared state and federal powers",
+    "unit": "1",
+    "img": "https://via.placeholder.com/150"
+  },
+  {
+    "term": "Electoral College",
+    "def": "Body of electors from each state, equal to congressional delegation, that formally elects president and vice president based on state popular votes.",
+    "simdef": "state electors choose president",
+    "unit": "1",
+    "img": "https://via.placeholder.com/150"
+  },
+  {
+    "term": "Ex Post Facto Laws",
+    "def": "Laws that retroactively criminalize conduct or increase punishment after the fact; Constitution prohibits these to protect fairness.",
+    "simdef": "no retroactive criminal laws",
+    "unit": "1",
+    "img": "https://via.placeholder.com/150"
+  },
+  {
+    "term": "Bills of Attainder",
+    "def": "Legislative acts that single out individuals for punishment without trial are prohibited by the Constitution to protect due process.",
+    "simdef": "no punishment without trial",
+    "unit": "1",
+    "img": "https://via.placeholder.com/150"
+  },
+  {
+    "term": "Writ of Habeas Corpus",
+    "def": "Court order requiring authorities to present detained individuals and justify imprisonment, protecting against unlawful detention except during rebellion or invasion.",
+    "simdef": "protects against unlawful detention",
+    "unit": "1",
+    "img": "https://via.placeholder.com/150"
+  },
+  {
+    "term": "Process of amending the constitution",
+    "def": "Two-stage process: proposal by two-thirds of Congress or convention, then ratification by three-fourths of state legislatures or conventions; few methods used historically.",
+    "simdef": "how to change Constitution",
+    "unit": "1",
+    "img": "https://via.placeholder.com/150"
+  },
+  {
+    "term": "Census",
+    "def": "Periodic population count (every ten years) used to apportion seats in the House, allocate federal funds, and inform redistricting and policy planning.",
+    "simdef": "official population count",
+    "unit": "1",
+    "img": "https://via.placeholder.com/150"
+  }
+{
+  "term": "Categorical Grants",
+  "def": "Federal funds given to states for narrowly defined programs with specific requirements and conditions, increasing federal control over state policy areas.",
+  "simdef": "money for specific federal programs",
+  "unit": "2",
+  "img": "https://via.placeholder.com/150"
+},
+{
+  "term": "Block Grants",
+  "def": "Federal funds provided for broad purposes with fewer restrictions, allowing states flexibility to allocate money according to local priorities.",
+  "simdef": "money for general purposes",
+  "unit": "2",
+  "img": "https://via.placeholder.com/150"
+},
+{
+  "term": "Cooperative Federalism",
+  "def": "Federal and state governments collaborate on policy implementation, sharing costs, responsibilities, and administration in areas like education and transportation.",
+  "simdef": "shared federal-state cooperation",
+  "unit": "2",
+  "img": "https://via.placeholder.com/150"
+},
+{
+  "term": "Devolution of Federalism",
+  "def": "Transfer of certain powers and responsibilities from the national government back to states to increase local control and tailor policy locally.",
+  "simdef": "shifting power to states",
+  "unit": "2",
+  "img": "https://via.placeholder.com/150"
+},
+{
+  "term": "Dual Federalism",
+  "def": "Model where state and national governments operate in clearly defined, separate spheres of authority with limited overlap.",
+  "simdef": "separate state and federal roles",
+  "unit": "2",
+  "img": "https://via.placeholder.com/150"
+},
+{
+  "term": "Fiscal Federalism",
+  "def": "Use of federal funding and grants to influence state and local policies, including categorical and block grants and revenue-sharing.",
+  "simdef": "money shapes federal-state relations",
+  "unit": "2",
+  "img": "https://via.placeholder.com/150"
+},
+{
+  "term": "Layer Cake Federalism",
+  "def": "Metaphor for dual federalism emphasizing distinct layers of government responsibilities with little mixing between national and state functions.",
+  "simdef": "clear-cut layers of government",
+  "unit": "2",
+  "img": "https://via.placeholder.com/150"
+},
+{
+  "term": "Marble Cake Federalism",
+  "def": "Metaphor for cooperative federalism where national and state responsibilities are intermingled and jointly managed, like marble swirls.",
+  "simdef": "mixed national-state responsibilities",
+  "unit": "2",
+  "img": "https://via.placeholder.com/150"
+},
+{
+  "term": "Competitive Federalism",
+  "def": "States compete to attract citizens, businesses, and investments by offering different tax, regulatory, and policy regimes, encouraging innovation and efficiency.",
+  "simdef": "states compete for advantage",
+  "unit": "2",
+  "img": "https://via.placeholder.com/150"
+},
+{
+  "term": "Mandates (Unfunded v Funded)",
+  "def": "Federal directives requiring state action: funded mandates provide federal money for compliance; unfunded mandates require states to act without federal funding.",
+  "simdef": "rules with or without federal money",
+  "unit": "2",
+  "img": "https://via.placeholder.com/150"
+},
+{
+  "term": "Selective Incorporation",
+  "def": "Process where the Supreme Court applies protections in the Bill of Rights to states via the Fourteenth Amendment’s Due Process Clause on a case-by-case basis.",
+  "simdef": "Bill of Rights applies to states gradually",
+  "unit": "2",
+  "img": "https://via.placeholder.com/150"
+},
+{
+  "term": "Full Faith and Credit",
+  "def": "Constitutional requirement that states respect public acts, records, and judicial proceedings of other states, facilitating legal continuity across state lines.",
+  "simdef": "states honor each other's laws/records",
+  "unit": "2",
+  "img": "https://via.placeholder.com/150"
+},
+{
+  "term": "Privileges and Immunities",
+  "def": "Clause preventing a state from treating citizens of other states in a discriminatory manner regarding fundamental rights and essential activities.",
+  "simdef": "states must treat nonresidents fairly",
+  "unit": "2",
+  "img": "https://via.placeholder.com/150"
+},
+{
+  "term": "Proposal and Ratification methods for amendments",
+  "def": "Two proposal methods: Congress (2/3) or convention (2/3 states). Ratification: state legislatures or conventions (3/4). Specifies procedural routes to amend Constitution.",
+  "simdef": "how amendments are proposed and approved",
+  "unit": "2",
+  "img": "https://via.placeholder.com/150"
+},
+{
+  "term": "Expressed Preemption",
+  "def": "When federal law explicitly states it displaces state law in a policy area, preemption prevents conflicting state regulations.",
+  "simdef": "federal law overrides state law explicitly",
+  "unit": "2",
+  "img": "https://via.placeholder.com/150"
+},
+{
+  "term": "Conditions of Aid",
+  "def": "Federal governments attach requirements to grants; states accept these conditions to receive funding but may negotiate flexibility.",
+  "simdef": "grant rules states must follow",
+  "unit": "2",
+  "img": "https://via.placeholder.com/150"
+},
+{
+  "term": "Revenue Sharing Grants",
+  "def": "Federal funds distributed to state and local governments with minimal restrictions, historically used to allow local discretion over spending.",
+  "simdef": "money shared with few rules",
+  "unit": "2",
+  "img": "https://via.placeholder.com/150"
+},
+{
+  "term": "Initiative",
+  "def": "A direct democracy process where citizens propose laws or constitutional amendments via petition and place them on the ballot for voter approval.",
+  "simdef": "citizens propose laws directly",
+  "unit": "2",
+  "img": "https://via.placeholder.com/150"
+},
+{
+  "term": "Referendum",
+  "def": "Procedure allowing voters to approve or reject laws passed by the legislature, giving electorate final say on specific measures.",
+  "simdef": "voters approve or reject laws",
+  "unit": "2",
+  "img": "https://via.placeholder.com/150"
+},
+{
+  "term": "Recall",
+  "def": "Procedure permitting voters to remove elected officials from office before their term ends through a special election after a qualifying petition.",
+  "simdef": "voters can remove officials",
+  "unit": "2",
+  "img": "https://via.placeholder.com/150"
+},
+{
+  "term": "Grants in Aid",
+  "def": "Federal financial assistance to state and local governments to support programs, infrastructure, and services under various conditions and oversight.",
+  "simdef": "federal funds for local programs",
+  "unit": "2",
+  "img": "https://via.placeholder.com/150"
+},
+{
+  "term": "Nullification",
+  "def": "Theory that states can invalidate federal law they consider unconstitutional; legally rejected but historically influential in federal-state disputes.",
+  "simdef": "states rejecting federal law—not legally accepted",
+  "unit": "2",
+  "img": "https://via.placeholder.com/150"
+},
+{
+  "term": "Commerce Clause",
+  "def": "Constitutional grant to Congress to regulate commerce among states, with broad interpretation giving wide federal regulatory authority over economic activity.",
+  "simdef": "Congress regulates interstate commerce",
+  "unit": "2",
+  "img": "https://via.placeholder.com/150"
+},
+{
+  "term": "Confederal System",
+  "def": "Arrangement where regional governments hold primary power and delegate limited authority to a weak central government, often used in voluntary unions.",
+  "simdef": "states are stronger than national government",
+  "unit": "2",
+  "img": "https://via.placeholder.com/150"
+},
+{
+  "term": "Regulatory Capture",
+  "def": "When agencies meant to regulate industries become dominated by the firms they regulate, producing policies favoring industry over public interest.",
+  "simdef": "regulated industries control their regulators",
+  "unit": "2",
+  "img": "https://via.placeholder.com/150"
+},
+{
+  "term": "Americans with Disabilities Act",
+  "def": "Civil rights law prohibiting discrimination based on disability in employment, public services, public accommodations, and telecommunications, expanding access and accommodations.",
+  "simdef": "prohibits disability discrimination",
+  "unit": "2",
+  "img": "https://via.placeholder.com/150"
+},
+{
+  "term": "Clean Air Act",
+  "def": "Federal law regulating air emissions from stationary and mobile sources to protect public health and the environment through standards and enforcement.",
+  "simdef": "national law to control air pollution",
+  "unit": "2",
+  "img": "https://via.placeholder.com/150"
+}
+{
+  "term": "Civil Liberties",
+  "def": "Freedoms in the Bill of Rights restricting government power, protecting speech, religion, press, and fair treatment for individuals.",
+  "simdef": "basic freedoms protected from government",
+  "unit": "3",
+  "img": "https://via.placeholder.com/150"
+},
+{
+  "term": "Civil Rights",
+  "def": "Legal protections against discrimination ensuring equal access to opportunities, participation, and protection under the law regardless of identity.",
+  "simdef": "equal protections under the law",
+  "unit": "3",
+  "img": "https://via.placeholder.com/150"
+},
+{
+  "term": "Clear and Present Danger Doctrine",
+  "def": "Government may limit speech if it poses immediate, serious threat to safety or security, established in Schenck v. United States.",
+  "simdef": "speech limited if dangerous",
+  "unit": "3",
+  "img": "https://via.placeholder.com/150"
+},
+{
+  "term": "Double Jeopardy",
+  "def": "Constitutional safeguard in Fifth Amendment preventing someone from being tried again for the same offense after acquittal or conviction.",
+  "simdef": "cannot be tried twice",
+  "unit": "3",
+  "img": "https://via.placeholder.com/150"
+},
+{
+  "term": "Exclusionary Rule",
+  "def": "Prevents illegally obtained evidence, such as through unconstitutional searches, from being used in court to protect rights.",
+  "simdef": "illegal evidence excluded from court",
+  "unit": "3",
+  "img": "https://via.placeholder.com/150"
+},
+{
+  "term": "Indictment",
+  "def": "Formal charge by a grand jury declaring enough evidence exists to bring a person to trial for a crime.",
+  "simdef": "formal criminal charge",
+  "unit": "3",
+  "img": "https://via.placeholder.com/150"
+},
+{
+  "term": "Miranda Rights",
+  "def": "Police must inform suspects of right to remain silent and right to attorney before questioning in custody.",
+  "simdef": "rights read to suspects",
+  "unit": "3",
+  "img": "https://via.placeholder.com/150"
+},
+{
+  "term": "Due Process",
+  "def": "Guarantees fair treatment and legal protections before government deprives someone of life, liberty, or property, under Fifth and Fourteenth Amendments.",
+  "simdef": "fair legal process",
+  "unit": "3",
+  "img": "https://via.placeholder.com/150"
+},
+{
+  "term": "Affirmative Action",
+  "def": "Policies that promote equal opportunity by addressing past discrimination in education, jobs, and contracts for underrepresented groups.",
+  "simdef": "programs helping disadvantaged groups",
+  "unit": "3",
+  "img": "https://via.placeholder.com/150"
+},
+{
+  "term": "Americans with Disabilities Act",
+  "def": "1990 law banning discrimination against disabled individuals in employment, services, transportation, and public spaces, requiring accessibility.",
+  "simdef": "law protecting disabled rights",
+  "unit": "3",
+  "img": "https://via.placeholder.com/150"
+},
+{
+  "term": "De Facto Segregation",
+  "def": "Racial separation occurring naturally through housing, economics, or social factors, without legal enforcement.",
+  "simdef": "segregation by circumstance",
+  "unit": "3",
+  "img": "https://via.placeholder.com/150"
+},
+{
+  "term": "De Jure Segregation",
+  "def": "Government-enforced separation of races by law, as with Jim Crow policies before civil rights reforms.",
+  "simdef": "segregation by law",
+  "unit": "3",
+  "img": "https://via.placeholder.com/150"
+},
+{
+  "term": "Immigration Act of 1991",
+  "def": "Law expanding immigration quotas, prioritizing family reunification, employment visas, and increasing diversity immigration opportunities.",
+  "simdef": "expanded immigration opportunities",
+  "unit": "3",
+  "img": "https://via.placeholder.com/150"
+},
+{
+  "term": "Seneca Falls Convention",
+  "def": "1848 women’s rights meeting producing Declaration of Sentiments demanding equality and suffrage, sparking early feminist movement.",
+  "simdef": "first women’s rights convention",
+  "unit": "3",
+  "img": "https://via.placeholder.com/150"
+},
+{
+  "term": "Civil Rights Act of 1964",
+  "def": "Banned segregation in public places, outlawed employment discrimination, strengthened federal enforcement powers, and advanced equal access.",
+  "simdef": "ended segregation, banned discrimination",
+  "unit": "3",
+  "img": "https://via.placeholder.com/150"
+},
+{
+  "term": "Voting Rights Act of 1965",
+  "def": "Eliminated literacy tests, authorized federal oversight of elections, and protected minorities’ right to vote effectively nationwide.",
+  "simdef": "protected minority voting rights",
+  "unit": "3",
+  "img": "https://via.placeholder.com/150"
+},
+{
+  "term": "Civil Rights Act of 1968",
+  "def": "Fair Housing Act outlawing discrimination in housing sales, rentals, and financing based on race, religion, or sex.",
+  "simdef": "banned housing discrimination",
+  "unit": "3",
+  "img": "https://via.placeholder.com/150"
+},
+{
+  "term": "Title IX",
+  "def": "1972 law prohibiting sex discrimination in federally funded education, expanding women’s opportunities in academics and athletics.",
+  "simdef": "gender equality in education",
+  "unit": "3",
+  "img": "https://via.placeholder.com/150"
+},
+{
+  "term": "Motor Voter Bill",
+  "def": "1993 law requiring states to offer voter registration when issuing or renewing driver’s licenses, boosting turnout.",
+  "simdef": "easy voter registration at DMV",
+  "unit": "3",
+  "img": "https://via.placeholder.com/150"
+},
+{
+  "term": "Patriot Act",
+  "def": "Post-9/11 law expanding surveillance, information sharing, and counterterrorism powers, sparking debate over liberty versus security.",
+  "simdef": "expanded counterterrorism powers",
+  "unit": "3",
+  "img": "https://via.placeholder.com/150"
+},
+{
+  "term": "Prior Restraint",
+  "def": "Government censorship of material before publication, usually unconstitutional except in rare national security cases.",
+  "simdef": "blocking publication before release",
+  "unit": "3",
+  "img": "https://via.placeholder.com/150"
+},
+{
+  "term": "Nationalization of Bill of Rights",
+  "def": "Through selective incorporation, Supreme Court applied most Bill of Rights protections to states via Fourteenth Amendment.",
+  "simdef": "Bill of Rights applies to states",
+  "unit": "3",
+  "img": "https://via.placeholder.com/150"
+},
+{
+  "term": "Symbolic Speech",
+  "def": "Expressing ideas through conduct or symbols, like protests or flag burning, often protected under First Amendment.",
+  "simdef": "actions expressing ideas",
+  "unit": "3",
+  "img": "https://via.placeholder.com/150"
+},
+{
+  "term": "Separate-but-Equal Doctrine",
+  "def": "From Plessy v. Ferguson, allowed segregation if facilities were “equal,” later overturned in Brown v. Board.",
+  "simdef": "segregation allowed if facilities equal",
+  "unit": "3",
+  "img": "https://via.placeholder.com/150"
+},
+{
+  "term": "Reverse Discrimination",
+  "def": "Claim that affirmative action policies unfairly disadvantage majority groups like whites or men, by favoring minorities.",
+  "simdef": "discrimination against majority",
+  "unit": "3",
+  "img": "https://via.placeholder.com/150"
+},
+{
+  "term": "Equality of Opportunity",
+  "def": "Everyone should have same fair chance to pursue goals without unfair barriers, though results may differ.",
+  "simdef": "equal starting chances",
+  "unit": "3",
+  "img": "https://via.placeholder.com/150"
+},
+{
+  "term": "Libel",
+  "def": "False, damaging written or published statements harming reputation, not protected by First Amendment.",
+  "simdef": "false written defamation",
+  "unit": "3",
+  "img": "https://via.placeholder.com/150"
+},
+{
+  "term": "Slander",
+  "def": "False, harmful spoken statements damaging someone’s reputation, punishable under defamation laws.",
+  "simdef": "false spoken defamation",
+  "unit": "3",
+  "img": "https://via.placeholder.com/150"
+},
+{
+  "term": "Wall of Separation",
+  "def": "Metaphor for separation of church and state, preventing government endorsement or establishment of religion.",
+  "simdef": "church and state separate",
+  "unit": "3",
+  "img": "https://via.placeholder.com/150"
+},
+{
+  "term": "Free Exercise Clause",
+  "def": "First Amendment right allowing individuals to practice religion freely without government interference, within reasonable limits.",
+  "simdef": "freedom to practice religion",
+  "unit": "3",
+  "img": "https://via.placeholder.com/150"
+},
+{
+  "term": "Establishment Clause",
+  "def": "First Amendment prohibition against government establishing, supporting, or favoring religion, ensuring neutrality.",
+  "simdef": "government cannot establish religion",
+  "unit": "3",
+  "img": "https://via.placeholder.com/150"
+}
+]
+
+  
