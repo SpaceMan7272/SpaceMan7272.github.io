@@ -1,0 +1,738 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Constitution Study Tool</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif;
+            background: #0a0e27;
+            color: #e8eaed;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        body.light {
+            background: #f5f5f5;
+            color: #202124;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+        }
+
+        header {
+            background: #1e2439;
+            padding: 30px;
+            border-radius: 12px;
+            margin-bottom: 30px;
+        }
+
+        body.light header {
+            background: white;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+
+        h1 {
+            text-align: center;
+            margin-bottom: 20px;
+            font-size: 28px;
+        }
+
+        .controls {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        button, select, input {
+            padding: 12px 20px;
+            border: none;
+            border-radius: 8px;
+            background: #8ab4f8;
+            color: white;
+            cursor: pointer;
+            font-size: 15px;
+            font-weight: 500;
+        }
+
+        body.light button, body.light select, body.light input {
+            background: #1a73e8;
+        }
+
+        button:hover {
+            opacity: 0.9;
+        }
+
+        select, input {
+            background: #252b45;
+            color: #e8eaed;
+        }
+
+        body.light select, body.light input {
+            background: white;
+            color: #202124;
+            border: 1px solid #dadce0;
+        }
+
+        input[type="number"] {
+            width: 80px;
+            text-align: center;
+        }
+
+        .card-container {
+            perspective: 1000px;
+            margin: 40px auto;
+        }
+
+        .card {
+            width: 100%;
+            max-width: 700px;
+            height: 400px;
+            margin: 0 auto;
+            position: relative;
+            transform-style: preserve-3d;
+            transition: transform 0.5s;
+            cursor: pointer;
+        }
+
+        .card.flip {
+            transform: rotateY(180deg);
+        }
+
+        .card-face {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            backface-visibility: hidden;
+            background: #1e2439;
+            border-radius: 12px;
+            padding: 40px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+        }
+
+        body.light .card-face {
+            background: white;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+
+        .card-back {
+            transform: rotateY(180deg);
+        }
+
+        .term {
+            font-size: 32px;
+            font-weight: 600;
+        }
+
+        .def {
+            font-size: 18px;
+            line-height: 1.6;
+            margin-bottom: 15px;
+        }
+
+        .simdef {
+            font-size: 16px;
+            color: #8ab4f8;
+            font-style: italic;
+            margin-bottom: 20px;
+        }
+
+        body.light .simdef {
+            color: #1a73e8;
+        }
+
+        .progress {
+            text-align: center;
+            margin: 20px 0;
+            font-size: 16px;
+            opacity: 0.7;
+        }
+
+        .nav {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            margin-top: 20px;
+        }
+
+        .hint {
+            text-align: center;
+            margin-top: 15px;
+            font-size: 14px;
+            opacity: 0.5;
+        }
+
+        .panel {
+            background: #1e2439;
+            padding: 40px;
+            border-radius: 12px;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        body.light .panel {
+            background: white;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+
+        .panel h2 {
+            margin-bottom: 25px;
+            text-align: center;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            opacity: 0.8;
+        }
+
+        .form-group select,
+        .form-group input {
+            width: 100%;
+        }
+
+        .question {
+            background: #252b45;
+            padding: 25px;
+            border-radius: 8px;
+            margin-bottom: 25px;
+            font-size: 18px;
+            line-height: 1.6;
+        }
+
+        body.light .question {
+            background: #f8f9fa;
+        }
+
+        .options {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+
+        .option {
+            padding: 18px;
+            text-align: left;
+            background: #252b45;
+            border: 2px solid transparent;
+            transition: all 0.2s;
+        }
+
+        body.light .option {
+            background: #f8f9fa;
+        }
+
+        .option:hover:not(:disabled) {
+            border-color: #8ab4f8;
+            transform: translateX(5px);
+        }
+
+        .option.correct {
+            background: #81c995;
+            border-color: #81c995;
+        }
+
+        .option.wrong {
+            background: #f28b82;
+            border-color: #f28b82;
+        }
+
+        .option:disabled {
+            cursor: not-allowed;
+        }
+
+        .score {
+            text-align: center;
+            padding: 15px;
+            background: #252b45;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+
+        body.light .score {
+            background: #f8f9fa;
+        }
+
+        .study-input {
+            width: 100%;
+            padding: 15px;
+            font-size: 18px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+        }
+
+        .feedback {
+            padding: 20px;
+            border-radius: 8px;
+            text-align: center;
+            margin-top: 15px;
+            font-weight: 500;
+        }
+
+        .feedback.correct {
+            background: #81c995;
+            color: white;
+        }
+
+        .feedback.wrong {
+            background: #f28b82;
+            color: white;
+        }
+
+        .answer {
+            font-size: 22px;
+            font-weight: 600;
+            margin-top: 10px;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        @media (max-width: 768px) {
+            .card {
+                height: 350px;
+            }
+            .term {
+                font-size: 24px;
+            }
+            .def {
+                font-size: 16px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Constitution Study Tool</h1>
+            <div class="controls">
+                <button id="flashBtn">Flashcards</button>
+                <button id="quizBtn">Quiz</button>
+                <button id="studyBtn">Study</button>
+                <select id="unitSelect">
+                    <option value="all">All Units</option>
+                    <option value="0">Unit 0</option>
+                    <option value="1">Unit 1</option>
+                    <option value="2">Unit 2</option>
+                    <option value="3">Unit 3</option>
+                </select>
+                <button id="shuffleBtn">Shuffle</button>
+                <button id="themeBtn">Light</button>
+            </div>
+        </header>
+
+        <div id="flashView">
+            <div class="card-container">
+                <div class="card" id="card">
+                    <div class="card-face">
+                        <div class="term" id="term"></div>
+                    </div>
+                    <div class="card-face card-back">
+                        <div class="def" id="def"></div>
+                        <div class="simdef" id="simdef"></div>
+                    </div>
+                </div>
+            </div>
+            <div class="progress" id="progress"></div>
+            <div class="nav">
+                <button id="prevBtn">Previous</button>
+                <button id="nextBtn">Next</button>
+            </div>
+            <div class="hint">SPACE to flip | Arrow keys to navigate</div>
+        </div>
+
+        <div id="quizSetup" class="panel hidden">
+            <h2>Quiz Setup</h2>
+            <div class="form-group">
+                <label>Unit</label>
+                <select id="qUnit">
+                    <option value="all">All Units</option>
+                    <option value="0">Unit 0</option>
+                    <option value="1">Unit 1</option>
+                    <option value="2">Unit 2</option>
+                    <option value="3">Unit 3</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>Questions</label>
+                <input type="number" id="qNum" value="10" min="1" max="100">
+            </div>
+            <button id="startQuiz" style="width: 100%;">Start Quiz</button>
+        </div>
+
+        <div id="quizView" class="panel hidden">
+            <h2>Quiz</h2>
+            <div class="score" id="qScore"></div>
+            <div class="question" id="qQuestion"></div>
+            <div class="options" id="qOptions"></div>
+            <button id="qNext" class="hidden" style="width: 100%;">Next</button>
+            <button id="qFinish" class="hidden" style="width: 100%;">Finish</button>
+        </div>
+
+        <div id="studySetup" class="panel hidden">
+            <h2>Study Mode</h2>
+            <div class="form-group">
+                <label>Unit</label>
+                <select id="sUnit">
+                    <option value="all">All Units</option>
+                    <option value="0">Unit 0</option>
+                    <option value="1">Unit 1</option>
+                    <option value="2">Unit 2</option>
+                    <option value="3">Unit 3</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>Questions</label>
+                <input type="number" id="sNum" value="10" min="1" max="100">
+            </div>
+            <button id="startStudy" style="width: 100%;">Start Study</button>
+        </div>
+
+        <div id="studyView" class="panel hidden">
+            <h2>Study Mode</h2>
+            <div class="score" id="sScore"></div>
+            <div class="question" id="sQuestion"></div>
+            <input type="text" id="sInput" class="study-input" placeholder="Type the term...">
+            <button id="sCheck" style="width: 100%;">Check</button>
+            <div id="sFeedback" class="feedback hidden"></div>
+            <button id="sNext" class="hidden" style="width: 100%; margin-top: 15px;">Next</button>
+            <button id="sFinish" class="hidden" style="width: 100%; margin-top: 15px;">Finish</button>
+        </div>
+    </div>
+
+    <script>
+        let terms = [];
+        let filtered = [];
+        let idx = 0;
+        let flipped = false;
+
+        let quiz = [];
+        let qIdx = 0;
+        let qScore = 0;
+
+        let study = [];
+        let sIdx = 0;
+        let sScore = 0;
+
+        async function load() {
+            try {
+                const data = await window.fs.readFile('data.json', {encoding: 'utf8'});
+                terms = JSON.parse(data).terms;
+            } catch(e) {
+                terms = [
+                    {term: "Article I", def: "Creates Congress", simdef: "establishes Congress", unit: "0"},
+                    {term: "Article II", def: "Establishes presidency", simdef: "creates the presidency", unit: "0"},
+                    {term: "Civil Liberties", def: "Freedoms in Bill of Rights", simdef: "basic freedoms", unit: "3"}
+                ];
+            }
+            filter();
+            show();
+        }
+
+        function filter() {
+            const u = document.getElementById('unitSelect').value;
+            filtered = u === 'all' ? [...terms] : terms.filter(t => t.unit === u);
+            idx = 0;
+            flipped = false;
+            document.getElementById('card').classList.remove('flip');
+        }
+
+        function show() {
+            if (!filtered.length) return;
+            const t = filtered[idx];
+            document.getElementById('term').textContent = t.term;
+            document.getElementById('def').textContent = t.def;
+            document.getElementById('simdef').textContent = t.simdef;
+            document.getElementById('progress').textContent = `${idx + 1} / ${filtered.length}`;
+        }
+
+        function flip() {
+            document.getElementById('card').classList.toggle('flip');
+        }
+
+        function next() {
+            if (idx < filtered.length - 1) {
+                idx++;
+                document.getElementById('card').classList.remove('flip');
+                show();
+            }
+        }
+
+        function prev() {
+            if (idx > 0) {
+                idx--;
+                document.getElementById('card').classList.remove('flip');
+                show();
+            }
+        }
+
+        function shuffle(arr) {
+            for (let i = arr.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [arr[i], arr[j]] = [arr[j], arr[i]];
+            }
+        }
+
+        function shuffleCards() {
+            shuffle(filtered);
+            idx = 0;
+            document.getElementById('card').classList.remove('flip');
+            show();
+        }
+
+        function toggleTheme() {
+            document.body.classList.toggle('light');
+            document.getElementById('themeBtn').textContent = 
+                document.body.classList.contains('light') ? 'Dark' : 'Light';
+        }
+
+        function showFlash() {
+            document.getElementById('flashView').classList.remove('hidden');
+            document.getElementById('quizSetup').classList.add('hidden');
+            document.getElementById('quizView').classList.add('hidden');
+            document.getElementById('studySetup').classList.add('hidden');
+            document.getElementById('studyView').classList.add('hidden');
+        }
+
+        function showQuizSetup() {
+            document.getElementById('flashView').classList.add('hidden');
+            document.getElementById('quizSetup').classList.remove('hidden');
+            document.getElementById('quizView').classList.add('hidden');
+            document.getElementById('studySetup').classList.add('hidden');
+            document.getElementById('studyView').classList.add('hidden');
+        }
+
+        function showStudySetup() {
+            document.getElementById('flashView').classList.add('hidden');
+            document.getElementById('quizSetup').classList.add('hidden');
+            document.getElementById('quizView').classList.add('hidden');
+            document.getElementById('studySetup').classList.remove('hidden');
+            document.getElementById('studyView').classList.add('hidden');
+        }
+
+        function startQuiz() {
+            const u = document.getElementById('qUnit').value;
+            const n = parseInt(document.getElementById('qNum').value);
+            let pool = u === 'all' ? [...terms] : terms.filter(t => t.unit === u);
+            shuffle(pool);
+            quiz = pool.slice(0, Math.min(n, pool.length));
+            qIdx = 0;
+            qScore = 0;
+            document.getElementById('quizSetup').classList.add('hidden');
+            document.getElementById('quizView').classList.remove('hidden');
+            showQ();
+        }
+
+        function showQ() {
+            if (qIdx >= quiz.length) {
+                finishQuiz();
+                return;
+            }
+            const q = quiz[qIdx];
+            document.getElementById('qScore').textContent = 
+                `Question ${qIdx + 1} / ${quiz.length} | Score: ${qScore} / ${qIdx}`;
+            document.getElementById('qQuestion').textContent = q.def;
+            
+            const wrong = terms.filter(t => t.term !== q.term)
+                .sort(() => Math.random() - 0.5)
+                .slice(0, 4)
+                .map(t => t.term);
+            const opts = [...wrong, q.term];
+            shuffle(opts);
+            
+            const container = document.getElementById('qOptions');
+            container.innerHTML = '';
+            opts.forEach(o => {
+                const btn = document.createElement('button');
+                btn.className = 'option';
+                btn.textContent = o;
+                btn.onclick = () => checkQ(o, q.term, btn);
+                container.appendChild(btn);
+            });
+            document.getElementById('qNext').classList.add('hidden');
+        }
+
+        function checkQ(sel, cor, btn) {
+            const btns = document.querySelectorAll('.option');
+            btns.forEach(b => b.disabled = true);
+            
+            if (sel === cor) {
+                btn.classList.add('correct');
+                qScore++;
+            } else {
+                btn.classList.add('wrong');
+                btns.forEach(b => {
+                    if (b.textContent === cor) b.classList.add('correct');
+                });
+            }
+            
+            document.getElementById('qScore').textContent = 
+                `Question ${qIdx + 1} / ${quiz.length} | Score: ${qScore} / ${qIdx + 1}`;
+            
+            if (qIdx < quiz.length - 1) {
+                document.getElementById('qNext').classList.remove('hidden');
+            } else {
+                document.getElementById('qFinish').classList.remove('hidden');
+            }
+        }
+
+        function nextQ() {
+            qIdx++;
+            showQ();
+        }
+
+        function finishQuiz() {
+            const pct = ((qScore / quiz.length) * 100).toFixed(1);
+            document.getElementById('qQuestion').innerHTML = 
+                `<h2>Complete!</h2><p style="margin-top:15px;">Score: ${qScore} / ${quiz.length} (${pct}%)</p>`;
+            document.getElementById('qOptions').innerHTML = '';
+            document.getElementById('qNext').classList.add('hidden');
+            document.getElementById('qFinish').classList.add('hidden');
+            const btn = document.createElement('button');
+            btn.textContent = 'Back';
+            btn.onclick = showFlash;
+            btn.style.width = '100%';
+            btn.style.marginTop = '20px';
+            document.getElementById('qOptions').appendChild(btn);
+        }
+
+        function startStudy() {
+            const u = document.getElementById('sUnit').value;
+            const n = parseInt(document.getElementById('sNum').value);
+            let pool = u === 'all' ? [...terms] : terms.filter(t => t.unit === u);
+            shuffle(pool);
+            study = pool.slice(0, Math.min(n, pool.length));
+            sIdx = 0;
+            sScore = 0;
+            document.getElementById('studySetup').classList.add('hidden');
+            document.getElementById('studyView').classList.remove('hidden');
+            showS();
+        }
+
+        function showS() {
+            if (sIdx >= study.length) {
+                finishStudy();
+                return;
+            }
+            const s = study[sIdx];
+            document.getElementById('sScore').textContent = 
+                `Question ${sIdx + 1} / ${study.length} | Score: ${sScore} / ${sIdx}`;
+            document.getElementById('sQuestion').textContent = s.def;
+            document.getElementById('sInput').value = '';
+            document.getElementById('sInput').disabled = false;
+            document.getElementById('sFeedback').classList.add('hidden');
+            document.getElementById('sCheck').classList.remove('hidden');
+            document.getElementById('sNext').classList.add('hidden');
+            document.getElementById('sInput').focus();
+        }
+
+        function checkS() {
+            const ans = document.getElementById('sInput').value.trim();
+            const cor = study[sIdx].term;
+            const fb = document.getElementById('sFeedback');
+            fb.classList.remove('hidden');
+            
+            const norm = s => s.toLowerCase().replace(/[^\w\s]/g, '');
+            
+            if (norm(ans) === norm(cor)) {
+                fb.className = 'feedback correct';
+                fb.innerHTML = `Correct!<div class="answer">${cor}</div>`;
+                sScore++;
+            } else {
+                fb.className = 'feedback wrong';
+                fb.innerHTML = `Incorrect<div class="answer">${cor}</div>`;
+            }
+            
+            document.getElementById('sScore').textContent = 
+                `Question ${sIdx + 1} / ${study.length} | Score: ${sScore} / ${sIdx + 1}`;
+            document.getElementById('sInput').disabled = true;
+            document.getElementById('sCheck').classList.add('hidden');
+            
+            if (sIdx < study.length - 1) {
+                document.getElementById('sNext').classList.remove('hidden');
+            } else {
+                document.getElementById('sFinish').classList.remove('hidden');
+            }
+        }
+
+        function nextS() {
+            sIdx++;
+            showS();
+        }
+
+        function finishStudy() {
+            const pct = ((sScore / study.length) * 100).toFixed(1);
+            document.getElementById('sQuestion').innerHTML = 
+                `<h2>Complete!</h2><p style="margin-top:15px;">Score: ${sScore} / ${study.length} (${pct}%)</p>`;
+            document.getElementById('sInput').style.display = 'none';
+            document.getElementById('sCheck').classList.add('hidden');
+            document.getElementById('sNext').classList.add('hidden');
+            document.getElementById('sFinish').classList.add('hidden');
+            document.getElementById('sFeedback').classList.add('hidden');
+            const btn = document.createElement('button');
+            btn.textContent = 'Back';
+            btn.onclick = showFlash;
+            btn.style.width = '100%';
+            btn.style.marginTop = '20px';
+            document.getElementById('sFeedback').parentElement.appendChild(btn);
+        }
+
+        document.getElementById('card').onclick = flip;
+        document.getElementById('nextBtn').onclick = next;
+        document.getElementById('prevBtn').onclick = prev;
+        document.getElementById('shuffleBtn').onclick = shuffleCards;
+        document.getElementById('unitSelect').onchange = filter;
+        document.getElementById('themeBtn').onclick = toggleTheme;
+        document.getElementById('flashBtn').onclick = showFlash;
+        document.getElementById('quizBtn').onclick = showQuizSetup;
+        document.getElementById('studyBtn').onclick = showStudySetup;
+        document.getElementById('startQuiz').onclick = startQuiz;
+        document.getElementById('qNext').onclick = nextQ;
+        document.getElementById('qFinish').onclick = finishQuiz;
+        document.getElementById('startStudy').onclick = startStudy;
+        document.getElementById('sCheck').onclick = checkS;
+        document.getElementById('sNext').onclick = nextS;
+        document.getElementById('sFinish').onclick = finishStudy;
+
+        document.getElementById('sInput').onkeypress = e => {
+            if (e.key === 'Enter' && !document.getElementById('sCheck').classList.contains('hidden')) {
+                checkS();
+            }
+        };
+
+        document.onkeydown = e => {
+            if (!document.getElementById('flashView').classList.contains('hidden')) {
+                if (e.code === 'Space') {
+                    e.preventDefault();
+                    flip();
+                } else if (e.code === 'ArrowRight') next();
+                else if (e.code === 'ArrowLeft') prev();
+            }
+        };
+
+        load();
+    </script>
+</body>
+</html>
