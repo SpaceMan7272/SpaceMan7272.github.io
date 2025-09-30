@@ -1,0 +1,86 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Flashcards</title>
+<link rel="stylesheet" href="styles.css">
+</head>
+<body class="theme-dark">
+<header>
+  <h1>Flashcards</h1>
+  <div class="controls">
+    <select id="unitSelect">
+      <option value="all">All Units</option>
+      <option value="0">Unit 0</option>
+      <option value="1" selected>Unit 1</option>
+      <option value="2">Unit 2</option>
+      <option value="3">Unit 3</option>
+      <option value="4">Unit 4</option>
+    </select>
+    <button id="shuffleBtn">Shuffle</button>
+    <button id="quizBtn">Quiz</button>
+    <button id="studyBtn">Study</button>
+    <label><input type="checkbox" id="themeToggle"> <span id="themeLabel">Light</span></label>
+  </div>
+</header>
+<main>
+  <section class="flashcard-area">
+    <div id="cardCounter">0 / 0</div>
+    <div id="flashcard" class="card" tabindex="0">
+      <div class="card-inner">
+        <div class="card-front">
+          <div class="term" id="termText">Term</div>
+          <div class="unitBadge" id="unitBadge">U?</div>
+        </div>
+        <div class="card-back">
+          <div class="def" id="defText">Definition</div>
+          <div class="simdef" id="simDefText">Simple</div>
+          <img id="cardImg" alt="">
+        </div>
+      </div>
+    </div>
+    <div class="nav">
+      <button id="prevBtn">◀ Prev</button>
+      <button id="nextBtn">Next ▶</button>
+    </div>
+    <div class="bottom-row">
+      <div id="orderInfo" class="muted">Ordered</div>
+    </div>
+  </section>
+</main>
+
+<!-- Modal for Quiz / Study -->
+<div id="modal" class="modal hidden">
+  <div class="modal-content">
+    <button class="close" id="closeModal">✕</button>
+    <h2 id="modalTitle">Quiz</h2>
+    <div id="setupArea">
+      <label>Unit <select id="optUnit">
+        <option value="all">All Units</option>
+        <option value="0">Unit 0</option>
+        <option value="1">Unit 1</option>
+        <option value="2">Unit 2</option>
+        <option value="3">Unit 3</option>
+        <option value="4">Unit 4</option>
+      </select></label>
+      <label>Questions <input id="optCount" type="number" value="5" min="1" max="50"></label>
+      <button id="begin">Begin</button>
+    </div>
+    <div id="quizArea" class="hidden">
+      <div id="quizProgress"></div>
+      <div id="quizDef" class="quizDef"></div>
+      <div id="choices"></div>
+      <input id="studyInput" class="hidden" type="text" placeholder="Type your answer...">
+      <div id="quizFeedback" class="feedback"></div>
+      <div>
+        <button id="nextQ" disabled>Next</button>
+        <button id="endQ">End</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="app.js"></script>
+</body>
+</html>
