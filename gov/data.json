@@ -1,4 +1,5 @@
-[
+{
+"terms": [
   {
     "term": "Article I (Legislative Branch)",
     "def": "Creates Congress (House and Senate), grants lawmaking powers including taxation, spending, regulation of commerce, and declares war; sets structure, powers, and limits for the legislative branch.",
@@ -952,5 +953,6 @@
   "img": "https://via.placeholder.com/150"
 }
 ]
+}
 
   
