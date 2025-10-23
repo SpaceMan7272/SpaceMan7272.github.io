@@ -1,1256 +1,1109 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>LibreCode.nyet - Visual HTML Builder</title>
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: #1a1a1a;
-            color: #ffffff;
-            overflow: hidden;
-            height: 100vh;
-        }
-
-        .header {
-            background: #0a0a0a;
-            padding: 10px 20px;
-            border-bottom: 2px solid #333;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-        }
-
-        .logo {
-            font-size: 24px;
-            font-weight: bold;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-
-        .logo-icon {
-            font-size: 32px;
-        }
-
-        .container {
-            display: flex;
-            height: calc(100vh - 62px);
-        }
-
-        /* LEFT PANEL - BLOCKS */
-        .blocks-panel {
-            width: 280px;
-            background: #252525;
-            border-right: 2px solid #333;
-            display: flex;
-            flex-direction: column;
-        }
-
-        .blocks-header {
-            padding: 15px;
-            font-size: 20px;
-            font-weight: bold;
-            border-bottom: 2px solid #333;
-            text-align: center;
-        }
-
-        .blocks-tabs {
-            display: flex;
-            border-bottom: 2px solid #333;
-        }
-
-        .tab {
-            flex: 1;
-            padding: 12px;
-            text-align: center;
-            font-weight: bold;
-            cursor: pointer;
-            transition: all 0.3s;
-        }
-
-        .tab.html { background: #ff6b35; }
-        .tab.css { background: #4ecdc4; opacity: 0.5; cursor: not-allowed; }
-        .tab.js { background: #ffe66d; color: #000; opacity: 0.5; cursor: not-allowed; }
-        .tab.active { opacity: 1; }
-
-        .blocks-list {
-            flex: 1;
-            overflow-y: auto;
-            padding: 10px;
-        }
-
-        .block-item {
-            background: #3a3a3a;
-            padding: 10px;
-            margin: 5px 0;
-            border-radius: 8px;
-            cursor: grab;
-            transition: all 0.2s;
-            font-family: monospace;
-            border-left: 4px solid;
-        }
-
-        .block-item:hover {
-            background: #4a4a4a;
-            transform: translateX(5px);
-        }
-
-        .block-item:active {
-            cursor: grabbing;
-        }
-
-        .search-container {
-            padding: 10px;
-            border-top: 2px solid #333;
-        }
-
-        .search-input {
-            width: 100%;
-            padding: 10px;
-            background: #3a3a3a;
-            border: 2px solid #555;
-            border-radius: 8px;
-            color: #fff;
-            font-size: 14px;
-        }
-
-        /* MIDDLE PANEL - CODE IDE */
-        .code-panel {
-            flex: 1;
-            background: #2a2a2a;
-            border-right: 2px solid #333;
-            display: flex;
-            flex-direction: column;
-        }
-
-        .code-header {
-            padding: 15px 20px;
-            background: #1f1f1f;
-            border-bottom: 2px solid #333;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        .code-title {
-            font-size: 20px;
-            font-weight: bold;
-        }
-
-        .code-actions {
-            display: flex;
-            gap: 10px;
-        }
-
-        .btn {
-            padding: 8px 15px;
-            background: #4a4a4a;
-            border: none;
-            border-radius: 6px;
-            color: #fff;
-            cursor: pointer;
-            font-size: 14px;
-            transition: all 0.2s;
-        }
-
-        .btn:hover {
-            background: #5a5a5a;
-        }
-
-        .code-workspace {
-            flex: 1;
-            overflow-y: auto;
-            padding: 20px;
-            position: relative;
-        }
-
-        .code-block {
-            padding: 4px 8px;
-            margin: 3px 0;
-            border-radius: 4px;
-            position: relative;
-            cursor: grab;
-            transition: all 0.2s;
-            font-family: 'Courier New', monospace;
-            display: block;
-            font-weight: normal;
-            font-size: 12px;
-            min-height: 24px;
-            line-height: 16px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.3);
-        }
-
-        .code-block:active {
-            cursor: grabbing;
-        }
-
-        .code-block.container {
-            border: 3px double rgba(0,0,0,0.3);
-            border-radius: 4px;
-            display: block;
-            padding: 6px 8px;
-            box-shadow: inset 0 1px 3px rgba(0,0,0,0.2), 0 2px 4px rgba(0,0,0,0.3);
-        }
-
-        .code-block.selected {
-            outline: 3px solid #fff;
-            outline-offset: 2px;
-        }
-
-        .code-block:hover {
-            filter: brightness(1.1);
-        }
-
-        .block-content {
-            display: flex;
-            align-items: center;
-            gap: 6px;
-        }
-
-        .block-add-btn {
-            width: 16px;
-            height: 16px;
-            background: rgba(255,255,255,0.3);
-            border: 1px solid rgba(0,0,0,0.2);
-            border-radius: 3px;
-            color: #fff;
-            cursor: pointer;
-            font-size: 12px;
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            flex-shrink: 0;
-            font-weight: bold;
-        }
-
-        .block-add-btn:hover {
-            background: rgba(255,255,255,0.5);
-        }
-
-        .block-children {
-            margin-left: 15px;
-            margin-top: 3px;
-            padding-left: 5px;
-            border-left: 2px solid rgba(0,0,0,0.2);
-        }
-
-        .text-block {
-            background: #e8e8e8;
-            color: #000;
-            padding: 4px 8px;
-            border-radius: 4px;
-            margin: 3px 0;
-            font-family: 'Courier New', monospace;
-            display: block;
-            font-size: 11px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
-        }
-
-        .text-input {
-            background: #fff;
-            border: 1px solid #aaa;
-            color: #000;
-            font-family: 'Courier New', monospace;
-            outline: none;
-            padding: 2px 4px;
-            border-radius: 2px;
-            width: 200px;
-            font-size: 11px;
-        }
-
-        .drag-ghost {
-            position: fixed;
-            background: rgba(0, 0, 0, 0.5);
-            border: 2px dashed #6b9fff;
-            border-radius: 8px;
-            padding: 8px 12px;
-            pointer-events: none;
-            z-index: 10000;
-            font-family: monospace;
-        }
-
-        .drop-indicator {
-            height: 3px;
-            background: #6b9fff;
-            margin: 2px 0;
-            border-radius: 2px;
-        }
-
-        /* RIGHT PANEL - PREVIEW */
-        .preview-panel {
-            width: 500px;
-            background: #252525;
-            display: flex;
-            flex-direction: column;
-        }
-
-        .preview-header {
-            padding: 15px 20px;
-            background: #1f1f1f;
-            border-bottom: 2px solid #333;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        .preview-title {
-            font-size: 20px;
-            font-weight: bold;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-
-        .preview-actions {
-            display: flex;
-            gap: 10px;
-        }
-
-        .icon-btn {
-            width: 35px;
-            height: 35px;
-            background: #4a4a4a;
-            border: none;
-            border-radius: 6px;
-            color: #fff;
-            cursor: pointer;
-            font-size: 18px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-
-        .icon-btn:hover {
-            background: #5a5a5a;
-        }
-
-        .preview-frame {
-            flex: 1;
-            background: #fff;
-            margin: 10px;
-            border-radius: 8px;
-            overflow: hidden;
-        }
-
-        iframe {
-            width: 100%;
-            height: 100%;
-            border: none;
-        }
-
-        /* MODAL */
-        .modal-overlay {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: rgba(0, 0, 0, 0.8);
-            z-index: 1000;
-            align-items: center;
-            justify-content: center;
-        }
-
-        .modal-overlay.active {
-            display: flex;
-        }
-
-        .modal {
-            background: #2a2a2a;
-            border-radius: 12px;
-            padding: 20px;
-            max-width: 600px;
-            max-height: 80vh;
-            overflow-y: auto;
-            border: 2px solid #555;
-        }
-
-        .modal-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 20px;
-            padding-bottom: 10px;
-            border-bottom: 2px solid #555;
-        }
-
-        .modal-title {
-            font-size: 18px;
-            font-weight: bold;
-        }
-
-        .modal-close {
-            background: #ff4444;
-            border: none;
-            color: #fff;
-            width: 30px;
-            height: 30px;
-            border-radius: 50%;
-            cursor: pointer;
-            font-size: 18px;
-        }
-
-        .attribute-form {
-            display: flex;
-            flex-direction: column;
-            gap: 15px;
-        }
-
-        .attribute-row {
-            display: flex;
-            gap: 10px;
-            align-items: center;
-        }
-
-        .attribute-label {
-            width: 150px;
-            font-family: monospace;
-            color: #aaa;
-        }
-
-        .attribute-input {
-            flex: 1;
-            padding: 8px;
-            background: #3a3a3a;
-            border: 2px solid #555;
-            border-radius: 6px;
-            color: #fff;
-            font-family: monospace;
-        }
-
-        .modal-actions {
-            display: flex;
-            gap: 10px;
-            justify-content: flex-end;
-            margin-top: 20px;
-            padding-top: 20px;
-            border-top: 2px solid #555;
-        }
-
-        .btn-apply {
-            background: #4caf50;
-        }
-
-        .btn-apply:hover {
-            background: #45a049;
-        }
-
-        /* TEXT VIEW */
-        .text-view {
-            display: none;
-            flex: 1;
-            padding: 20px;
-            background: #2a2a2a;
-        }
-
-        .text-view.active {
-            display: block;
-        }
-
-        .code-editor {
-            width: 100%;
-            height: 100%;
-            background: #1e1e1e;
-            color: #d4d4d4;
-            border: 2px solid #555;
-            border-radius: 8px;
-            padding: 15px;
-            font-family: 'Courier New', monospace;
-            font-size: 14px;
-            line-height: 1.5;
-            resize: none;
-        }
-
-        /* Color categories - Scratch style with depth */
-        .cat-structure { 
-            background: linear-gradient(180deg, #ff7d50 0%, #ff6b35 100%);
-            color: #fff; 
-            text-shadow: 0 1px 2px rgba(0,0,0,0.3);
-        }
-        .cat-text { 
-            background: linear-gradient(180deg, #b77ef5 0%, #a463f2 100%);
-            color: #fff;
-            text-shadow: 0 1px 2px rgba(0,0,0,0.3);
-        }
-        .cat-media { 
-            background: linear-gradient(180deg, #5dd9d1 0%, #4ecdc4 100%);
-            color: #fff;
-            text-shadow: 0 1px 2px rgba(0,0,0,0.3);
-        }
-        .cat-form { 
-            background: linear-gradient(180deg, #ffed7d 0%, #ffe66d 100%);
-            color: #000;
-            text-shadow: 0 1px 2px rgba(255,255,255,0.5);
-        }
-        .cat-table { 
-            background: linear-gradient(180deg, #ff9fb5 0%, #ff8fab 100%);
-            color: #fff;
-            text-shadow: 0 1px 2px rgba(0,0,0,0.3);
-        }
-        .cat-list { 
-            background: linear-gradient(180deg, #a4eddf 0%, #95e1d3 100%);
-            color: #000;
-            text-shadow: 0 1px 2px rgba(255,255,255,0.5);
-        }
-        .cat-semantic { 
-            background: linear-gradient(180deg, #f59494 0%, #f38181 100%);
-            color: #fff;
-            text-shadow: 0 1px 2px rgba(0,0,0,0.3);
-        }
-        .cat-meta { 
-            background: linear-gradient(180deg, #baa8e6 0%, #aa96da 100%);
-            color: #fff;
-            text-shadow: 0 1px 2px rgba(0,0,0,0.3);
-        }
-        .cat-interactive { 
-            background: linear-gradient(180deg, #fcc5de 0%, #fcbad3 100%);
-            color: #000;
-            text-shadow: 0 1px 2px rgba(255,255,255,0.5);
-        }
-        .cat-script { 
-            background: linear-gradient(180deg, #ffe254 0%, #ffd93d 100%);
-            color: #000;
-            text-shadow: 0 1px 2px rgba(255,255,255,0.5);
-        }
-        .cat-deprecated { 
-            background: linear-gradient(180deg, #999 0%, #888 100%);
-            color: #fff;
-            text-shadow: 0 1px 2px rgba(0,0,0,0.3);
-        }
-    </style>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>LibreCode.nyet</title>
+<link rel="icon" type="image/x-icon" href="img.svg">
+<style>
+  body { margin:0; font-family:system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial; background:#0b0f19; color:#fff; height:100vh; display:flex; flex-direction:column; }
+  .header { display:flex; justify-content:space-between; align-items:center; padding:16px 20px; border-bottom:1px solid #1a1f2e; background:#0b0f19; }
+  .header h1 { margin:0; font-size:18px; font-weight:700; background:linear-gradient(90deg,#00d4ff,#a855f7); -webkit-background-clip:text; -webkit-text-fill-color:transparent; letter-spacing:0.5px; background-clip: text; }
+  .button { background:#111; color:#fff; border:1px solid #2a2f3a; padding:8px 14px; margin-left:8px; border-radius:6px; cursor:pointer; font-size:13px; transition:all 0.2s; }
+  .button:hover { background:#1a1f2e; border-color:#00d4ff; }
+  .container { flex:1; display:flex; overflow:hidden; }
+  .panel { overflow:auto; padding:12px; background:#0b0f19; }
+  .left { width:22%; border-right:1px solid #1a1f2e; }
+  .middle { width:28%; border-right:1px solid #1a1f2e; }
+  .right { width:50%; background:#0f1219; display:flex; flex-direction:column; }
+  
+  /* Tag group styling */
+  .tag-group { margin-bottom:16px; }
+  .tag-group-title { font-size:11px; font-weight:700; color:#a855f7; text-transform:uppercase; letter-spacing:1px; padding:8px 6px; opacity:0.8; margin-bottom:6px; }
+  .tag-buttons { display:flex; flex-wrap:wrap; gap:6px; }
+  .tag-btn { background:#111; color:#fff; border:1px solid #2a2f3a; padding:6px 10px; border-radius:5px; cursor:pointer; font-size:12px; transition:all 0.2s; flex:1; min-width:60px; text-align:center; }
+  .tag-btn:hover { background:#1a1f2e; border-color:#00d4ff; }
+  
+  .block { border-left:3px solid; padding:8px 10px; margin:6px 0; cursor:pointer; position:relative; user-select:none; background:transparent; transition:all 0.15s; border-radius:4px; }
+  .block.selected { background: rgba(0,212,255,0.08); border-left-color:#00d4ff !important; }
+  .children { margin-left:14px; position:relative; min-height: 2px; }
+  .input-inline { background:transparent; border:0; color:inherit; width:90%; outline:none; }
+  iframe { flex:1; border:0; background:#fff; }
+  .popup { position:fixed; top:50%; left:50%; transform:translate(-50%,-50%); background:#12141a; border:2px solid rgba(0,212,255,0.2); padding:18px; z-index:9999; max-height:76vh; overflow:auto; width:500px; border-radius:8px; box-shadow:0 10px 40px rgba(0,0,0,0.5); }
+  .popup h3{ margin:0 0 12px 0; font-size:15px; color:#00d4ff; font-weight:700; }
+  .hidden { display:none; }
+  .collapse-btn { position:absolute; left:-16px; top:10px; cursor:pointer; user-select:none; color:#666; transition:color 0.2s; }
+  .collapse-btn:hover { color:#00d4ff; }
+  .drag-handle { position:absolute; left:-34px; top:10px; cursor:grab; user-select:none; font-size:12px; color:#666; transition:color 0.2s; }
+  .drag-handle:hover { color:#00d4ff; }
+  .drop-indicator {
+    height: 4px;
+    background: #00d4ff;
+    margin: 2px 0;
+    border-radius: 2px;
+    pointer-events: none;
+    position: relative;
+    z-index: 0;
+  }
+  .children-drop-zone {
+    height: 20px;
+    background: rgba(0, 212, 255,0.12);
+    border: 1px dashed #00d4ff;
+    margin: 4px 0;
+    border-radius: 4px;
+    pointer-events: none;
+    position: relative;
+    z-index: 0;
+    display: none;
+  }
+  textarea.code-panel { width:100%; height:320px; background:#0a0d15; color:#9ee7ff; border:1px solid #1f2333; padding:14px; font-family:'Courier New',monospace; font-size:12px; resize:vertical; box-sizing:border-box; border-radius:4px; line-height:1.5; }
+  .shortcut-popup { position:fixed; top:50%; left:50%; transform:translate(-50%,-50%); background:#12141a; border:2px solid rgba(0,212,255,0.2); padding:18px; z-index:9999; width:400px; border-radius:8px; box-shadow:0 10px 40px rgba(0,0,0,0.5); }
+  .shortcut-popup ul { margin:0; padding-left:20px; }
+  .shortcut-popup li { margin:8px 0; font-size:13px; line-height:1.6; }
+  .shortcut-popup strong { color:#00d4ff; }
+  
+  /* Example popup styles */
+  .example-tabs { display:flex; border-bottom:1px solid #2a2f3a; margin-bottom:14px; gap:0; }
+  .example-tab { padding:10px 16px; cursor:pointer; border-bottom:3px solid transparent; font-size:13px; transition:all 0.2s; color:#999; }
+  .example-tab:hover { color:#00d4ff; }
+  .example-tab.active { border-bottom-color:#00d4ff; color:#00d4ff; font-weight:600; }
+  .example-content { display:none; }
+  .example-content.active { display:block; }
+  .example-preview { background:#fff; border:1px solid #2a2f3a; border-radius:6px; padding:14px; min-height:120px; color:#000; }
+  .example-code { background:#0a0d15; border:1px solid #1f2333; border-radius:6px; padding:12px; font-family:'Courier New',monospace; font-size:12px; color:#9ee7ff; overflow:auto; max-height:220px; white-space:pre-wrap; line-height:1.5; }
+</style>
 </head>
 <body>
-    <div class="header">
-        <div class="logo">
-            <span cqlass="logo-icon"><img src="code.nyet/img.svg" alt="SVG"></span>
-            <span>LibreCode.nyet</span>
-        </div>
-    </div>
-
-    <div class="container">
-        <!-- LEFT PANEL -->
-        <div class="blocks-panel">
-            <div class="blocks-header">BLOCKS</div>
-            <div class="blocks-tabs">
-                <div class="tab html active">HTML</div>
-                <div class="tab css">CSS</div>
-                <div class="tab js">JS</div>
-            </div>
-            <div class="blocks-list" id="blocksList"></div>
-            <div class="search-container">
-                <input type="text" class="search-input" placeholder="🔍 Search Tags..." id="searchInput">
-            </div>
-        </div>
-
-        <!-- MIDDLE PANEL -->
-        <div class="code-panel">
-            <div class="code-header">
-                <div class="code-title">CODE IDE</div>
-                <div class="code-actions">
-                    <button class="btn" id="downloadBtn">⬇ Download</button>
-                    <button class="btn" id="viewToggle">view as text</button>
-                </div>
-            </div>
-            <div class="code-workspace" id="codeWorkspace"></div>
-            <div class="text-view" id="textView">
-                <textarea class="code-editor" id="codeEditor"></textarea>
-            </div>
-        </div>
-
-        <!-- RIGHT PANEL -->
-        <div class="preview-panel">
-            <div class="preview-header">
-                <div class="preview-title">
-                    <span>Preview</span>
-                </div>
-                <div class="preview-actions">
-                    <button class="icon-btn" id="refreshBtn">↻</button>
-                    <button class="icon-btn" id="fullscreenBtn">⛶</button>
-                </div>
-            </div>
-            <div class="preview-frame">
-                <iframe id="previewFrame"></iframe>
-            </div>
-        </div>
-    </div>
-
-    <!-- MODAL -->
-    <div class="modal-overlay" id="modalOverlay">
-        <div class="modal">
-            <div class="modal-header">
-                <div class="modal-title" id="modalTitle">Edit Attributes</div>
-                <button class="modal-close" id="modalClose">✕</button>
-            </div>
-            <div class="attribute-form" id="attributeForm"></div>
-            <div class="modal-actions">
-                <button class="btn btn-apply" id="applyBtn">Apply</button>
-            </div>
-        </div>
-    </div>
-
-    <script>
-        // HTML Tags with categories
-        const htmlTags = {
-            structure: ['html', 'head', 'body', 'div', 'span', 'main', 'section', 'article', 'aside', 'header', 'footer', 'nav'],
-            text: ['h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'p', 'br', 'hr', 'pre', 'code', 'strong', 'em', 'b', 'i', 'u', 'small', 'mark', 'del', 's', 'ins', 'sub', 'sup', 'blockquote', 'q', 'cite', 'abbr', 'time', 'kbd', 'samp', 'var'],
-            media: ['img', 'video', 'audio', 'source', 'track', 'picture', 'figure', 'figcaption', 'canvas', 'svg', 'iframe', 'embed', 'object'],
-            form: ['form', 'input', 'button', 'select', 'option', 'optgroup', 'textarea', 'label', 'fieldset', 'legend', 'datalist', 'output', 'progress', 'meter'],
-            table: ['table', 'thead', 'tbody', 'tfoot', 'tr', 'th', 'td', 'caption', 'col', 'colgroup'],
-            list: ['ul', 'ol', 'li', 'dl', 'dt', 'dd'],
-            semantic: ['address', 'details', 'summary', 'dialog', 'data', 'wbr'],
-            meta: ['title', 'meta', 'link', 'base', 'style', 'script', 'noscript'],
-            deprecated: ['font', 'center', 'marquee', 'blink', 'big', 'strike', 'tt', 'frame', 'frameset', 'noframes', 'applet', 'basefont']
-        };
-
-        // Container tags (can have children)
-        const containerTags = ['html', 'head', 'body', 'div', 'span', 'main', 'section', 'article', 'aside', 'header', 'footer', 'nav', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'p', 'ul', 'ol', 'li', 'table', 'thead', 'tbody', 'tfoot', 'tr', 'th', 'td', 'form', 'fieldset', 'select', 'button', 'a', 'label', 'blockquote', 'figure', 'details', 'dialog', 'dl', 'dt', 'dd'];
-
-        // Common attributes per tag
-        const tagAttributes = {
-            global: ['id', 'class', 'style', 'title', 'data-*'],
-            img: ['src', 'alt', 'width', 'height'],
-            a: ['href', 'target', 'rel'],
-            input: ['type', 'name', 'value', 'placeholder', 'required'],
-            button: ['type', 'name', 'value'],
-            form: ['action', 'method', 'enctype'],
-            script: ['src', 'type', 'async', 'defer'],
-            link: ['href', 'rel', 'type'],
-            meta: ['name', 'content', 'charset', 'http-equiv'],
-            iframe: ['src', 'width', 'height', 'frameborder'],
-            video: ['src', 'controls', 'autoplay', 'loop', 'width', 'height'],
-            audio: ['src', 'controls', 'autoplay', 'loop']
-        };
-
-        // State
-        let blockTree = [];
-        let selectedBlock = null;
-        let currentEditBlock = null;
-        let draggedElement = null;
-        let isTextView = false;
-        let blockIdCounter = 0;
-
-        // Initialize
-        function init() {
-            renderBlocksList();
-            initializeDefaultHTML();
-            setupEventListeners();
-            updatePreview();
-        }
-
-        // Render blocks list
-        function renderBlocksList() {
-            const blocksList = document.getElementById('blocksList');
-            blocksList.innerHTML = '';
-
-            // Add Text Block first
-            const textBlockItem = document.createElement('div');
-            textBlockItem.className = 'block-item';
-            textBlockItem.style.background = '#e0e0e0';
-            textBlockItem.style.color = '#000';
-            textBlockItem.style.borderLeft = 'none';
-            textBlockItem.textContent = 'Text Block';
-            textBlockItem.draggable = true;
-            textBlockItem.dataset.tag = 'text';
-            textBlockItem.dataset.category = 'text';
-            
-            textBlockItem.addEventListener('dragstart', (e) => {
-                draggedElement = { type: 'new', tag: 'text', category: 'text' };
-                e.dataTransfer.effectAllowed = 'copy';
-            });
-
-            blocksList.appendChild(textBlockItem);
-
-            // Add separator
-            const separator = document.createElement('div');
-            separator.style.height = '2px';
-            separator.style.background = '#333';
-            separator.style.margin = '10px 0';
-            blocksList.appendChild(separator);
-
-            Object.entries(htmlTags).forEach(([category, tags]) => {
-                tags.forEach(tag => {
-                    const item = document.createElement('div');
-                    item.className = `block-item cat-${category}`;
-                    item.textContent = `<${tag}>`;
-                    item.draggable = true;
-                    item.dataset.tag = tag;
-                    item.dataset.category = category;
-                    
-                    item.addEventListener('dragstart', (e) => {
-                        draggedElement = { type: 'new', tag: tag, category: category };
-                        e.dataTransfer.effectAllowed = 'copy';
-                    });
-
-                    blocksList.appendChild(item);
-                });
-            });
-        }
-
-        // Initialize with default HTML
-        function initializeDefaultHTML() {
-            blockTree = [
-                {
-                    id: blockIdCounter++,
-                    tag: 'html',
-                    category: 'structure',
-                    attributes: { lang: 'en' },
-                    children: [
-                        {
-                            id: blockIdCounter++,
-                            tag: 'head',
-                            category: 'structure',
-                            attributes: {},
-                            children: [
-                                {
-                                    id: blockIdCounter++,
-                                    tag: 'meta',
-                                    category: 'meta',
-                                    attributes: { charset: 'UTF-8' },
-                                    children: []
-                                },
-                                {
-                                    id: blockIdCounter++,
-                                    tag: 'meta',
-                                    category: 'meta',
-                                    attributes: { name: 'viewport', content: 'width=device-width, initial-scale=1.0' },
-                                    children: []
-                                },
-                                {
-                                    id: blockIdCounter++,
-                                    tag: 'title',
-                                    category: 'meta',
-                                    attributes: {},
-                                    children: [
-                                        {
-                                            id: blockIdCounter++,
-                                            type: 'text',
-                                            content: 'Hello World Website'
-                                        }
-                                    ]
-                                }
-                            ]
-                        },
-                        {
-                            id: blockIdCounter++,
-                            tag: 'body',
-                            category: 'structure',
-                            attributes: {},
-                            children: [
-                                {
-                                    id: blockIdCounter++,
-                                    tag: 'h1',
-                                    category: 'text',
-                                    attributes: {},
-                                    children: [
-                                        {
-                                            id: blockIdCounter++,
-                                            type: 'text',
-                                            content: 'Hello, World!'
-                                        }
-                                    ]
-                                },
-                                {
-                                    id: blockIdCounter++,
-                                    tag: 'p',
-                                    category: 'text',
-                                    attributes: {},
-                                    children: [
-                                        {
-                                            id: blockIdCounter++,
-                                            type: 'text',
-                                            content: 'Welcome to my first website.'
-                                        }
-                                    ]
-                                }
-                            ]
-                        }
-                    ]
-                }
-            ];
-            renderCodeWorkspace();
-        }
-
-        // Render code workspace
-        function renderCodeWorkspace() {
-            const workspace = document.getElementById('codeWorkspace');
-            workspace.innerHTML = '';
-            blockTree.forEach(block => {
-                workspace.appendChild(renderBlock(block));
-            });
-        }
-
-        // Render individual block
-        function renderBlock(block, depth = 0) {
-            if (block.type === 'text') {
-                const textDiv = document.createElement('div');
-                textDiv.className = 'text-block';
-                textDiv.style.marginLeft = `${depth * 20}px`;
-                
-                const label = document.createElement('span');
-                label.textContent = 'Text Block: ';
-                
-                const input = document.createElement('input');
-                input.type = 'text';
-                input.className = 'text-input';
-                input.value = block.content;
-                input.addEventListener('input', (e) => {
-                    block.content = e.target.value;
-                    if (isTextView) updateTextEditor();
-                });
-                
-                textDiv.appendChild(label);
-                textDiv.appendChild(input);
-                textDiv.dataset.blockId = block.id;
-                
-                return textDiv;
-            }
-
-            const blockDiv = document.createElement('div');
-            blockDiv.className = `code-block cat-${block.category}`;
-            if (containerTags.includes(block.tag)) {
-                blockDiv.classList.add('container');
-            }
-            if (selectedBlock === block.id) {
-                blockDiv.classList.add('selected');
-            }
-            blockDiv.style.marginLeft = `${depth * 15}px`;
-            blockDiv.dataset.blockId = block.id;
-            blockDiv.draggable = true;
-
-            const content = document.createElement('div');
-            content.className = 'block-content';
-            
-            const addBtn = document.createElement('button');
-            addBtn.className = 'block-add-btn';
-            addBtn.textContent = '⊕';
-            addBtn.addEventListener('click', (e) => {
-                e.stopPropagation();
-                openAttributeModal(block);
-            });
-
-            const tagLabel = document.createElement('span');
-            let attrText = '';
-            if (Object.keys(block.attributes).length > 0) {
-                attrText = ' ' + Object.entries(block.attributes)
-                    .map(([k, v]) => `${k}="${v}"`)
-                    .join(' ');
-            }
-            tagLabel.textContent = `<${block.tag}${attrText}>`;
-
-            content.appendChild(addBtn);
-            content.appendChild(tagLabel);
-            blockDiv.appendChild(content);
-
-            // Click to select
-            blockDiv.addEventListener('click', (e) => {
-                e.stopPropagation();
-                selectBlock(block.id);
-            });
-
-            // Drag events
-            blockDiv.addEventListener('dragstart', (e) => {
-                draggedElement = { type: 'existing', block: block };
-                e.dataTransfer.effectAllowed = 'move';
-                e.stopPropagation();
-            });
-
-            blockDiv.addEventListener('dragover', (e) => {
-                e.preventDefault();
-                e.stopPropagation();
-            });
-
-            blockDiv.addEventListener('drop', (e) => {
-                e.preventDefault();
-                e.stopPropagation();
-                handleDrop(block);
-            });
-
-            // Render children
-            if (block.children && block.children.length > 0) {
-                const childrenDiv = document.createElement('div');
-                childrenDiv.className = 'block-children';
-                block.children.forEach(child => {
-                    childrenDiv.appendChild(renderBlock(child, depth + 1));
-                });
-                blockDiv.appendChild(childrenDiv);
-            }
-
-            return blockDiv;
-        }
-
-        // Handle drop
-        function handleDrop(targetBlock) {
-            if (!draggedElement) return;
-
-            if (draggedElement.type === 'new') {
-                let newBlock;
-                
-                if (draggedElement.tag === 'text') {
-                    newBlock = {
-                        id: blockIdCounter++,
-                        type: 'text',
-                        content: ''
-                    };
-                } else {
-                    newBlock = {
-                        id: blockIdCounter++,
-                        tag: draggedElement.tag,
-                        category: draggedElement.category,
-                        attributes: {},
-                        children: []
-                    };
-                }
-
-                if (containerTags.includes(targetBlock.tag)) {
-                    targetBlock.children.push(newBlock);
-                }
-            }
-
-            draggedElement = null;
-            renderCodeWorkspace();
-            if (isTextView) updateTextEditor();
-        }
-
-        // Select block
-        function selectBlock(blockId) {
-            selectedBlock = blockId;
-            renderCodeWorkspace();
-        }
-
-        // Open attribute modal
-        function openAttributeModal(block) {
-            currentEditBlock = block;
-            const modal = document.getElementById('modalOverlay');
-            const title = document.getElementById('modalTitle');
-            const form = document.getElementById('attributeForm');
-
-            title.textContent = `Edit <${block.tag}> Attributes`;
-            form.innerHTML = '';
-
-            // Get attributes for this tag
-            const attrs = tagAttributes[block.tag] || [];
-            const allAttrs = [...new Set([...tagAttributes.global, ...attrs])];
-
-            allAttrs.forEach(attr => {
-                const row = document.createElement('div');
-                row.className = 'attribute-row';
-
-                const label = document.createElement('div');
-                label.className = 'attribute-label';
-                label.textContent = attr;
-
-                const input = document.createElement('input');
-                input.type = 'text';
-                input.className = 'attribute-input';
-                input.placeholder = `Enter ${attr}`;
-                input.value = block.attributes[attr] || '';
-                input.dataset.attr = attr;
-
-                row.appendChild(label);
-                row.appendChild(input);
-                form.appendChild(row);
-            });
-
-            modal.classList.add('active');
-        }
-
-        // Close modal
-        function closeModal() {
-            document.getElementById('modalOverlay').classList.remove('active');
-        }
-
-        // Apply attributes
-        function applyAttributes() {
-            const inputs = document.querySelectorAll('.attribute-input');
-            currentEditBlock.attributes = {};
-
-            inputs.forEach(input => {
-                if (input.value.trim()) {
-                    currentEditBlock.attributes[input.dataset.attr] = input.value.trim();
-                }
-            });
-
-            closeModal();
-            renderCodeWorkspace();
-            if (isTextView) updateTextEditor();
-        }
-
-        // Generate HTML from tree
-        function generateHTML(blocks, indent = 0) {
-            let html = '';
-            const indentStr = '  '.repeat(indent);
-
-            blocks.forEach(block => {
-                if (block.type === 'text') {
-                    html += indentStr + block.content + '\n';
-                } else {
-                    const attrs = Object.entries(block.attributes)
-                        .map(([k, v]) => ` ${k}="${v}"`)
-                        .join('');
-                    
-                    if (block.children && block.children.length > 0) {
-                        html += `${indentStr}<${block.tag}${attrs}>\n`;
-                        html += generateHTML(block.children, indent + 1);
-                        html += `${indentStr}</${block.tag}>\n`;
-                    } else {
-                        html += `${indentStr}<${block.tag}${attrs}></${block.tag}>\n`;
-                    }
-                }
-            });
-
-            return html;
-        }
-
-        // Update preview
-        function updatePreview() {
-            const iframe = document.getElementById('previewFrame');
-            const html = '<!DOCTYPE html>\n' + generateHTML(blockTree);
-            
-            const doc = iframe.contentDocument || iframe.contentWindow.document;
-            doc.open();
-            doc.write(html);
-            doc.close();
-        }
-
-        // Update text editor
-        function updateTextEditor() {
-            const editor = document.getElementById('codeEditor');
-            editor.value = '<!DOCTYPE html>\n' + generateHTML(blockTree);
-        }
-
-        // Parse HTML to tree
-        function parseHTMLToTree(html) {
-            // Remove DOCTYPE
-            html = html.replace(/<!DOCTYPE[^>]*>/i, '').trim();
-            
-            const parser = new DOMParser();
-            const doc = parser.parseFromString(html, 'text/html');
-            
-            function domNodeToBlock(node) {
-                if (node.nodeType === Node.TEXT_NODE) {
-                    const text = node.textContent.trim();
-                    if (text) {
-                        return {
-                            id: blockIdCounter++,
-                            type: 'text',
-                            content: text
-                        };
-                    }
-                    return null;
-                }
-                
-                if (node.nodeType === Node.ELEMENT_NODE) {
-                    const tag = node.tagName.toLowerCase();
-                    
-                    // Find category
-                    let category = 'structure';
-                    for (const [cat, tags] of Object.entries(htmlTags)) {
-                        if (tags.includes(tag)) {
-                            category = cat;
-                            break;
-                        }
-                    }
-                    
-                    const block = {
-                        id: blockIdCounter++,
-                        tag: tag,
-                        category: category,
-                        attributes: {},
-                        children: []
-                    };
-                    
-                    // Get attributes
-                    for (const attr of node.attributes) {
-                        block.attributes[attr.name] = attr.value;
-                    }
-                    
-                    // Get children
-                    for (const child of node.childNodes) {
-                        const childBlock = domNodeToBlock(child);
-                        if (childBlock) {
-                            block.children.push(childBlock);
-                        }
-                    }
-                    
-                    return block;
-                }
-                
-                return null;
-            }
-            
-            const htmlNode = doc.querySelector('html');
-            if (htmlNode) {
-                const tree = domNodeToBlock(htmlNode);
-                return tree ? [tree] : [];
-            }
-            
-            return blockTree;
-        }
-
-        // Toggle view
-        function toggleView() {
-            isTextView = !isTextView;
-            const workspace = document.getElementById('codeWorkspace');
-            const textView = document.getElementById('textView');
-            const toggleBtn = document.getElementById('viewToggle');
-
-            if (isTextView) {
-                workspace.style.display = 'none';
-                textView.classList.add('active');
-                toggleBtn.textContent = 'view as blocks';
-                updateTextEditor();
-            } else {
-                workspace.style.display = 'block';
-                textView.classList.remove('active');
-                toggleBtn.textContent = 'view as text';
-                
-                // Sync back from text editor
-                const editor = document.getElementById('codeEditor');
-                const newTree = parseHTMLToTree(editor.value);
-                if (newTree.length > 0) {
-                    blockTree = newTree;
-                }
-                renderCodeWorkspace();
-                updatePreview();
-            }
-        }
-
-        // Download HTML
-        function downloadHTML() {
-            const html = '<!DOCTYPE html>\n' + generateHTML(blockTree);
-            const blob = new Blob([html], { type: 'text/html' });
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = 'index.html';
-            a.click();
-            URL.revokeObjectURL(url);
-        }
-
-        // Search tags
-        function searchTags(query) {
-            const blocks = document.querySelectorAll('.block-item');
-            const searchLower = query.toLowerCase();
-
-            blocks.forEach(block => {
-                const tag = block.dataset.tag;
-                if (tag.includes(searchLower)) {
-                    block.style.display = 'block';
-                } else {
-                    block.style.display = 'none';
-                }
-            });
-        }
-
-        // Delete selected block
-        function deleteSelectedBlock() {
-            if (!selectedBlock) return;
-
-            function removeBlockById(blocks, id) {
-                for (let i = 0; i < blocks.length; i++) {
-                    if (blocks[i].id === id) {
-                        blocks.splice(i, 1);
-                        return true;
-                    }
-                    if (blocks[i].children && removeBlockById(blocks[i].children, id)) {
-                        return true;
-                    }
-                }
-                return false;
-            }
-
-            removeBlockById(blockTree, selectedBlock);
-            selectedBlock = null;
-            renderCodeWorkspace();
-            if (isTextView) updateTextEditor();
-        }
-
-        // Setup event listeners
-        function setupEventListeners() {
-            // Modal
-            document.getElementById('modalClose').addEventListener('click', closeModal);
-            document.getElementById('applyBtn').addEventListener('click', applyAttributes);
-            document.getElementById('modalOverlay').addEventListener('click', (e) => {
-                if (e.target.id === 'modalOverlay') closeModal();
-            });
-
-            // View toggle
-            document.getElementById('viewToggle').addEventListener('click', toggleView);
-
-            // Download
-            document.getElementById('downloadBtn').addEventListener('click', downloadHTML);
-
-            // Refresh preview
-            document.getElementById('refreshBtn').addEventListener('click', updatePreview);
-
-            // Fullscreen preview
-            document.getElementById('fullscreenBtn').addEventListener('click', () => {
-                const iframe = document.getElementById('previewFrame');
-                if (iframe.requestFullscreen) {
-                    iframe.requestFullscreen();
-                }
-            });
-
-            // Search
-            document.getElementById('searchInput').addEventListener('input', (e) => {
-                searchTags(e.target.value);
-            });
-
-            // Keyboard shortcuts
-            document.addEventListener('keydown', (e) => {
-                // Delete or Alt+Backspace to delete selected block
-                if ((e.key === 'Delete' || (e.altKey && e.key === 'Backspace')) && selectedBlock) {
-                    e.preventDefault();
-                    deleteSelectedBlock();
-                }
-            });
-
-            // Drag and drop for workspace
-            const workspace = document.getElementById('codeWorkspace');
-            workspace.addEventListener('dragover', (e) => {
-                e.preventDefault();
-            });
-
-            workspace.addEventListener('drop', (e) => {
-                e.preventDefault();
-                if (draggedElement && draggedElement.type === 'new') {
-                    let newBlock;
-                    
-                    if (draggedElement.tag === 'text') {
-                        newBlock = {
-                            id: blockIdCounter++,
-                            type: 'text',
-                            content: ''
-                        };
-                    } else {
-                        newBlock = {
-                            id: blockIdCounter++,
-                            tag: draggedElement.tag,
-                            category: draggedElement.category,
-                            attributes: {},
-                            children: []
-                        };
-                    }
-                    
-                    blockTree.push(newBlock);
-                    draggedElement = null;
-                    renderCodeWorkspace();
-                    if (isTextView) updateTextEditor();
-                }
-            });
-        }
-
-        // Initialize the app
-        init();
-    </script>
+  <div class="header">
+    <h1><img src="code.nyet/img.svg" alt="SVG" height="25px" width="25px"> LibreCode.nyet</h1>
+    <div>
+      <button class="button" id="undoBtn" title="Undo (Alt+Z)">Undo</button>
+      <button class="button" id="redoBtn" title="Redo (Alt+Y)">Redo</button>
+      <button class="button" id="copyBtn">Copy</button>
+      <button class="button" id="downloadBtn">Download</button>
+      <button class="button" id="toggleCodeBtn">Toggle Code</button>
+      <button class="button" id="refreshBtn">Refresh</button>
+      <button class="button" id="shortcutsBtn">Shortcuts</button>
+    </div>
+  </div>
+
+  <div class="container">
+    <div class="panel left" id="blockList"></div>
+    <div class="panel middle" id="editor"></div>
+    <div class="right">
+      <div style="padding:12px; border-bottom:1px solid #1a1f2e; font-weight:600; font-size:13px;">Preview</div>
+      <iframe id="preview"></iframe>
+      <textarea id="codeEditor" class="code-panel hidden"></textarea>
+    </div>
+  </div>
+
+  <div id="attributePopupContainer"></div>
+  <div id="shortcutsPopup" class="shortcut-popup hidden">
+    <h3>Keyboard Shortcuts</h3>
+    <ul>
+      <li><strong>Alt + Click</strong> — Edit block attributes</li>
+      <li><strong>Delete / Backspace</strong> — Delete selected block</li>
+      <li><strong>Alt + D</strong> — Duplicate selected block</li>
+      <li><strong>Alt + E</strong> — Show tag example</li>
+      <li><strong>Double-click on text</strong> — Edit text inline</li>
+      <li><strong>Shift + Arrow Up / Arrow Down</strong> — Move selected block up / down</li>
+      <li><strong>Alt + Z</strong> — Undo</li>
+      <li><strong>Alt + Y</strong> — Redo</li>
+      <li><strong>Escape</strong> — Close popups</li>
+    </ul>
+    <div style="text-align:right; margin-top:14px;"><button class="button" onclick="document.getElementById('shortcutsPopup').classList.add('hidden')">Close</button></div>
+  </div>
+
+<script>
+/* Improved examples with code and visual preview */
+
+/* ------------------------------------------------------------------------
+   Core data model & utilities
+   ------------------------------------------------------------------------ */
+let blocks = [];
+let selectedBlock = null;
+let idCounter = 0;
+
+const history = { past: [], future: [] };
+function pushHistory() {
+  history.past.push(JSON.parse(JSON.stringify({ blocks, selectedId: selectedBlock ? selectedBlock.id : null })));
+  if (history.past.length > 80) history.past.shift();
+  history.future = [];
+}
+function doUndo() {
+  if (!history.past.length) return;
+  const snapshot = history.past.pop();
+  history.future.push(JSON.parse(JSON.stringify({ blocks, selectedId: selectedBlock ? selectedBlock.id : null })));
+  blocks = JSON.parse(JSON.stringify(snapshot.blocks));
+  selectedBlock = snapshot.selectedId ? findBlockById(snapshot.selectedId, blocks) : null;
+  renderEditor();
+  updateCodeEditor();
+}
+function doRedo() {
+  if (!history.future.length) return;
+  const snapshot = history.future.pop();
+  history.past.push(JSON.parse(JSON.stringify({ blocks, selectedId: selectedBlock ? selectedBlock.id : null })));
+  blocks = JSON.parse(JSON.stringify(snapshot.blocks));
+  selectedBlock = snapshot.selectedId ? findBlockById(snapshot.selectedId, blocks) : null;
+  renderEditor();
+  updateCodeEditor();
+}
+
+function createBlock(tag, content = '', children = []) {
+  return { id: 'b' + (idCounter++), tag, content, children, attributes: {}, collapsed: false };
+}
+function deepClone(obj) { return JSON.parse(JSON.stringify(obj)); }
+
+function findParentArrayAndIndex(id, arr = blocks, parent = null) {
+  for (let i = 0; i < arr.length; i++) {
+    if (arr[i].id === id) return { parentArray: arr, index: i, parentBlock: parent };
+    if (arr[i].children && arr[i].children.length) {
+      const res = findParentArrayAndIndex(id, arr[i].children, arr[i]);
+      if (res) return res;
+    }
+  }
+  return null;
+}
+function findBlockById(id, arr = blocks) {
+  for (const b of arr) {
+    if (b.id === id) return b;
+    if (b.children && b.children.length) {
+      const res = findBlockById(id, b.children);
+      if (res) return res;
+    }
+  }
+  return null;
+}
+
+/* ------------------------------------------------------------------------
+   Tags & attributes
+   ------------------------------------------------------------------------ */
+const tagGroups = {
+  'made for code.nyet': ['text', 'comment'],
+  'text & content': ['p','h1','h2','h3','h4','h5','h6','span','strong','em','b','i','u','mark','code'],
+  'links & media': ['a','img','video','audio'],
+  'structure': ['div','section','article','aside','header','footer','main','nav'],
+  'lists': ['ul','ol','li'],
+  'tables': ['table','tr','td','th'],
+  'forms & input': ['button','input','textarea','select','option','label','form','fieldset'],
+  'advanced': ['canvas','iframe','script','style','link','meta']
+};
+
+const blockTags = Object.values(tagGroups).flat();
+
+const commonAttributes = {
+  global: ['id','class','style','title'],
+  a: ['href','target','rel'],
+  img: ['src','alt','width','height'],
+  video: ['src','poster','width','height','controls','autoplay','loop','muted'],
+  audio: ['src','controls','autoplay','loop','muted'],
+  input: ['type','name','value','placeholder','required','disabled'],
+  button: ['type','disabled'],
+  form: ['action','method'],
+  iframe: ['src','width','height'],
+  canvas: ['width','height'],
+  textarea: ['name','rows','cols','placeholder'],
+  select: ['name','multiple','required'],
+  script: ['src','type'],
+  link: ['href','rel','type'],
+  meta: ['name','content']
+};
+
+function getColor(tag) {
+  if (['text','p','h1','h2','h3','h4','h5','h6','span','strong','em','b','i','u','mark','code'].includes(tag)) return '#00d4ff';
+  if (['div','section','article','aside','header','footer','main','nav','ul','ol','li','table','tr','td','th'].includes(tag)) return '#a855f7';
+  if (['button','input','textarea','select','option','label','form','fieldset','canvas','iframe'].includes(tag)) return '#ff6b35';
+  if (['img','video','audio','a'].includes(tag)) return '#00ff88';
+  if (['text','comment'].includes(tag)) return '#ffc107';
+  if (['script','style','link','meta'].includes(tag)) return '#ff4757';
+  return '#ffeb3b';
+}
+
+/* ------------------------------------------------------------------------
+   Block list UI with groups
+   ------------------------------------------------------------------------ */
+function renderBlockList() {
+  const list = document.getElementById('blockList');
+  list.innerHTML = '';
+  
+  Object.entries(tagGroups).forEach(([groupName, tags]) => {
+    const group = document.createElement('div');
+    group.className = 'tag-group';
+    
+    const title = document.createElement('div');
+    title.className = 'tag-group-title';
+    title.textContent = groupName;
+    group.appendChild(title);
+    
+    const buttonContainer = document.createElement('div');
+    buttonContainer.className = 'tag-buttons';
+    
+    tags.forEach(t => {
+      const btn = document.createElement('button');
+      btn.className = 'tag-btn';
+      btn.textContent = t;
+      btn.style.borderColor = getColor(t);
+      btn.style.color = getColor(t);
+      btn.onclick = () => { pushHistory(); addBlock(t); };
+      btn.oncontextmenu = (ev) => { ev.preventDefault(); showTagExample(t); };
+      buttonContainer.appendChild(btn);
+    });
+    
+    group.appendChild(buttonContainer);
+    list.appendChild(group);
+  });
+}
+
+/* ------------------------------------------------------------------------
+   Editor rendering with completely fixed selection
+   ------------------------------------------------------------------------ */
+let currentDragId = null;
+let dragOverState = null;
+
+function renderEditor() {
+  const editor = document.getElementById('editor');
+  editor.innerHTML = '';
+
+  function createBlockElement(block, depth = 0) {
+    const el = document.createElement('div');
+    el.className = 'block';
+    el.style.borderColor = getColor(block.tag);
+    el.dataset.id = block.id;
+    
+    // SIMPLE SELECTION - Click anywhere on block to select it
+    el.addEventListener('click', (e) => {
+      // Only select if we're not clicking on special elements
+      if (!e.target.classList.contains('collapse-btn') && 
+          !e.target.classList.contains('drag-handle')) {
+        selectedBlock = block;
+        renderEditor();
+        e.stopPropagation(); // Prevent event from bubbling to parent blocks
+      }
+    });
+    
+    if (selectedBlock && selectedBlock.id === block.id) el.classList.add('selected');
+
+    // Add drag handle for all blocks
+    const dragHandle = document.createElement('span');
+    dragHandle.className = 'drag-handle';
+    dragHandle.textContent = '☰';
+    dragHandle.draggable = true;
+    
+    dragHandle.addEventListener('dragstart', (e) => {
+      currentDragId = block.id;
+      try { e.dataTransfer.setData('text/plain', block.id); } catch (err) {}
+      e.dataTransfer.effectAllowed = 'move';
+      e.stopPropagation();
+    });
+    
+    dragHandle.addEventListener('dragend', (e) => {
+      currentDragId = null;
+      dragOverState = null;
+      removeDropIndicators();
+      e.stopPropagation();
+    });
+    el.appendChild(dragHandle);
+
+    if (block.children && block.children.length) {
+      const cbtn = document.createElement('span');
+      cbtn.className = 'collapse-btn';
+      cbtn.textContent = block.collapsed ? '▶' : '▼';
+      cbtn.addEventListener('click', (e) => { 
+        e.stopPropagation(); 
+        pushHistory(); 
+        block.collapsed = !block.collapsed; 
+        renderEditor(); 
+        updateCodeEditor(); 
+      });
+      el.appendChild(cbtn);
+    }
+
+    // Handle different block types
+    if (block.tag === 'text') {
+      const span = document.createElement('span');
+      span.textContent = block.content || 'Double-click to edit';
+      span.style.cursor = 'text';
+      span.style.color = '#ffc107';
+      span.addEventListener('dblclick', (e) => { 
+        e.stopPropagation(); 
+        editTextInline(block, span); 
+      });
+      span.addEventListener('click', (e) => {
+        e.stopPropagation();
+      });
+      el.appendChild(span);
+    } else if (block.tag === 'comment') {
+      const span = document.createElement('span');
+      span.textContent = `<!-- ${block.content || 'Comment'} -->`;
+      span.style.color = '#ffc107';
+      span.style.cursor = 'text';
+      span.addEventListener('dblclick', (e) => { 
+        e.stopPropagation(); 
+        editTextInline(block, span); 
+      });
+      span.addEventListener('click', (e) => {
+        e.stopPropagation();
+      });
+      el.appendChild(span);
+    } else {
+      const tagLabel = document.createElement('span');
+      tagLabel.textContent = `<${block.tag}>`;
+      tagLabel.addEventListener('click', (e) => {
+        e.stopPropagation();
+        if (e.ctrlKey || e.metaKey) { 
+          showAttributeEditor(block); 
+        }
+      });
+      el.appendChild(tagLabel);
+    }
+
+    // Enhanced drag and drop events
+    el.addEventListener('dragenter', (e) => {
+      e.preventDefault();
+      if (!currentDragId || currentDragId === block.id) return;
+      
+      const rect = el.getBoundingClientRect();
+      const y = e.clientY - rect.top;
+      const height = rect.height;
+      
+      const topZone = height * 0.3;
+      const bottomZone = height * 0.7;
+      
+      let position = 'inside';
+      if (y < topZone) position = 'before';
+      else if (y > bottomZone) position = 'after';
+      
+      dragOverState = { targetId: block.id, position };
+      showDropIndicator(el, position);
+      e.dataTransfer.dropEffect = 'move';
+    });
+    
+    el.addEventListener('dragover', (e) => { 
+      e.preventDefault(); 
+      e.dataTransfer.dropEffect = 'move'; 
+    });
+    
+    el.addEventListener('dragleave', (e) => {
+      e.preventDefault();
+      const rect = el.getBoundingClientRect();
+      if (e.clientY < rect.top || e.clientY > rect.bottom || 
+          e.clientX < rect.left || e.clientX > rect.right) {
+        removeDropIndicators();
+        dragOverState = null;
+      }
+    });
+    
+    el.addEventListener('drop', (e) => {
+      e.preventDefault();
+      removeDropIndicators();
+      const draggedId = e.dataTransfer.getData('text/plain') || currentDragId;
+      if (!draggedId || draggedId === block.id) { 
+        dragOverState = null; 
+        return; 
+      }
+      pushHistory();
+      performDrop(draggedId, block.id, dragOverState ? dragOverState.position : 'inside');
+      currentDragId = null;
+      dragOverState = null;
+      renderEditor();
+      updateCodeEditor();
+    });
+
+    // Add children if not collapsed
+    if (block.children && block.children.length && !block.collapsed) {
+      const childWrap = document.createElement('div');
+      childWrap.className = 'children';
+      
+      // Add bottom drop zone for pulling out of nest
+      const bottomDropZone = document.createElement('div');
+      bottomDropZone.className = 'children-drop-zone';
+      bottomDropZone.dataset.parentId = block.id;
+      bottomDropZone.dataset.position = 'after-children';
+      
+      // Make children container a drop target
+      childWrap.addEventListener('dragenter', (e) => {
+        e.preventDefault();
+        if (!currentDragId) return;
+        bottomDropZone.style.display = 'block';
+        dragOverState = { targetId: block.id, position: 'after-children' };
+        e.dataTransfer.dropEffect = 'move';
+      });
+      
+      childWrap.addEventListener('dragover', (e) => { 
+        e.preventDefault(); 
+        e.dataTransfer.dropEffect = 'move'; 
+      });
+      
+      childWrap.addEventListener('dragleave', (e) => {
+        e.preventDefault();
+        const rect = childWrap.getBoundingClientRect();
+        if (e.clientY < rect.top || e.clientY > rect.bottom || 
+            e.clientX < rect.left || e.clientX > rect.right) {
+          bottomDropZone.style.display = 'none';
+          dragOverState = null;
+        }
+      });
+      
+      childWrap.addEventListener('drop', (e) => {
+        e.preventDefault();
+        bottomDropZone.style.display = 'none';
+        const draggedId = e.dataTransfer.getData('text/plain') || currentDragId;
+        if (!draggedId) return;
+        
+        pushHistory();
+        performDrop(draggedId, block.id, 'after-children');
+        currentDragId = null;
+        dragOverState = null;
+        renderEditor();
+        updateCodeEditor();
+      });
+      
+      // Add children blocks
+      block.children.forEach(child => {
+        childWrap.appendChild(createBlockElement(child, depth + 1));
+      });
+      
+      // Add the bottom drop zone at the end
+      childWrap.appendChild(bottomDropZone);
+      el.appendChild(childWrap);
+    }
+
+    return el;
+  }
+
+  blocks.forEach(b => editor.appendChild(createBlockElement(b)));
+
+  // Editor-level drag to append to root
+  editor.addEventListener('dragenter', (e) => {
+    e.preventDefault();
+    if (!currentDragId) return;
+    dragOverState = { targetId: null, position: 'after-root' };
+    showDropIndicator(editor, 'after-root');
+    e.dataTransfer.dropEffect = 'move';
+  });
+  
+  editor.addEventListener('dragover', (e) => { 
+    e.preventDefault(); 
+    e.dataTransfer.dropEffect = 'move'; 
+  });
+  
+  editor.addEventListener('dragleave', (e) => {
+    e.preventDefault();
+    const rect = editor.getBoundingClientRect();
+    if (e.clientY < rect.top || e.clientY > rect.bottom || 
+        e.clientX < rect.left || e.clientX > rect.right) {
+      removeDropIndicators();
+      dragOverState = null;
+    }
+  });
+  
+  editor.addEventListener('drop', (e) => {
+    e.preventDefault();
+    removeDropIndicators();
+    const draggedId = e.dataTransfer.getData('text/plain') || currentDragId;
+    if (!draggedId) return;
+    pushHistory();
+    performDrop(draggedId, null, 'after-root');
+    currentDragId = null;
+    dragOverState = null;
+    renderEditor();
+    updateCodeEditor();
+  });
+
+  updateCodeEditorPreviewOnly();
+}
+
+/* Drop indicators - fixed to prevent accumulation */
+function showDropIndicator(targetEl, position) {
+  removeDropIndicators();
+  const indicator = document.createElement('div');
+  indicator.className = 'drop-indicator';
+  indicator.dataset._dropIndicator = '1';
+  
+  if (position === 'before') {
+    targetEl.parentNode.insertBefore(indicator, targetEl);
+  } else if (position === 'after') {
+    const next = targetEl.nextSibling;
+    if (next) targetEl.parentNode.insertBefore(indicator, next);
+    else targetEl.parentNode.appendChild(indicator);
+  } else if (position === 'inside') {
+    const childrenWrap = targetEl.querySelector('.children');
+    if (childrenWrap) {
+      childrenWrap.insertBefore(indicator, childrenWrap.firstChild);
+    } else {
+      const cw = document.createElement('div');
+      cw.className = 'children';
+      cw.appendChild(indicator);
+      targetEl.appendChild(cw);
+    }
+  } else if (position === 'after-root') {
+    targetEl.appendChild(indicator);
+  }
+}
+
+function removeDropIndicators() {
+  document.querySelectorAll('[data-_dropIndicator]').forEach(n => n.remove());
+  document.querySelectorAll('.children-drop-zone').forEach(zone => {
+    zone.style.display = 'none';
+  });
+}
+
+/* Improved performDrop function */
+function performDrop(draggedId, targetId, position) {
+  if (!draggedId) return;
+  
+  const srcInfo = findParentArrayAndIndex(draggedId);
+  if (!srcInfo) return;
+  
+  // Remove from current position
+  const draggedBlock = srcInfo.parentArray.splice(srcInfo.index, 1)[0];
+
+  if (!targetId) {
+    // Append to root
+    blocks.push(draggedBlock);
+    return;
+  }
+
+  const targetInfo = findParentArrayAndIndex(targetId);
+  if (!targetInfo) return;
+  
+  const targetParentArray = targetInfo.parentArray;
+  const targetIndex = targetInfo.index;
+  const targetBlock = targetParentArray[targetIndex];
+
+  // Calculate insert position
+  let insertIndex = targetIndex;
+  
+  if (position === 'before') {
+    if (srcInfo.parentArray === targetParentArray && srcInfo.index < targetIndex) {
+      insertIndex = targetIndex - 1;
+    }
+    targetParentArray.splice(insertIndex, 0, draggedBlock);
+  } else if (position === 'after') {
+    insertIndex = targetIndex + 1;
+    if (srcInfo.parentArray === targetParentArray && srcInfo.index < targetIndex) {
+      insertIndex = targetIndex;
+    }
+    targetParentArray.splice(insertIndex, 0, draggedBlock);
+  } else if (position === 'inside') {
+    if (!targetBlock.children) targetBlock.children = [];
+    targetBlock.children.push(draggedBlock);
+    targetBlock.collapsed = false;
+  } else if (position === 'after-children') {
+    // Move after the parent block (pull out of nest)
+    const parentInfo = findParentArrayAndIndex(targetBlock.id);
+    if (parentInfo) {
+      parentInfo.parentArray.splice(parentInfo.index + 1, 0, draggedBlock);
+    }
+  }
+}
+
+/* ------------------------------------------------------------------------
+   Add / Delete / Duplicate / Move by keys
+   ------------------------------------------------------------------------ */
+function addBlock(tag) {
+  const content = tag === 'text' ? 'New Text' : 
+                 tag === 'comment' ? 'New Comment' : '';
+  const b = createBlock(tag, content);
+  
+  if (!selectedBlock) {
+    blocks.push(b);
+  } else {
+    selectedBlock.children = selectedBlock.children || [];
+    selectedBlock.children.push(b);
+    selectedBlock.collapsed = false;
+  }
+  
+  selectedBlock = b;
+  renderEditor();
+  updateCodeEditor();
+}
+
+function deleteBlock(id) {
+  pushHistory();
+  const info = findParentArrayAndIndex(id);
+  if (!info) return;
+  info.parentArray.splice(info.index, 1);
+  if (selectedBlock && selectedBlock.id === id) selectedBlock = null;
+  renderEditor();
+  updateCodeEditor();
+}
+
+function duplicateBlock(id) {
+  pushHistory();
+  const srcInfo = findParentArrayAndIndex(id);
+  if (!srcInfo) return;
+  const block = srcInfo.parentArray[srcInfo.index];
+  
+  function clone(b) {
+    return { 
+      id: 'b' + (idCounter++), 
+      tag: b.tag, 
+      content: b.content, 
+      attributes: deepClone(b.attributes || {}), 
+      collapsed: b.collapsed, 
+      children: (b.children || []).map(clone) 
+    };
+  }
+  
+  const newBlock = clone(block);
+  srcInfo.parentArray.splice(srcInfo.index + 1, 0, newBlock);
+  selectedBlock = newBlock;
+  renderEditor();
+  updateCodeEditor();
+}
+
+function moveSelectedBlockByOffset(offset) {
+  if (!selectedBlock) return;
+  const info = findParentArrayAndIndex(selectedBlock.id);
+  if (!info) return;
+  const arr = info.parentArray;
+  const idx = info.index;
+  const newIndex = idx + offset;
+  if (newIndex < 0 || newIndex >= arr.length) return;
+  const [item] = arr.splice(idx, 1);
+  arr.splice(newIndex, 0, item);
+  selectedBlock = findBlockById(item.id, blocks);
+}
+
+/* ------------------------------------------------------------------------
+   Improved inline text edit - now uses double-click
+   ------------------------------------------------------------------------ */
+function editTextInline(block, spanEl) {
+  const input = document.createElement('input');
+  input.className = 'input-inline';
+  input.value = block.content || '';
+  spanEl.replaceWith(input);
+  input.focus();
+  input.select();
+  
+  const finishEdit = () => { 
+    pushHistory(); 
+    block.content = input.value; 
+    renderEditor(); 
+    updateCodeEditor(); 
+  };
+  
+  input.addEventListener('blur', finishEdit);
+  input.addEventListener('keydown', (e) => { 
+    if (e.key === 'Enter') finishEdit();
+    if (e.key === 'Escape') {
+      input.value = block.content || '';
+      finishEdit();
+    }
+  });
+}
+
+/* ------------------------------------------------------------------------
+   Attributes editor
+   ------------------------------------------------------------------------ */
+function showAttributeEditor(block) {
+  const container = document.getElementById('attributePopupContainer');
+  container.innerHTML = '';
+  const popup = document.createElement('div'); 
+  popup.className = 'popup';
+  
+  const title = document.createElement('h3'); 
+  title.textContent = `<${block.tag}> Properties`; 
+  popup.appendChild(title);
+
+  const attrsSpecific = (commonAttributes[block.tag] || []).slice();
+  const attrsAll = Array.from(new Set([...commonAttributes.global, ...attrsSpecific]));
+
+  attrsAll.forEach(attr => {
+    const label = document.createElement('div');
+    label.style.fontSize = '13px';
+    label.style.marginTop = '8px';
+    label.style.color = '#ddd';
+    label.textContent = attr;
+    
+    const input = document.createElement('input');
+    input.style.width = '100%';
+    input.style.marginTop = '6px';
+    input.value = (block.attributes && block.attributes[attr]) ? block.attributes[attr] : '';
+    
+    input.addEventListener('input', () => {
+      if (!block.attributes) block.attributes = {};
+      block.attributes[attr] = input.value;
+      updateCodeEditor();
+    });
+    
+    popup.appendChild(label);
+    popup.appendChild(input);
+  });
+
+  const btnRow = document.createElement('div'); 
+  btnRow.style.marginTop = '12px'; 
+  btnRow.style.textAlign = 'right';
+  
+  const saveBtn = document.createElement('button'); 
+  saveBtn.className = 'button'; 
+  saveBtn.textContent = 'Save';
+  saveBtn.addEventListener('click', () => { 
+    pushHistory(); 
+    container.innerHTML = ''; 
+    renderEditor(); 
+    updateCodeEditor(); 
+  });
+  
+  const cancelBtn = document.createElement('button'); 
+  cancelBtn.className = 'button'; 
+  cancelBtn.textContent = 'Cancel';
+  cancelBtn.addEventListener('click', () => { container.innerHTML = ''; });
+  
+  btnRow.appendChild(cancelBtn); 
+  btnRow.appendChild(saveBtn);
+  popup.appendChild(btnRow);
+  container.appendChild(popup);
+}
+
+/* ------------------------------------------------------------------------
+   HTML generation & parsing with comment support
+   ------------------------------------------------------------------------ */
+function escapeHTML(s) {
+  if (s === undefined || s === null) return '';
+  return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+}
+
+function escapeAttr(s) {
+  if (s === undefined || s === null) return '';
+  return String(s).replace(/"/g, '&quot;');
+}
+
+function generateHTML() {
+  function renderNode(node, indent = 0) {
+    const sp = '  '.repeat(indent);
+    
+    if (node.tag === 'text') return sp + escapeHTML(node.content || '');
+    if (node.tag === 'comment') return sp + `<!-- ${escapeHTML(node.content || '')} -->`;
+    
+    const attrs = node.attributes ? 
+      Object.entries(node.attributes)
+        .filter(([k,v]) => v !== undefined && v !== null && v !== '')
+        .map(([k,v]) => ` ${k}="${escapeAttr(v)}"`)
+        .join('') : '';
+    
+    if (node.children && node.children.length) {
+      const children = node.children.map(c => renderNode(c, indent + 1)).join('\n');
+      return `${sp}<${node.tag}${attrs}>\n${children}\n${sp}</${node.tag}>`;
+    } else {
+      return `${sp}<${node.tag}${attrs}></${node.tag}>`;
+    }
+  }
+  
+  const bodyContent = blocks.map(b => renderNode(b, 1)).join('\n');
+  return `<!DOCTYPE html>\n<html lang="en">\n<head>\n  <meta charset="utf-8" />\n  <meta name="viewport" content="width=device-width,initial-scale=1" />\n  <title>Preview</title>\n</head>\n<body>\n${bodyContent}\n</body>\n</html>`;
+}
+
+function parseHTMLToBlocks(html) {
+  const parser = new DOMParser();
+  const doc = parser.parseFromString(html, 'text/html');
+  const body = doc.body;
+  
+  function convert(node) {
+    const arr = [];
+    node.childNodes.forEach(n => {
+      if (n.nodeType === Node.TEXT_NODE) {
+        const txt = n.nodeValue;
+        if (txt && txt.trim() !== '') arr.push(createBlock('text', txt.trim(), []));
+      } else if (n.nodeType === Node.ELEMENT_NODE) {
+        const tag = n.tagName.toLowerCase();
+        const b = createBlock(tag, '', []);
+        
+        for (let i = 0; i < n.attributes.length; i++) {
+          const a = n.attributes[i];
+          b.attributes[a.name] = a.value;
+        }
+        
+        b.children = convert(n);
+        arr.push(b);
+      } else if (n.nodeType === Node.COMMENT_NODE) {
+        arr.push(createBlock('comment', n.nodeValue.trim(), []));
+      }
+    });
+    return arr;
+  }
+  
+  return convert(body);
+}
+
+/* ------------------------------------------------------------------------
+   Code editor syncing with live preview and block updates
+   ------------------------------------------------------------------------ */
+const codeEditor = document.getElementById('codeEditor');
+let suppressCodeListener = false;
+let codeEditTimer = null;
+
+function updateCodeEditor() {
+  const html = generateHTML();
+  const iframe = document.getElementById('preview');
+  
+  try { 
+    const doc = iframe.contentDocument || iframe.contentWindow.document; 
+    doc.open(); 
+    doc.write(html); 
+    doc.close(); 
+  } catch (err) {}
+  
+  if (!suppressCodeListener) {
+    codeEditor.value = html;
+  }
+}
+
+function updateCodeEditorPreviewOnly() {
+  const html = generateHTML();
+  const iframe = document.getElementById('preview');
+  
+  try { 
+    const doc = iframe.contentDocument || iframe.contentWindow.document; 
+    doc.open(); 
+    doc.write(html); 
+    doc.close(); 
+  } catch (err) {}
+}
+
+codeEditor.addEventListener('input', () => {
+  if (suppressCodeListener) return;
+  
+  if (codeEditTimer) clearTimeout(codeEditTimer);
+  codeEditTimer = setTimeout(() => {
+    try {
+      const html = codeEditor.value;
+      const parsedBlocks = parseHTMLToBlocks(html);
+      if (parsedBlocks) { 
+        pushHistory(); 
+        blocks = parsedBlocks; 
+        selectedBlock = null;
+        renderEditor(); 
+        updateCodeEditorPreviewOnly(); 
+      }
+    } catch (err) { 
+      console.warn('Parse error:', err);
+      updateCodeEditorPreviewOnly();
+    }
+  }, 500);
+});
+
+/* ------------------------------------------------------------------------
+   Improved keyboard handling
+   ------------------------------------------------------------------------ */
+document.addEventListener('keydown', (e) => {
+  if ((e.altKey) && !e.shiftKey && e.key.toLowerCase() === 'z') { 
+    e.preventDefault(); 
+    doUndo(); 
+    return; 
+  }
+  
+  if ((e.altKey) && (e.key.toLowerCase() === 'y' || (e.shiftKey && e.key.toLowerCase() === 'z'))) { 
+    e.preventDefault(); 
+    doRedo(); 
+    return; 
+  }
+  
+  if (!selectedBlock) return;
+  
+  if (e.key === 'Delete' || e.key === 'Backspace') { 
+    e.preventDefault(); 
+    pushHistory(); 
+    deleteBlock(selectedBlock.id); 
+    renderEditor(); 
+    updateCodeEditor(); 
+    return; 
+  }
+  
+  if ((e.altKey) && e.key.toLowerCase() === 'd') { 
+    e.preventDefault(); 
+    pushHistory(); 
+    duplicateBlock(selectedBlock.id); 
+    renderEditor(); 
+    updateCodeEditor(); 
+    return; 
+  }
+  
+  if (e.shiftKey && (e.key === 'ArrowUp' || e.key === 'ArrowDown')) { 
+    e.preventDefault(); 
+    pushHistory(); 
+    moveSelectedBlockByOffset(e.key === 'ArrowUp' ? -1 : 1); 
+    renderEditor(); 
+    updateCodeEditor(); 
+    return; 
+  }
+  
+  if ((e.altKey) && e.key.toLowerCase() === 'e') { 
+    e.preventDefault(); 
+    if (selectedBlock) showTagExample(selectedBlock.tag); 
+    return; 
+  }
+  
+  if (e.key === 'Escape') { 
+    document.getElementById('attributePopupContainer').innerHTML = ''; 
+    document.getElementById('shortcutsPopup').classList.add('hidden'); 
+  }
+}); 
+
+/* ------------------------------------------------------------------------
+   IMPROVED Tag examples with code and visual preview
+   ------------------------------------------------------------------------ */
+function showTagExample(tag) {
+  const popup = document.createElement('div'); 
+  popup.className = 'popup';
+  
+  const title = document.createElement('h3'); 
+  title.textContent = `<${tag}> Examples`; 
+  popup.appendChild(title);
+
+  const tabs = document.createElement('div');
+  tabs.className = 'example-tabs';
+  
+  const codeTab = document.createElement('div');
+  codeTab.className = 'example-tab active';
+  codeTab.textContent = 'Code Example';
+  codeTab.onclick = () => switchTab('code');
+  
+  const visualTab = document.createElement('div');
+  visualTab.className = 'example-tab';
+  visualTab.textContent = 'Visual Example';
+  visualTab.onclick = () => switchTab('visual');
+  
+  tabs.appendChild(codeTab);
+  tabs.appendChild(visualTab);
+  popup.appendChild(tabs);
+
+  const codeContent = document.createElement('div');
+  codeContent.className = 'example-content active';
+  codeContent.id = 'code-example';
+  
+  const visualContent = document.createElement('div');
+  visualContent.className = 'example-content';
+  visualContent.id = 'visual-example';
+
+  function switchTab(tabName) {
+    document.querySelectorAll('.example-tab').forEach(tab => tab.classList.remove('active'));
+    document.querySelectorAll('.example-content').forEach(content => content.classList.remove('active'));
+    
+    if (tabName === 'code') {
+      codeTab.classList.add('active');
+      codeContent.classList.add('active');
+    } else {
+      visualTab.classList.add('active');
+      visualContent.classList.add('active');
+    }
+  }
+
+  const codeExamples = {
+    p: `<p>This is a paragraph of text. Paragraphs are block-level elements that typically contain text content.</p>\n\n<p>You can have multiple paragraphs to structure your content.</p>`,
+    h1: `<h1>Main Page Title</h1>\n<h2>Section Heading</h2>\n<h3>Subsection Heading</h3>`,
+    a: `<a href="https://example.com" target="_blank">Visit Example.com</a>\n<a href="#section2">Jump to Section 2</a>\n<a href="mailto:user@example.com">Send Email</a>`,
+    img: `<img src="https://via.placeholder.com/150" alt="Placeholder Image" width="150" height="150">\n<img src="photo.jpg" alt="Beautiful landscape" style="border-radius: 8px;">`,
+    text: `This is plain text content that can be placed directly in the body or within other elements.\n\nYou can use text nodes for any textual content.`,
+    comment: `<!-- This is a comment that won't be visible in the browser -->\n<!-- Multi-line comments are also possible -->`,
+    div: `<div class="container" style="border: 1px solid #ccc; padding: 20px;">\n  <h2>Container Title</h2>\n  <p>This is content inside a div container.</p>\n</div>`,
+    span: `<p>This is a <span style="color: red; font-weight: bold;">styled span</span> inside a paragraph.</p>`,
+    ul: `<ul>\n  <li>First list item</li>\n  <li>Second list item</li>\n  <li>Third list item</li>\n</ul>`,
+    ol: `<ol>\n  <li>First step</li>\n  <li>Second step</li>\n  <li>Third step</li>\n</ol>`,
+    button: `<button onclick="alert('Button clicked!')">Click Me</button>\n<button style="background: #4CAF50; color: white; padding: 10px 20px; border: none; border-radius: 4px;">Styled Button</button>`,
+    input: `<input type="text" placeholder="Enter your name">\n<input type="email" placeholder="Enter your email">\n<input type="checkbox" id="agree"> <label for="agree">I agree</label>`,
+    textarea: `<textarea rows="4" cols="50" placeholder="Enter your message here..."></textarea>`,
+    form: `<form onsubmit="alert('Form submitted!'); return false;">\n  <label for="name">Name:</label>\n  <input type="text" id="name" name="name"><br><br>\n  <button type="submit">Submit</button>\n</form>`,
+    table: `<table border="1" style="border-collapse: collapse; width: 100%;">\n  <tr><th>Name</th><th>Age</th></tr>\n  <tr><td>John</td><td>25</td></tr>\n</table>`,
+    nav: `<nav style="background: #333; padding: 10px;">\n  <a href="#home" style="color: white; margin-right: 15px;">Home</a>\n  <a href="#about" style="color: white;">About</a>\n</nav>`,
+    header: `<header style="background: #f8f9fa; padding: 20px; text-align: center;">\n  <h1>Website Header</h1>\n  <p>Welcome to our site</p>\n</header>`,
+    footer: `<footer style="background: #333; color: white; padding: 20px; text-align: center;">\n  <p>&copy; 2024 Your Company. All rights reserved.</p>\n</footer>`,
+    section: `<section style="padding: 20px; margin: 10px 0; background: #f0f0f0;">\n  <h2>Section Title</h2>\n  <p>This is a section of content.</p>\n</section>`
+  };
+
+  const codePre = document.createElement('pre');
+  codePre.className = 'example-code';
+  codePre.textContent = codeExamples[tag] || `<${tag}>Content here</${tag}>`;
+  codeContent.appendChild(codePre);
+
+  const visualPreview = document.createElement('div');
+  visualPreview.className = 'example-preview';
+  
+  const nonVisualTags = ['text', 'comment', 'script', 'style', 'link', 'meta'];
+  
+  if (nonVisualTags.includes(tag)) {
+    visualPreview.innerHTML = `<div style="color: #666; text-align: center; padding: 40px;"><p>This element doesn't have a visual representation in the browser.</p><p>Check the code example to see how to use it.</p></div>`;
+  } else {
+    const previewIframe = document.createElement('iframe');
+    previewIframe.style.width = '100%';
+    previewIframe.style.height = '200px';
+    previewIframe.style.border = 'none';
+    previewIframe.style.borderRadius = '4px';
+    
+    const previewHTML = `<!DOCTYPE html><html><head><style>body { font-family: Arial, sans-serif; padding: 10px; margin: 0; background: white; } * { box-sizing: border-box; }</style></head><body>${codeExamples[tag] || `<${tag}>Example content</${tag}>`}</body></html>`;
+    
+    previewIframe.srcdoc = previewHTML;
+    visualPreview.appendChild(previewIframe);
+  }
+  
+  visualContent.appendChild(visualPreview);
+
+  popup.appendChild(codeContent);
+  popup.appendChild(visualContent);
+
+  const close = document.createElement('button'); 
+  close.className = 'button'; 
+  close.textContent = 'Close'; 
+  close.addEventListener('click', () => popup.remove());
+  
+  popup.appendChild(close); 
+  document.body.appendChild(popup);
+}
+
+/* ------------------------------------------------------------------------
+   Buttons wiring
+   ------------------------------------------------------------------------ */
+document.getElementById('copyBtn').addEventListener('click', () => { 
+  navigator.clipboard.writeText(generateHTML()).then(
+    () => alert('HTML copied'), 
+    () => alert('Copy failed')
+  ); 
+});
+
+document.getElementById('downloadBtn').addEventListener('click', () => { 
+  const blob = new Blob([generateHTML()], { type: 'text/html' }); 
+  const a = document.createElement('a'); 
+  a.href = URL.createObjectURL(blob); 
+  a.download = 'page.html'; 
+  a.click(); 
+});
+
+document.getElementById('toggleCodeBtn').addEventListener('click', () => { 
+  const ce = document.getElementById('codeEditor'); 
+  ce.classList.toggle('hidden'); 
+  if (!ce.classList.contains('hidden')) {
+    suppressCodeListener = true;
+    ce.value = generateHTML();
+    setTimeout(() => { suppressCodeListener = false; }, 100);
+  }
+});
+
+document.getElementById('refreshBtn').addEventListener('click', () => {
+  updateCodeEditor();
+});
+
+document.getElementById('shortcutsBtn').addEventListener('click', () => 
+  document.getElementById('shortcutsPopup').classList.remove('hidden'));
+
+document.getElementById('undoBtn').addEventListener('click', () => doUndo());
+document.getElementById('redoBtn').addEventListener('click', () => doRedo());
+
+/* ------------------------------------------------------------------------
+   Initial sample & init
+   ------------------------------------------------------------------------ */
+blocks = [
+  createBlock('div', '', [
+    createBlock('h1', '', [createBlock('text', 'Code.nyet HTML Builder')]),
+    createBlock('p', '', [createBlock('text', 'Click to select blocks. Double-click text to edit. Drag to reorganize. Press Ctrl+E for examples.')]),
+    createBlock('comment', 'This is a comment block')
+  ])
+];
+
+pushHistory();
+renderBlockList();
+renderEditor();
+updateCodeEditor();
+</script>
 </body>
 </html>
