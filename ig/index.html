@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Lorem Ipsum</title>
+  <link rel="icon" type="image/x-icon" href="fav.jpg">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+  <!-- ===== NAV BAR ===== -->
+  <nav>
+    <img class="logo" src="logo.jpg" alt="Description of image" height="50px" width="50px">
+    <div class="logo">LOGO</div>
+    <div class="menu">
+      <a href="#">Menu 1</a>
+      <a href="#">Menu 2</a>
+      <a href="#">Menu 3</a>
+      <a href="#">Menu 4</a>
+    </div>
+  </nav>
+
+  <!-- ===== SLIDESHOW ===== -->
+  <div class="slideshow-container">
+    <div class="slide active" style="background-image: url('https://picsum.photos/id/10/1200/400');">Lorem ipsum dolor</div>
+    <div class="slide" style="background-image: url('https://picsum.photos/id/20/1200/400');">Consectetur adipiscing</div>
+    <div class="slide" style="background-image: url('https://picsum.photos/id/30/1200/400');">Sed do eiusmod</div>
+    <button class="prev">&#10094;</button>
+    <button class="next">&#10095;</button>
+  </div>
+
+  <!-- ===== 3×2 GRID ===== -->
+  <section class="grid">
+    <div class="grid-item"><div class="icon">🖲️</div><p>Lorem ipsum dolor sit amet, consectetur adipiscing elit.</p></div>
+    <div class="grid-item"><div class="icon">🖲️</div><p>Lorem ipsum dolor sit amet, consectetur adipiscing elit.</p></div>
+    <div class="grid-item"><div class="icon">🖲️</div><p>Lorem ipsum dolor sit amet, consectetur adipiscing elit.</p></div>
+    <div class="grid-item"><div class="icon">🖲️</div><p>Lorem ipsum dolor sit amet, consectetur adipiscing elit.</p></div>
+    <div class="grid-item"><div class="icon">🖲️</div><p>Lorem ipsum dolor sit amet, consectetur adipiscing elit.</p></div>
+    <div class="grid-item"><div class="icon">🖲️</div><p>Lorem ipsum dolor sit amet, consectetur adipiscing elit.</p></div>
+  </section>
+
+<!-- ===== VIDEO SECTIONS (local file) ===== -->
+<section class="video-section">
+  <video id="video1" muted playsinline loop preload="metadata" poster="issue.jpg" controls>
+    <source src="issue.mp4" type="video/mp4">
+    Your browser does not support the video tag.
+  </video>
+  <div class="video-overlay">LOREM ISPUM</div>
+</section>
+
+<section class="video-section">
+  <video id="video2" muted playsinline loop preload="metadata" poster="inde.jpg" controls>
+    <source src="inde.mp4" type="video/mp4">
+    Your browser does not support the video tag.
+  </video>
+  <div class="video-overlay">LOREM ISPUM</div>
+</section>
+
+  
+
+  <!-- ===== DIVIDER ===== -->
+  <div class="divider"></div>
+
+  <!-- ===== BIG PARAGRAPH ===== -->
+  <section class="big-paragraph">
+    <p>
+      Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed non risus. 
+      Suspendisse lectus tortor, dignissim sit amet, adipiscing nec, ultricies sed, dolor. 
+      Cras elementum ultrices diam. Maecenas ligula massa, varius a, semper congue, euismod non, mi. 
+      Proin porttitor, orci nec nonummy molestie, enim est eleifend mi, non fermentum diam nisl sit amet erat.
+    </p>
+  </section>
+
+  <!-- ===== FOOTER ===== -->
+  <footer>
+    <p>Lorem ipsum dolor sit amet | © Lorem Ipsum | Legal Info</p>
+  </footer>
+
+  <!-- Load script AFTER HTML -->
+  <script src="script.js" defer></script>
+</body>
+</html>
