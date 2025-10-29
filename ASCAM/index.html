@@ -369,7 +369,44 @@
        font-size: 2rem;
      }
    }
- </style>
+ /* Basic popup styling */
+  #cookie-popup {
+    position: fixed;
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: #a4c639;
+    color: #222;
+    padding: 20px 30px;
+    border-radius: 10px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+   font-family: 'Segoe UI', Roboto, sans-serif;
+    font-size: 16px;
+    text-align: center;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.5s ease, transform 0.5s ease;
+  }
+
+  /* Show popup */
+  #cookie-popup.show {
+    opacity: 1;
+    pointer-events: auto;
+  }
+
+  /* Crumble/fade effect */
+  #cookie-popup.crumble {
+    animation: crumble 1s forwards;
+  }
+
+  @keyframes crumble {
+    0% { transform: translateX(-50%) translateY(0) rotate(0deg); opacity: 1; }
+    25% { transform: translateX(-50%) translateY(-10px) rotate(-5deg); opacity: 0.8; }
+    50% { transform: translateX(-50%) translateY(10px) rotate(5deg); opacity: 0.6; }
+    75% { transform: translateX(-50%) translateY(-10px) rotate(-10deg); opacity: 0.3; }
+    100% { transform: translateX(-50%) translateY(30px) rotate(15deg); opacity: 0; }
+  }
+</style>
 </head>
 <body>
  <!-- Navbar -->
@@ -402,6 +439,9 @@
    <div class="arrow right">&#10095;</div>
  </div>
 
+ <div id="cookie-popup">
+  JUST TO INFORM YOU WE DON’T COLLECT ANY COOKIES,<br>WE VALUE YOU FOR YOU, NOT FOR YOUR DATA
+</div>
 
  <!-- Grid Section -->
  <h2 class="section-title">What We Fight For</h2>
@@ -496,6 +536,18 @@
    setInterval(nextSlide, 5000);
 
 
+  // Show the popup after 10 seconds
+  setTimeout(() => {
+    const popup = document.getElementById('cookie-popup');
+    popup.classList.add('show');
+
+    // Automatically crumble away after 3 seconds
+    setTimeout(() => {
+      popup.classList.add('crumble');
+    }, 3000);
+
+  }, 5000); // 5 seconds delay
+  
    // Make grid items clickable
    document.querySelectorAll('.grid-item').forEach(item => {
      item.addEventListener('click', function() {
