@@ -1,0 +1,500 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Donate - A.S.C.A.M</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Segoe UI', Roboto, sans-serif;
+      line-height: 1.6;
+      color: #222;
+      background-color: #f9f9f5;
+    }
+
+    :root {
+      --primary: #a4c639;
+      --primary-dark: #7da029;
+      --bg-dark: #1f1f1f;
+      --text-light: #fff;
+    }
+
+    nav {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 1rem 2rem;
+      background-color: var(--primary);
+      color: var(--text-light);
+      position: fixed;
+      width: 100%;
+      top: 0;
+      z-index: 10;
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    }
+
+    .nav-left {
+      display: flex;
+      gap: 0;
+      flex: 1;
+    }
+
+    .nav-left a {
+      color: var(--text-light);
+      text-decoration: none;
+      font-weight: 600;
+      transition: all 0.3s;
+      padding: 0.75rem 1.5rem;
+      background-color: var(--primary);
+      border-right: 1px solid rgba(255, 255, 255, 0.2);
+      cursor: pointer;
+      font-size: 1rem;
+      letter-spacing: 0.5px;
+    }
+
+    .nav-left a:last-child {
+      border-right: none;
+    }
+
+    .nav-left a:hover {
+      background-color: var(--primary-dark);
+      transform: translateY(-2px);
+    }
+
+    .nav-right {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      margin-left: auto;
+    }
+
+    .nav-right span {
+      font-weight: 700;
+      font-size: 1.1rem;
+      letter-spacing: 1px;
+    }
+
+    .nav-right img {
+      height: 100px;
+      width: 100px;
+      border-radius: 50%;
+      border: 2px solid var(--text-light);
+    }
+
+    .donate {
+      background-color: var(--text-light);
+      color: var(--primary-dark);
+      border: none;
+      padding: 0.75rem 1.5rem;
+      font-size: 0.95rem;
+      font-weight: 700;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      letter-spacing: 0.5px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    }
+
+    .donate:hover {
+      background-color: var(--primary-dark);
+      color: var(--text-light);
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(0, 0, 0, 0.25);
+    }
+
+    .container {
+      max-width: 600px;
+      margin: 100px auto 50px;
+      padding: 2rem;
+      background: linear-gradient(135deg, #f5f8ef 0%, #fff 100%);
+      border-radius: 12px;
+      border: 3px solid var(--primary);
+      box-shadow: 0 10px 30px rgba(164, 198, 57, 0.2);
+    }
+
+    h1 {
+      color: var(--primary-dark);
+      margin-bottom: 1.5rem;
+      text-align: center;
+      font-size: 2rem;
+    }
+
+    .form-group {
+      margin-bottom: 1.5rem;
+    }
+
+    label {
+      display: block;
+      margin-bottom: 0.5rem;
+      color: var(--primary-dark);
+      font-weight: 600;
+      letter-spacing: 0.5px;
+    }
+
+    input, select {
+      width: 100%;
+      padding: 0.75rem;
+      border: 2px solid var(--primary);
+      border-radius: 6px;
+      font-family: 'Segoe UI', Roboto, sans-serif;
+      font-size: 1rem;
+      transition: all 0.3s;
+    }
+
+    input:focus, select:focus {
+      outline: none;
+      border-color: var(--primary-dark);
+      box-shadow: 0 0 0 3px rgba(164, 198, 57, 0.2);
+    }
+
+    .form-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1rem;
+    }
+
+    .form-row-3 {
+      display: grid;
+      grid-template-columns: 2fr 1fr 1fr;
+      gap: 1rem;
+    }
+
+    .submit-btn {
+      width: 100%;
+      padding: 1rem;
+      background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+      color: var(--text-light);
+      border: none;
+      border-radius: 6px;
+      font-size: 1.1rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.3s;
+      letter-spacing: 0.5px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    }
+
+    .submit-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(0, 0, 0, 0.25);
+    }
+
+    .submit-btn:active {
+      transform: translateY(0);
+    }
+
+    .success-message {
+      display: none;
+      background-color: #d4edda;
+      color: #155724;
+      padding: 1rem;
+      border-radius: 6px;
+      margin-bottom: 1.5rem;
+      text-align: center;
+      font-weight: 600;
+      border: 2px solid #28a745;
+    }
+
+    .success-message.show {
+      display: block;
+    }
+
+    footer {
+      background-color: var(--bg-dark);
+      color: var(--text-light);
+      text-align: center;
+      padding: 1.5rem;
+      margin-top: 2rem;
+      font-size: 0.95rem;
+    }
+
+    footer a {
+      color: var(--primary);
+      text-decoration: none;
+      font-weight: 500;
+      transition: color 0.3s;
+    }
+
+    footer a:hover {
+      color: var(--primary-dark);
+    }
+
+    @media (max-width: 768px) {
+      .container {
+        margin: 80px 1rem 50px;
+      }
+
+      .form-row, .form-row-3 {
+        grid-template-columns: 1fr;
+      }
+
+      h1 {
+        font-size: 1.5rem;
+      }
+    }
+
+       /* --- Donate Button --- */
+.donate {
+  background-color: var(--text-light);
+  color: var(--primary-dark);
+  border: none;
+  padding: 0.75rem 1.5rem;
+  font-size: 0.95rem;
+  font-weight: 700;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  letter-spacing: 0.5px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.donate:hover {
+  background-color: var(--primary-dark);
+  color: var(--text-light);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.25);
+}
+
+.donate:active {
+  transform: translateY(0);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+} 
+  </style>
+</head>
+<body>
+  <nav>
+    <div class="nav-left">
+      <a href="index.html">Home</a>
+      <a href="index.html#mission">Mission</a>
+      <a href="index.html#issues">Issues</a>
+      <a href="index.html#videos">Videos</a>
+      <a href="donate.html"><button class="donate">DONATE</button></a>
+    </div>
+    <div class="nav-right">
+      <span>A.S.C.A.M</span>
+      <img src="img/logo.jpg" alt="Logo" />
+    </div>
+  </nav>
+
+  <div class="container">
+    <div class="success-message" id="successMessage">
+      ✓ Thank you for your donation! Your contribution has been recorded.
+    </div>
+
+    <h1>Support Our Mission</h1>
+
+    <form id="donateForm">
+      <!-- Donation Amount -->
+      <div class="form-group">
+        <label for="amount">Donation Amount (USD)</label>
+        <input type="number" id="amount" name="amount" min="1" step="0.01" required placeholder="Enter amount" />
+      </div>
+
+      <!-- Personal Information -->
+      <div class="form-group">
+        <label for="firstName">First Name</label>
+        <input type="text" id="firstName" name="firstName" required placeholder="John" />
+      </div>
+
+      <div class="form-group">
+        <label for="lastName">Last Name</label>
+        <input type="text" id="lastName" name="lastName" required placeholder="Doe" />
+      </div>
+
+      <div class="form-group">
+        <label for="email">Email Address</label>
+        <input type="email" id="email" name="email" required placeholder="john@example.com" />
+      </div>
+
+      <div class="form-group">
+        <label for="phone">Phone Number</label>
+        <input type="tel" id="phone" name="phone" placeholder="(555) 123-4567" />
+      </div>
+
+      <div class="form-group">
+        <label for="address">Address</label>
+        <input type="text" id="address" name="address" required placeholder="123 Main Street" />
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label for="city">City</label>
+          <input type="text" id="city" name="city" required placeholder="City" />
+        </div>
+        <div class="form-group">
+          <label for="state">State</label>
+          <input type="text" id="state" name="state" required placeholder="State" />
+        </div>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label for="zip">ZIP Code</label>
+          <input type="text" id="zip" name="zip" required placeholder="12345" />
+        </div>
+        <div class="form-group">
+          <label for="country">Country</label>
+          <input type="text" id="country" name="country" required placeholder="Country" />
+        </div>
+      </div>
+
+      <!-- Card Information -->
+      <div class="form-group">
+        <label for="cardName">Cardholder Name</label>
+        <input type="text" id="cardName" name="cardName" required placeholder="Name on Card" />
+      </div>
+
+      <div class="form-group">
+        <label for="cardNumber">Card Number</label>
+        <input type="text" id="cardNumber" name="cardNumber" required placeholder="1234 5678 9012 3456" maxlength="19" />
+      </div>
+
+      <div class="form-row-3">
+        <div class="form-group">
+          <label for="expiry">Expiry Date (MM/YY)</label>
+          <input type="text" id="expiry" name="expiry" required placeholder="MM/YY" maxlength="5" />
+        </div>
+        <div class="form-group">
+          <label for="cvv">CVV</label>
+          <input type="text" id="cvv" name="cvv" required placeholder="123" maxlength="4" />
+        </div>
+        <div class="form-group">
+          <label for="zip2">Billing ZIP</label>
+          <input type="text" id="zip2" name="zip2" required placeholder="12345" />
+        </div>
+      </div>
+
+      <button type="submit" class="submit-btn">Complete Donation</button>
+    </form>
+  </div>
+
+  <footer>
+    <p>© 2025 A.S.C.A.M | <a href="legal.html">Legal Policy</a> | <a href="index.html">Back to Home</a></p>
+  </footer>
+
+  <script>
+    // Donation data storage
+    let donations = [];
+
+    // JSON data structure for donations
+    let donationsJSON = {
+      organization: "A.S.C.A.M",
+      totalDonations: 0,
+      totalAmount: 0,
+      records: []
+    };
+
+    // Load donations from persistent storage
+    async function loadDonations() {
+      try {
+        const result = await window.storage.get('ascam-donations');
+        if (result) {
+          donationsJSON = JSON.parse(result.value);
+          donations = donationsJSON.records || [];
+          console.log('Loaded donations from storage:', donationsJSON);
+        }
+      } catch (e) {
+        console.log('No donations found yet or first load:', e);
+        donations = [];
+      }
+    }
+
+    // Save donations to persistent storage
+    async function saveDonations() {
+      try {
+        // Update JSON structure
+        donationsJSON.records = donations;
+        donationsJSON.totalDonations = donations.length;
+        donationsJSON.totalAmount = donations.reduce((sum, d) => sum + d.amount, 0);
+        
+        await window.storage.set('ascam-donations', JSON.stringify(donationsJSON));
+        console.log('Saved to persistent storage:', donationsJSON);
+      } catch (e) {
+        console.error('Error saving donations:', e);
+      }
+    }
+
+    // Format card number input
+    document.getElementById('cardNumber').addEventListener('input', function(e) {
+      let value = e.target.value.replace(/\s/g, '');
+      let formatted = value.match(/.{1,4}/g)?.join(' ') || value;
+      e.target.value = formatted;
+    });
+
+    // Format expiry input
+    document.getElementById('expiry').addEventListener('input', function(e) {
+      let value = e.target.value.replace(/\D/g, '');
+      if (value.length >= 2) {
+        value = value.slice(0, 2) + '/' + value.slice(2, 4);
+      }
+      e.target.value = value;
+    });
+
+    // Format CVV input
+    document.getElementById('cvv').addEventListener('input', function(e) {
+      e.target.value = e.target.value.replace(/\D/g, '').slice(0, 4);
+    });
+
+    // Handle form submission
+    document.getElementById('donateForm').addEventListener('submit', async function(e) {
+      e.preventDefault();
+
+      // Collect form data
+      const donationData = {
+        id: Date.now(),
+        timestamp: new Date().toISOString(),
+        amount: parseFloat(document.getElementById('amount').value),
+        personalInfo: {
+          firstName: document.getElementById('firstName').value,
+          lastName: document.getElementById('lastName').value,
+          email: document.getElementById('email').value,
+          phone: document.getElementById('phone').value,
+          address: document.getElementById('address').value,
+          city: document.getElementById('city').value,
+          state: document.getElementById('state').value,
+          zip: document.getElementById('zip').value,
+          country: document.getElementById('country').value
+        },
+        cardInfo: {
+          cardholderName: document.getElementById('cardName').value,
+          cardNumber: document.getElementById('cardNumber').value.slice(-4),
+          expiry: document.getElementById('expiry').value,
+          billingZip: document.getElementById('zip2').value
+        }
+      };
+
+      // Add to donations array
+      donations.push(donationData);
+      
+      // Save to persistent storage
+      await saveDonations();
+
+      // Log to console for verification
+      console.log('Donation recorded:', donationData);
+      console.log('All donations:', donations);
+      console.log('Full JSON:', donationsJSON);
+
+      // Show success message
+      const successMsg = document.getElementById('successMessage');
+      successMsg.classList.add('show');
+
+      // Reset form
+      document.getElementById('donateForm').reset();
+
+      // Hide success message after 5 seconds
+      setTimeout(() => {
+        successMsg.classList.remove('show');
+      }, 5000);
+    });
+
+    // Load donations on page load
+    loadDonations();
+  </script>
+</body>
+</html>

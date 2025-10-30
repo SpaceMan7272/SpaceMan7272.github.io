@@ -1,0 +1,616 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+ <meta charset="UTF-8" />
+ <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+ <title>Contact Us - A.S.C.A.M</title>
+ <style>
+   * {
+     margin: 0;
+     padding: 0;
+     box-sizing: border-box;
+   }
+
+
+   body {
+     font-family: 'Segoe UI', Roboto, sans-serif;
+     line-height: 1.6;
+     color: #222;
+     background-color: #f9f9f5;
+   }
+
+
+   :root {
+     --primary: #a4c639;
+     --primary-dark: #7da029;
+     --bg-dark: #1f1f1f;
+     --text-light: #fff;
+   }
+
+
+   /* --- Navbar --- */
+   nav {
+     display: flex;
+     justify-content: space-between;
+     align-items: center;
+     padding: 1rem 2rem;
+     background-color: var(--primary);
+     color: var(--text-light);
+     position: fixed;
+     width: 100%;
+     top: 0;
+     z-index: 10;
+     box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+   }
+
+
+   .nav-left {
+     display: flex;
+     gap: 0;
+     flex: 1;
+   }
+
+
+   .nav-left a {
+     color: var(--text-light);
+     text-decoration: none;
+     font-weight: 600;
+     transition: all 0.3s;
+     padding: 0.75rem 1.5rem;
+     background-color: var(--primary);
+     border-right: 1px solid rgba(255, 255, 255, 0.2);
+     cursor: pointer;
+     font-size: 1rem;
+     letter-spacing: 0.5px;
+   }
+
+
+   .nav-left a:last-child {
+     border-right: none;
+   }
+
+
+   .nav-left a:hover {
+     background-color: var(--primary-dark);
+     transform: translateY(-2px);
+   }
+
+
+   .nav-right {
+     display: flex;
+     align-items: center;
+     gap: 1rem;
+     margin-left: auto;
+   }
+
+
+   .nav-right span {
+     font-weight: 700;
+     font-size: 1.1rem;
+     letter-spacing: 1px;
+   }
+
+
+   .nav-right img {
+     height: 100px;
+     width: 100px;
+     border-radius: 50%;
+     border: 2px solid var(--text-light);
+   }
+
+
+   /* --- Hero Section --- */
+   .hero {
+     margin-top: 70px;
+     background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+     color: var(--text-light);
+     padding: 3rem 2rem;
+     text-align: center;
+     border-bottom: 4px solid var(--primary-dark);
+   }
+
+
+   .hero h1 {
+     font-size: 2.5rem;
+     margin-bottom: 0.5rem;
+     letter-spacing: 1px;
+     font-weight: 700;
+   }
+
+
+   .hero p {
+     font-size: 1.1rem;
+     max-width: 600px;
+     margin: 0 auto;
+   }
+
+
+   /* --- Main Container --- */
+   .container {
+     max-width: 1200px;
+     margin: 0 auto;
+     padding: 3rem 2rem;
+   }
+
+
+   .back-link {
+     display: inline-block;
+     color: var(--primary);
+     text-decoration: none;
+     font-weight: 600;
+     margin-bottom: 2rem;
+     transition: color 0.3s;
+   }
+
+   /* --- Separator --- */
+   .separator {
+     height: 4px;
+     background: linear-gradient(90deg, var(--primary) 0%, var(--primary-dark) 100%);
+     margin: 3rem 2rem;
+   }
+
+
+   /* --- Paragraph Section --- */
+   .paragraph {
+     padding: 2rem;
+     max-width: 900px;
+     margin: auto;
+     text-align: center;
+   }
+
+
+   .paragraph p {
+     font-size: 1.2rem;
+     color: #333;
+     line-height: 1.8;
+     letter-spacing: 0.5px;
+   }
+   .back-link:hover {
+     color: var(--primary-dark);
+   }
+
+
+   /* --- Contact Grid --- */
+   .contact-grid {
+     display: grid;
+     grid-template-columns: 1fr;
+     gap: 3rem;
+     margin-bottom: 3rem;
+   }
+
+
+   /* --- Contact Info Boxes --- */
+   .contact-info {
+     background: white;
+     padding: 2rem;
+     border-radius: 12px;
+     border-left: 5px solid var(--primary);
+     box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+   }
+
+
+   .contact-info h3 {
+     color: var(--primary-dark);
+     font-size: 1.5rem;
+     margin-bottom: 1.5rem;
+     font-weight: 600;
+   }
+
+
+   .info-item {
+     margin-bottom: 1.5rem;
+     padding-bottom: 1rem;
+     border-bottom: 1px solid #e0e0e0;
+   }
+
+
+   .info-item:last-child {
+     border-bottom: none;
+     margin-bottom: 0;
+     padding-bottom: 0;
+   }
+
+
+   .info-label {
+     color: var(--primary);
+     font-weight: 600;
+     font-size: 0.9rem;
+     text-transform: uppercase;
+     letter-spacing: 1px;
+     margin-bottom: 0.3rem;
+   }
+
+
+   .info-content {
+     color: #333;
+     font-size: 1rem;
+     line-height: 1.6;
+   }
+
+      /* --- Donate Button --- */
+.donate {
+  background-color: var(--text-light);
+  color: var(--primary-dark);
+  border: none;
+  padding: 0.75rem 1.5rem;
+  font-size: 0.95rem;
+  font-weight: 700;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  letter-spacing: 0.5px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.donate:hover {
+  background-color: var(--primary-dark);
+  color: var(--text-light);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.25);
+}
+
+.donate:active {
+  transform: translateY(0);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+}
+
+   .info-content a {
+     color: var(--primary);
+     text-decoration: none;
+     transition: color 0.3s;
+   }
+
+
+   .info-content a:hover {
+     color: var(--primary-dark);
+     text-decoration: underline;
+   }
+
+
+   /* --- Contact Form --- */
+   .contact-form-container {
+     background: white;
+     padding: 2rem;
+     border-radius: 12px;
+     border-left: 5px solid var(--primary);
+     box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+     grid-column: 1 / -1;
+   }
+
+
+   .contact-form-container h2 {
+     color: var(--primary-dark);
+     font-size: 1.8rem;
+     margin-bottom: 1.5rem;
+     font-weight: 600;
+   }
+
+
+   .form-group {
+     margin-bottom: 1.5rem;
+   }
+
+
+   .form-group label {
+     display: block;
+     color: var(--primary-dark);
+     font-weight: 600;
+     margin-bottom: 0.5rem;
+     font-size: 0.95rem;
+   }
+
+
+   .form-group input,
+   .form-group textarea,
+   .form-group select {
+     width: 100%;
+     padding: 0.75rem;
+     border: 2px solid #e0e0e0;
+     border-radius: 8px;
+     font-family: 'Segoe UI', Roboto, sans-serif;
+     font-size: 1rem;
+     transition: all 0.3s;
+     color: #333;
+   }
+
+
+   .form-group input:focus,
+   .form-group textarea:focus,
+   .form-group select:focus {
+     outline: none;
+     border-color: var(--primary);
+     background-color: #fffbf0;
+   }
+
+
+   .form-group textarea {
+     resize: vertical;
+     min-height: 150px;
+   }
+
+
+   .form-row {
+     display: grid;
+     grid-template-columns: 1fr 1fr;
+     gap: 1rem;
+   }
+
+
+   .form-group-full {
+     grid-column: 1 / -1;
+   }
+
+
+   /* --- Submit Button --- */
+   .submit-btn {
+     background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+     color: var(--text-light);
+     padding: 1rem 2.5rem;
+     border: none;
+     border-radius: 8px;
+     font-size: 1.1rem;
+     font-weight: 600;
+     cursor: pointer;
+     transition: all 0.3s;
+     width: 100%;
+     letter-spacing: 0.5px;
+   }
+
+
+   .submit-btn:hover {
+     transform: translateY(-3px);
+     box-shadow: 0 10px 25px rgba(164, 198, 57, 0.3);
+   }
+
+
+   .submit-btn:active {
+     transform: translateY(-1px);
+   }
+
+
+   /* --- Quick Links --- */
+   .quick-links {
+     background: white;
+     padding: 2rem;
+     border-radius: 12px;
+     border-left: 5px solid var(--primary);
+     box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+     margin-bottom: 3rem;
+   }
+
+
+   .quick-links h3 {
+     color: var(--primary-dark);
+     font-size: 1.3rem;
+     margin-bottom: 1rem;
+     font-weight: 600;
+   }
+
+
+   .quick-links-grid {
+     display: grid;
+     grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+     gap: 1rem;
+   }
+
+
+   .quick-link-btn {
+     display: block;
+     background-color: #f5f8ef;
+     border: 2px solid var(--primary);
+     color: var(--primary-dark);
+     padding: 1rem;
+     border-radius: 8px;
+     text-align: center;
+     text-decoration: none;
+     font-weight: 600;
+     transition: all 0.3s;
+   }
+
+
+   .quick-link-btn:hover {
+     background-color: var(--primary);
+     color: var(--text-light);
+     transform: translateY(-3px);
+   }
+
+
+   /* --- Footer --- */
+   footer {
+     background-color: var(--bg-dark);
+     color: var(--text-light);
+     text-align: center;
+     padding: 2rem;
+     margin-top: 3rem;
+     font-size: 0.95rem;
+   }
+
+
+   footer a {
+     color: var(--primary);
+     text-decoration: none;
+     transition: color 0.3s;
+   }
+
+
+   footer a:hover {
+     color: var(--primary-dark);
+   }
+
+
+   /* --- Responsive --- */
+   @media (max-width: 768px) {
+     .hero h1 {
+       font-size: 2rem;
+     }
+
+
+     .contact-grid {
+       grid-template-columns: 1fr;
+     }
+
+
+     .form-row {
+       grid-template-columns: 1fr;
+     }
+
+
+     .quick-links-grid {
+       grid-template-columns: 1fr;
+     }
+   }
+ </style>
+</head>
+<body>
+ <!-- Navbar -->
+ <nav>
+   <div class="nav-left">
+     <a href="index.html">Home</a>
+     <a href="index.html#mission">Mission</a>
+     <a href="index.html#issues">Issues</a>
+     <a href="index.html#videos">Videos</a>
+      <a href="donate.html"> <button class="donate"> DONATE </button> </a>
+   </div>
+   <div class="nav-right">
+     <span>A.S.C.A.M</span>
+     <img src="img/logo.jpg" alt="Logo" />
+   </div>
+ </nav>
+
+
+ <!-- Hero -->
+ <div class="hero">
+   <h1>Contact Us</h1>
+   <p>Have questions or want to get involved?</p>
+ </div>
+
+
+ <div class="container">
+   <a href="index.html" class="back-link">← Back to Home</a>
+
+
+
+
+
+
+   <!-- Contact Information & Form Grid -->
+   <div class="contact-grid">
+     <!-- General Contact Info -->
+     <div class="contact-info">
+       <h3>General Contact</h3>
+      
+       <div class="info-item">
+         <div class="info-label">Phone</div>
+         <div class="info-content">
+           <a href="tel:1-800-737-2471">WHAT DO WE DO HERE?????????????</a><br>
+           <small>Mondays only, 2:59 AM - 3:59 AM EDT</small>
+         </div>
+       </div>
+
+
+       <div class="info-item">
+         <div class="info-label">Email</div>
+         <div class="info-content">
+           <a href="mailto:support@ascam.org">emailascam@protonmail.com</a>
+         </div>
+       </div>
+
+
+       <div class="info-item">
+         <div class="info-label">Mailing Address</div>
+         <div class="info-content">
+           A.S.C.A.M ROOM (under construction)<br>
+           38° 53′ 51.4″ N<br>
+           77° 2′ 8.5″ W<br>
+           Earth 1
+         </div>
+       </div>
+
+
+       <div class="info-item">
+         <div class="info-label">Office Hours</div>
+         <div class="info-content">
+           Open after Construction<br>
+           Saturday - Sunday: Closed<br>
+           Federal Holidays: Closed
+         </div>
+       </div>
+     </div>
+
+
+     <!-- Contact Form -->
+     <div class="contact-form-container">
+       <h2>Send us a Message</h2>
+       <form id="contactForm">
+         <div class="form-row">
+           <div class="form-group">
+             <label for="name">Full Name *</label>
+             <input type="text" id="name" name="name" required />
+           </div>
+           <div class="form-group">
+             <label for="email">Email Address *</label>
+             <input type="email" id="email" name="email" required />
+           </div>
+         </div>
+
+
+         <div class="form-row">
+           <div class="form-group">
+             <label for="phone">Phone Number</label>
+             <input type="tel" id="phone" name="phone" />
+           </div>
+           <div class="form-group">
+             <label for="subject">Subject *</label>
+             <select id="subject" name="subject" required>
+               <option value="">-- Select a subject --</option>
+               <option value="general">General Inquiry</option>
+               <option value="support">Tech Support</option>
+               <option value="legal">Legal Support</option>
+               <option value="privacy">Your Rights have been voilated</option>
+               <option value="donate">YOU want to give us money</option>
+               <option value="partner">Partnership</option>
+               <option value="other">Other</option>
+             </select>
+           </div>
+         </div>
+
+
+         <div class="form-group form-group-full">
+           <label for="message">Message *</label>
+           <textarea id="message" name="message" required placeholder="Please provide details about your inquiry..."></textarea>
+         </div>
+
+
+         <div class="form-group form-group-full">
+           
+         </div>
+
+
+         <button type="submit" class="submit-btn">Send Message</button>
+       </form>
+     </div>
+   </div>
+ </div>
+
+
+ <!-- Footer -->
+ <footer>
+   <p>© 2025 A.S.C.A.M | <a href="legal.html">Legal Policy</a> | <a href="#">Privacy Policy</a> | <a href="#">Back to Top</a></p>
+ </footer>
+
+
+ <script>
+   document.getElementById('contactForm').addEventListener('submit', function(e) {
+     e.preventDefault();
+    
+     const name = document.getElementById('name').value;
+     const email = document.getElementById('email').value;
+     const subject = document.getElementById('subject').value;
+    
+     alert(`Thank you, ${name}! We've received your message and will respond to ${email} within 24 hours.`);
+    
+     this.reset();
+   });
+ </script>
+</body>
+</html>
