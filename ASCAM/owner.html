@@ -225,6 +225,7 @@
      font-size: 2.5rem;
      margin-bottom: 0.5rem;
      font-weight: 700;
+     min-height: 3rem;
    }
 
 
@@ -458,15 +459,15 @@
 
    <div class="stats">
      <div class="stat-box">
-       <h3>400M</h3>
+       <h3><span class="counter" data-target="400">0</span>M</h3>
        <p>Devices software support ended in the past year</p>
      </div>
      <div class="stat-box">
-       <h3>28,000</h3>
+       <h3><span class="counter" data-target="28000">0</span></h3>
        <p>Bought Titles taken down by netflix and prime</p>
      </div>
      <div class="stat-box">
-       <h3>$2.8B</h3>
+       <h3>$<span class="counter" data-target="2.8">0</span>B</h3>
        <p>Of Technology thrown out by buissness solely because of Windows 10 E-O-L</p>
      </div>
    </div>
@@ -534,6 +535,54 @@
  <footer>
    <p>© 2025 A.S.C.A.M | <a href="legal.html">Legal Policy</a> | <a href="#">Back to Top</a></p>
  </footer>
+
+ <script>
+   function animateCounters() {
+     const counters = document.querySelectorAll('.counter');
+     
+     counters.forEach(counter => {
+       const target = parseFloat(counter.getAttribute('data-target'));
+       const isDecimal = target % 1 !== 0;
+       let current = 0;
+       const increment = target / 100;
+       
+       const updateCounter = () => {
+         current += increment;
+         
+         if (current < target) {
+           if (isDecimal) {
+             counter.textContent = current.toFixed(1);
+           } else {
+             counter.textContent = Math.floor(current).toLocaleString();
+           }
+           requestAnimationFrame(updateCounter);
+         } else {
+           if (isDecimal) {
+             counter.textContent = target.toFixed(1);
+           } else {
+             counter.textContent = target.toLocaleString();
+           }
+         }
+       };
+       
+       updateCounter();
+     });
+   }
+
+   // Trigger animation when page loads
+   window.addEventListener('load', animateCounters);
+   
+   // Or trigger animation when stats section comes into view
+   const statsSection = document.querySelector('.stats');
+   const observer = new IntersectionObserver((entries) => {
+     entries.forEach(entry => {
+       if (entry.isIntersecting) {
+         animateCounters();
+         observer.unobserve(entry.target);
+       }
+     });
+   });
+   observer.observe(statsSection);
+ </script>
 </body>
 </html>
-
