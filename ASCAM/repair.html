@@ -437,6 +437,9 @@
        grid-template-columns: 1fr;
      }
    }
+   .stat-box h3 {
+  min-height: 3rem;
+}
  </style>
 </head>
 <body>
@@ -483,15 +486,15 @@
 
    <div class="stats">
      <div class="stat-box">
-       <h3>62M</h3>
+       <h3><span class="counter" data-target="62">0</span>M</h3>
        <p>Tons of e-waste generated annually</p>
      </div>
      <div class="stat-box">
-       <h3>1.5</h3>
+       <h3><span class="counter" data-target="1.5">0</span></h3>
        <p>Years average phone lifespan</p>
      </div>
      <div class="stat-box">
-       <h3>$40B+</h3>
+       <h3>$<span class="counter" data-target="40">0</span>B+</h3>
        <p>Lost to repair industry yearly</p>
      </div>
    </div>
@@ -561,5 +564,53 @@
  <footer>
    <p>© 2025 A.S.C.A.M | <a href="legal.html">Legal Policy</a> | <a href="#">Back to Top</a></p>
  </footer>
+ <script>
+  function animateCounters() {
+    const counters = document.querySelectorAll('.counter');
+    
+    counters.forEach(counter => {
+      const target = parseFloat(counter.getAttribute('data-target'));
+      const isDecimal = target % 1 !== 0;
+      let current = 0;
+      const increment = target / 100;
+      
+      const updateCounter = () => {
+        current += increment;
+        
+        if (current < target) {
+          if (isDecimal) {
+            counter.textContent = current.toFixed(1);
+          } else {
+            counter.textContent = Math.floor(current).toLocaleString();
+          }
+          requestAnimationFrame(updateCounter);
+        } else {
+          if (isDecimal) {
+            counter.textContent = target.toFixed(1);
+          } else {
+            counter.textContent = target.toLocaleString();
+          }
+        }
+      };
+      
+      updateCounter();
+    });
+  }
+
+  window.addEventListener('load', animateCounters);
+  
+  const statsSection = document.querySelector('.stats');
+  if (statsSection) {
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          animateCounters();
+          observer.unobserve(entry.target);
+        }
+      });
+    });
+    observer.observe(statsSection);
+  }
+</script>
 </body>
 </html>
