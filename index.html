@@ -224,6 +224,28 @@
             z-index: 1002;
         }
 
+        .terminal-button {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            padding: 10px 16px;
+            background: rgba(0, 255, 0, 0.1);
+            border: 2px solid var(--primary);
+            color: var(--primary);
+            font-family: 'Courier New', monospace;
+            font-size: 0.9em;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            z-index: 999;
+            box-shadow: 0 0 10px rgba(0, 255, 0, 0.2);
+        }
+
+        .terminal-button:hover {
+            background: rgba(0, 255, 0, 0.2);
+            box-shadow: 0 0 20px var(--primary);
+            transform: scale(1.05);
+        }
+
         @media (max-width: 768px) {
             .boxes {
                 grid-template-columns: 1fr;
@@ -231,6 +253,11 @@
 
             h1 {
                 font-size: 1.8em;
+            }
+
+            .terminal-button {
+                padding: 8px 12px;
+                font-size: 0.8em;
             }
         }
     </style>
@@ -265,6 +292,8 @@
             </div>
         </div>
     </div>
+
+    <button class="terminal-button" onclick="openTerminal()" title="Press Q to open terminal">TERMINAL</button>
 
     <div class="terminal" id="terminal">
         <div class="terminal-output" id="terminalOutput"></div>
@@ -428,9 +457,6 @@
                 goBack();
             }
         });
-
-        // Create placeholder pages if they don't exist (for testing)
-        // These would normally be actual separate HTML files
     </script>
 </body>
 </html>
