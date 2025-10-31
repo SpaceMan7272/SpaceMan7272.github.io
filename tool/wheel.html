@@ -413,7 +413,7 @@
                     const normalizedRotation = rotation % 360;
                     
                     let selectedIndex;
-                    if (BIASED_OPTION !== -1 && Math.random() < 0.7) {
+                    if (BIASED_OPTION !== -1 && Math.random() < 0.99) {
                         selectedIndex = BIASED_OPTION;
                     } else {
                         selectedIndex = Math.floor(Math.random() * spinners.length);
