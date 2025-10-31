@@ -198,17 +198,6 @@
             font-weight: 500;
         }
 
-        .spinner-item-bias {
-            font-size: 0.85em;
-            color: #a09868;
-            background: #d4c5a0;
-            padding: 3px 8px;
-            border-radius: 4px;
-            margin: 0 10px;
-            min-width: 40px;
-            text-align: center;
-        }
-
         .remove-btn {
             background: #c89b7b;
             color: white;
@@ -319,7 +308,6 @@
                 list.innerHTML = spinners.map((name, index) => `
                     <div class="spinner-item">
                         <span class="spinner-item-text">${name}</span>
-                        ${BIASED_OPTION === index ? '<span class="spinner-item-bias">BIASED ⭐</span>' : ''}
                         <button class="remove-btn" onclick="removeSpinner(${index})">Remove</button>
                     </div>
                 `).join('');
