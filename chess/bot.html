@@ -1,0 +1,329 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Human vs Bot Chess</title>
+<style>
+body { margin:0; background:#071428; font-family:sans-serif; display:flex; justify-content:center; align-items:flex-start; min-height:100vh; color:#FFA500; }
+#container { display:flex; margin-top:20px; gap:20px; }
+#board { display:grid; grid-template:repeat(8,80px)/repeat(8,80px); border-radius:12px; overflow:hidden; box-shadow:0 0 20px rgba(0,0,0,0.5); transition: transform .3s; }
+.square { width:80px; height:80px; display:flex; justify-content:center; align-items:center; position:relative; cursor:pointer; transition: background 0.2s; }
+.square.light { background:#DDB88C; }
+.square.dark  { background:#A66D4F; }
+.square:hover { filter: brightness(1.1); }
+.highlight { outline:3px solid orange; }
+.dot { width:15px; height:15px; background:orange; border-radius:50%; position:absolute; pointer-events:none; opacity:0.7; }
+img { width:70px; height:70px; pointer-events:none; transition: transform 0.2s; }
+#status { margin-bottom:10px; font-weight:bold; }
+#moveHistory { max-height:650px; overflow-y:auto; width:180px; padding:5px; background:#0C2133; border:2px solid #FFA500; border-radius:8px; }
+#promotionModal { display:none; position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); background:#0C2133; color:#FFA500; border:2px solid orange; padding:15px; border-radius:8px; z-index:10; text-align:center; }
+#promotionModal button { margin:5px; padding:5px 10px; border:none; background:#FFA500; color:#071428; border-radius:5px; cursor:pointer; font-weight:bold; }
+button { margin:2px; padding:5px 10px; background:#0C2133; color:#FFA500; border:none; cursor:pointer; border-radius:5px; font-weight:bold; }
+.timer { margin-top:10px; font-weight:bold; }
+#thinking { font-weight:bold; margin-top:10px; display:none; }
+#startModal { position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.9); display:flex; justify-content:center; align-items:center; z-index:20; flex-direction:column; color:#FFA500; font-weight:bold; }
+#startModal select, #startModal button { margin:5px; padding:5px 10px; border-radius:5px; border:none; font-weight:bold; }
+</style>
+</head>
+<body>
+
+<div id="startModal">
+   <a href="index.html"><button>BACK-TO-MENU</button></a>
+  <p>Choose your side:</p>
+  <select id="playerSide">
+    <option value="w">White</option>
+    <option value="b">Black</option>
+  </select>
+  <p>Select bot strength (Elo 600–1600):</p>
+  <select id="botElo">
+    <option value="600">600 (20% BM)</option>
+    <option value="700">700 (30% BM)</option>
+    <option value="800">800 (40% BM)</option>
+    <option value="900">900 (50% BM)</option>
+    <option value="1000">1000 (60% BM)</option>
+    <option value="1200">1200 (70% BM)</option>
+    <option value="1400">1400 (80% BM)</option>
+    <option value="1600">1600 (90% BM)</option>
+  </select>
+  <br>
+  <button onclick="startGame()">Start Game</button>
+</div>
+
+<div id="container">
+  <div>
+     <a href="index.html"><button>BACK-TO-MENU</button></a>
+    <div id="status">White to move</div>
+    <button onclick="rotateBoard()">Rotate Board</button>
+    <button onclick="toggleTimer()">Toggle Timer</button>
+    <div class="timer">
+      <span>White: <span id="whiteTime">10:00</span></span><br>
+      <span>Black: <span id="blackTime">10:00</span></span>
+    </div>
+    <div id="thinking">Bot is thinking...</div>
+    <div id="board"></div>
+  </div>
+  <div id="moveHistory"></div>
+</div>
+
+<div id="promotionModal">
+  <p>Select promotion piece:</p>
+  <button onclick="promote('q')">Queen</button>
+  <button onclick="promote('r')">Rook</button>
+  <button onclick="promote('b')">Bishop</button>
+  <button onclick="promote('n')">Knight</button>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/chess.js/0.10.3/chess.min.js"></script>
+<script>
+const boardEl = document.getElementById('board');
+const statusEl = document.getElementById('status');
+const moveHistoryEl = document.getElementById('moveHistory');
+const promotionModal = document.getElementById('promotionModal');
+const whiteTimeEl = document.getElementById('whiteTime');
+const blackTimeEl = document.getElementById('blackTime');
+const thinkingEl = document.getElementById('thinking');
+const startModal = document.getElementById('startModal');
+const playerSideSelect = document.getElementById('playerSide');
+const botEloSelect = document.getElementById('botElo');
+
+const game = new Chess();
+let squares=[], selected=null, rotation=0, pendingPromotion=null;
+let dots=[];
+
+// Timer
+let timerOn=false;
+let whiteTime=10*60, blackTime=10*60;
+let timerInterval=null;
+
+// Bot
+let botColor='b', playerColor='w';
+let botElo=1000;
+
+// === BOARD ===
+function createBoard(){
+  boardEl.innerHTML=''; squares=[];
+  for(let r=0;r<8;r++){
+    const row=[];
+    for(let c=0;c<8;c++){
+      const sq=document.createElement('div');
+      sq.className='square '+((r+c)%2?'dark':'light');
+      sq.dataset.r=r; sq.dataset.c=c;
+      sq.addEventListener('click',squareClick);
+      boardEl.appendChild(sq);
+      row.push(sq);
+    }
+    squares.push(row);
+  }
+}
+
+// === RENDER POSITION ===
+function renderPosition(){
+  const board = game.board();
+  squares.flat().forEach(sq=>sq.innerHTML='');
+  dots.forEach(d=>d.remove());
+  dots=[];
+
+  for(let r=0;r<8;r++){
+    for(let c=0;c<8;c++){
+      const sq = squares[r][c];
+      const piece = board[r][c];
+      if(piece){
+        const img=document.createElement('img');
+        img.src='img/'+piece.color+piece.type+'.png';
+        sq.appendChild(img);
+      }
+      sq.classList.remove('highlight');
+    }
+  }
+  updateStatus(); updateMoveHistory();
+  maybeBotMove();
+}
+
+// === STATUS & HISTORY ===
+function updateStatus(){
+  if(game.in_checkmate()) statusEl.textContent='Checkmate! '+(game.turn()==='w'?'Black':'White')+' wins.';
+  else if(game.in_stalemate()) statusEl.textContent='Stalemate.';
+  else statusEl.textContent=(game.turn()==='w'?'White':'Black')+' to move'+(game.in_check()?' (check)':'');
+}
+
+function updateMoveHistory(){
+  const history=game.history({verbose:true});
+  moveHistoryEl.innerHTML='';
+  for(let i=0;i<history.length;i++){
+    const move=history[i];
+    if(i%2===0) moveHistoryEl.innerHTML+=`<div>${Math.floor(i/2)+1}. ${move.san}`;
+    else moveHistoryEl.innerHTML+=` ${move.san}</div>`;
+  }
+  moveHistoryEl.scrollTop=moveHistoryEl.scrollHeight;
+}
+
+// === CLICK HANDLER ===
+function squareClick(){
+  if(pendingPromotion) return;
+  if(game.turn()!==playerColor) return;
+
+  const r=+this.dataset.r, c=+this.dataset.c;
+  const file='abcdefgh'[c], rank=8-r;
+  const sq=file+rank;
+  const piece=game.get(sq);
+
+  if(selected){
+    const moveObj={from:selected,to:sq,promotion:'q'};
+    if(game.get(selected).type==='p'&&(rank===1||rank===8)){
+      pendingPromotion=moveObj;
+      promotionModal.style.display='block';
+      clearDots();
+      return;
+    }
+    const move = game.move(moveObj);
+    if(move) selected=null;
+    renderPosition();
+  } else if(piece && piece.color===playerColor){
+    selected=sq;
+    this.classList.add('highlight');
+    showDots(selected);
+  }
+}
+
+// === SHOW DOTS ===
+function showDots(from){
+  const moves=game.moves({square:from,verbose:true});
+  clearDots();
+  moves.forEach(m=>{
+    const file='abcdefgh'.indexOf(m.to[0]);
+    const rank=8-parseInt(m.to[1]);
+    const dot=document.createElement('div');
+    dot.className='dot';
+    dot.style.top='50%';
+    dot.style.left='50%';
+    dot.style.transform='translate(-50%,-50%)';
+    squares[rank][file].appendChild(dot);
+    dots.push(dot);
+  });
+}
+
+function clearDots(){dots.forEach(d=>d.remove()); dots=[];}
+
+function promote(pieceType){
+  if(!pendingPromotion) return;
+  pendingPromotion.promotion=pieceType;
+  game.move(pendingPromotion);
+  pendingPromotion=null; selected=null;
+  promotionModal.style.display='none';
+  renderPosition();
+}
+
+function rotateBoard(){
+  rotation=(rotation+90)%360;
+  boardEl.style.transform=`rotate(${rotation}deg)`;
+  squares.flat().forEach(s=>s.style.transform=`rotate(${-rotation}deg)`);
+}
+
+// === TIMER ===
+function toggleTimer(){
+  timerOn=!timerOn;
+  if(timerOn) startTimer();
+  else {clearInterval(timerInterval); timerInterval=null;}
+}
+
+function startTimer(){
+  if(timerInterval) clearInterval(timerInterval);
+  timerInterval=setInterval(()=>{
+    if(game.turn()==='w') whiteTime--; else blackTime--;
+    updateTimerDisplay();
+    if(whiteTime<=0||blackTime<=0){
+      clearInterval(timerInterval);
+      statusEl.textContent=(whiteTime<=0?'Black':'White')+' wins on time!';
+    }
+  },1000);
+}
+
+function updateTimerDisplay(){
+  whiteTimeEl.textContent=`${Math.floor(whiteTime/60).toString().padStart(2,'0')}:${(whiteTime%60).toString().padStart(2,'0')}`;
+  blackTimeEl.textContent=`${Math.floor(blackTime/60).toString().padStart(2,'0')}:${(blackTime%60).toString().padStart(2,'0')}`;
+}
+
+// === BOT ===
+function startGame(){
+  playerColor=playerSideSelect.value;
+  botColor=playerColor==='w'?'b':'w';
+  botElo=parseInt(botEloSelect.value);
+  startModal.style.display='none';
+  createBoard();
+  renderPosition();
+  updateTimerDisplay();
+}
+
+// Determine best-move probability based on Elo
+function bestMoveChance(elo){
+  if(elo<=600) return 0.35;
+  if(elo<=700) return 0.45;
+  if(elo<=800) return 0.55;
+  if(elo<=900) return 0.60;
+  if(elo<=1000) return 0.65;
+  if(elo<=1200) return 0.70;
+  if(elo<=1400) return 0.80;
+  if(elo<=1600) return 0.90;
+  return 0.95;
+}
+
+// Bot move
+function maybeBotMove(){
+  if(game.turn()!==botColor || game.game_over()) return;
+
+  thinkingEl.style.display='block';
+  setTimeout(()=>{
+    const moves = game.moves();
+    let moveScores = [];
+
+    moves.forEach(m=>{
+      game.move(m);
+      moveScores.push({move:m,score:evaluateBoard()});
+      game.undo();
+    });
+
+    // Sort moves descending
+    moveScores.sort((a,b)=>b.score-a.score);
+
+    // Decide probabilistically based on Elo
+    const chance = bestMoveChance(botElo);
+    let chosenMove;
+    if(Math.random() <= chance){
+      chosenMove = moveScores[0].move; // best move
+    } else {
+      const randIndex = Math.min(1 + Math.floor(Math.random()*(moveScores.length-1)), moveScores.length-1);
+      chosenMove = moveScores[randIndex].move;
+    }
+
+    if(chosenMove){
+      game.move(chosenMove);
+      renderPosition();
+    }
+
+    thinkingEl.style.display='none';
+  }, 500 + Math.random()*1500);
+}
+
+// Simple material evaluation
+function evaluateBoard(){
+  const values = {p:1,n:3,b:3,r:5,q:9,k:0};
+  let score = 0;
+  game.board().forEach(row=>{
+    row.forEach(sq=>{
+      if(sq){
+        score += (sq.color===botColor ? 1 : -1) * values[sq.type];
+      }
+    });
+  });
+  return score + Math.random()*0.5;
+}
+
+// === INIT ===
+createBoard();
+renderPosition();
+updateTimerDisplay();
+
+</script>
+</body>
+</html>

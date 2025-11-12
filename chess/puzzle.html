@@ -1,0 +1,540 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Puzzle Rush</title>
+<style>
+/* Visual style matches your Human vs Human layout */
+body {
+  margin:0; background:#071428; font-family:sans-serif; display:flex; justify-content:center; align-items:flex-start; min-height:100vh;
+  color:#FFA500;
+}
+#container { display:flex; margin-top:20px; gap:20px; width:100%; max-width:1100px; }
+#left { width: 640px; }
+#right { width: 300px; }
+#board { display:grid; grid-template:repeat(8,80px)/repeat(8,80px); border-radius:12px; overflow:hidden; box-shadow:0 0 20px rgba(0,0,0,0.5); transition: transform .2s; margin-top:6px;}
+.square { width:80px; height:80px; display:flex; justify-content:center; align-items:center; position:relative; cursor:pointer; transition: background 0.12s; }
+.square.light { background:#DDB88C; }
+.square.dark  { background:#A66D4F; }
+.square:hover { filter: brightness(1.05); }
+.highlight { outline:3px solid orange; }
+.dot { width:15px; height:15px; background:orange; border-radius:50%; position:absolute; pointer-events:none; opacity:0.75; }
+img { width:70px; height:70px; pointer-events:none; user-select:none; }
+#status { margin-bottom:8px; font-weight:bold; }
+.panel { background:#0C2133; padding:12px; border-radius:8px; border:2px solid #FFA500; }
+.timer { margin-top:10px; font-weight:bold; }
+button { margin-top:8px; padding:8px 12px; background:#0C2133; color:#FFA500; border:none; border-radius:6px; cursor:pointer; font-weight:bold; }
+#startModal { position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(7,20,40,0.95); display:flex; justify-content:center; align-items:center; z-index:50; color:#FFA500; }
+#startContent { background:#0C2133; padding:20px; border-radius:10px; border:2px solid #FFA500; text-align:center; }
+#startContent select { margin:8px; padding:6px; border-radius:6px; border:none; }
+.small { font-size:13px; color:#ddd; margin-top:6px; }
+#thinking { margin-top:8px; font-weight:bold; display:none; color:#FFA500; }
+#counters { margin-top:12px; display:flex; gap:8px; justify-content:space-between; }
+.counter { background:transparent; padding:8px; border-radius:6px; border:1px solid rgba(255,165,0,0.25); width:48%; text-align:center; }
+#puzzleInfo { margin-top:10px; font-size:14px; }
+#controls { margin-top:12px; display:flex; gap:8px; flex-wrap:wrap; }
+#solutionBox { margin-top:10px; display:none; background:#071828; padding:8px; border-radius:6px; font-size:13px; color:#fff;}
+</style>
+</head>
+<body>
+
+<div id="startModal">
+  <div id="startContent">
+    <h2>Puzzle Rush</h2>
+    <div>
+         <a href="index.html"><button>BACK-TO-MENU</button></a>
+      <label>Mode: </label>
+      <select id="modeSelect">
+        <option value="timed">Timed</option>
+        <option value="survival">Survival</option>
+      </select>
+    </div>
+    <div id="timedOptions" style="margin-top:8px;">
+      <label>Duration: </label>
+      <select id="durationSelect">
+        <option value="60">1 minute</option>
+        <option value="120">2 minutes</option>
+        <option value="180" selected>3 minutes</option>
+      </select>
+    </div>
+    <div id="survivalNote" style="display:none; margin-top:8px;">
+      <small class="small">Survival starts with 3 lives. Each wrong answer costs one life.</small>
+    </div>
+    <div style="margin-top:12px;">
+      <button onclick="startRush()">Start</button>
+    </div>
+    <div class="small" style="margin-top:10px;">Puzzles loaded from <code>pzl/puzzles.json</code> or <code>pzl/puzzles.js</code></div>
+  </div>
+</div>
+
+<div id="container">
+  <div id="left">
+     <a href="index.html"><button>BACK-TO-MENU</button></a>
+    <div id="status">Puzzle Rush</div>
+    <div id="board" class="panel"></div>
+    <div id="thinking" class="panel">Thinking: reviewing your move...</div>
+    <div id="controls" class="panel" style="display:flex;align-items:center;justify-content:space-between;">
+      <div>
+        <button onclick="undoMove()">Undo</button>
+        <button onclick="submitMove()">Submit</button>
+        <button onclick="showSolution()">Show solution</button>
+      </div>
+      <div style="text-align:right">
+        <div id="puzzleInfo"></div>
+      </div>
+    </div>
+    <div id="solutionBox" class="panel"></div>
+  </div>
+
+  <div id="right">
+    <div class="panel">
+      <div id="modeLabel">Mode: -</div>
+      <div id="timeOrLives" class="timer">Timer / Lives</div>
+      <div id="counters">
+        <div class="counter"><div>Correct</div><div id="correctCount">0</div></div>
+        <div class="counter"><div>Wrong</div><div id="wrongCount">0</div></div>
+      </div>
+      <div id="currentPuzzleRating" style="margin-top:10px;">Rating: -</div>
+      <div id="currentPuzzleId" style="margin-top:6px; font-size:13px; color:#ddd;">ID: -</div>
+    </div>
+  </div>
+</div>
+
+<!-- chess.js -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/chess.js/0.10.3/chess.min.js"></script>
+<script>
+/* Puzzle Rush single-file implementation (fixed turn logic)
+   Replace the entire original JS with this block.
+*/
+
+let PUZZLES = []; // loaded puzzle set
+let available = []; // indices available for random draw
+let currentPuzzle = null;
+let game = new Chess();
+let squares = [];
+let dots = [];
+let selected = null;
+let pendingPromotion = null;
+let mode = 'timed';
+let duration = 180; // seconds
+let timer = null;
+let timeLeft = 0;
+let lives = 3;
+let correct = 0;
+let wrong = 0;
+let expectingSequence = []; // answer SANs for current puzzle
+let seqIndex = 0; // index into expectingSequence
+let playerSide = 'w'; // side the solver should play (will be aligned to position's side-to-move)
+let solutionShown = false;
+
+const boardEl = document.getElementById('board');
+const statusEl = document.getElementById('status');
+const puzzleInfoEl = document.getElementById('puzzleInfo');
+const thinkingEl = document.getElementById('thinking');
+const timeOrLivesEl = document.getElementById('timeOrLives');
+const modeLabelEl = document.getElementById('modeLabel');
+const correctEl = document.getElementById('correctCount');
+const wrongEl = document.getElementById('wrongCount');
+const ratingEl = document.getElementById('currentPuzzleRating');
+const idEl = document.getElementById('currentPuzzleId');
+const solutionBox = document.getElementById('solutionBox');
+
+const modeSelect = document.getElementById('modeSelect');
+const durationSelect = document.getElementById('durationSelect');
+
+modeSelect.addEventListener('change',()=>{
+  if(modeSelect.value === 'timed'){ document.getElementById('timedOptions').style.display='block'; document.getElementById('survivalNote').style.display='none'; }
+  else { document.getElementById('timedOptions').style.display='none'; document.getElementById('survivalNote').style.display='block'; }
+});
+
+/* --- board creation & rendering --- */
+function createBoard(){
+  boardEl.innerHTML=''; squares=[];
+  for(let r=0;r<8;r++){
+    const row=[];
+    for(let c=0;c<8;c++){
+      const sq=document.createElement('div');
+      sq.className='square '+((r+c)%2?'dark':'light');
+      sq.dataset.r=r; sq.dataset.c=c;
+      sq.addEventListener('click',squareClick);
+      boardEl.appendChild(sq);
+      row.push(sq);
+    }
+    squares.push(row);
+  }
+}
+
+function renderPosition(){
+  const b = game.board();
+  squares.flat().forEach(sq=>sq.innerHTML='');
+  dots.forEach(d=>d.remove()); dots=[];
+  for(let r=0;r<8;r++){
+    for(let c=0;c<8;c++){
+      const sq = squares[r][c];
+      const p = b[r][c];
+      if(p){
+        const img=document.createElement('img');
+        img.src='img/'+p.color+p.type+'.png';
+        sq.appendChild(img);
+      }
+      sq.classList.remove('highlight');
+    }
+  }
+  updateStatus();
+}
+
+function updateStatus(){
+  // show which side the solver is expected to play and which side is to move in the position
+  const toMove = game ? game.turn() : '?';
+  statusEl.textContent = currentPuzzle ? `Solve: ${currentPuzzle.rating} (${playerSide} to move — position: ${toMove})` : 'Puzzle Rush';
+  ratingEl.textContent = currentPuzzle ? `Rating: ${currentPuzzle.rating}` : 'Rating: -';
+  idEl.textContent = currentPuzzle ? `ID: ${currentPuzzle.id}` : 'ID: -';
+}
+
+/* --- square interaction (fixed) --- */
+function squareClick(){
+  if(!currentPuzzle) return;
+  if(pendingPromotion) return;
+
+  const r = +this.dataset.r, c = +this.dataset.c;
+  const file = 'abcdefgh'[c], rank = 8 - r;
+  const sq = file + rank;
+  const piece = game.get(sq);
+
+  // If a square is already selected, treat this click as destination attempt.
+  if(selected){
+    const moveObj = { from: selected, to: sq, promotion: 'q' };
+
+    // handle promotion prompt if necessary
+    const selPiece = game.get(selected);
+    if(selPiece && selPiece.type === 'p' && (rank === 1 || rank === 8)){
+      pendingPromotion = moveObj;
+      const promoted = prompt('Promote to (q,r,b,n) ?','q');
+      if(promoted && ['q','r','b','n'].includes(promoted.toLowerCase())){
+        moveObj.promotion = promoted.toLowerCase();
+      } else moveObj.promotion = 'q';
+      pendingPromotion = null;
+    }
+
+    const mv = game.move(moveObj);
+    // clear selection and UI markers regardless of move success
+    selected = null;
+    clearDots();
+    if(mv){
+      renderPosition();
+    }
+    return;
+  }
+
+  // No selection yet. Allow starting a selection only when:
+  // 1) there is a piece on the clicked square,
+  // 2) that piece belongs to the solver (playerSide),
+  // 3) AND it is that side's turn in the position (game.turn()).
+  if(piece && piece.color === playerSide && game.turn() === playerSide){
+    selected = sq;
+    this.classList.add('highlight');
+    showDots(selected);
+  }
+}
+
+function showDots(from){
+  const moves = game.moves({square:from, verbose:true});
+  clearDots();
+  moves.forEach(m=>{
+    const file='abcdefgh'.indexOf(m.to[0]);
+    const rank=8-parseInt(m.to[1]);
+    const dot=document.createElement('div');
+    dot.className='dot';
+    dot.style.top='50%'; dot.style.left='50%';
+    dot.style.transform='translate(-50%,-50%)';
+    squares[rank][file].appendChild(dot);
+    dots.push(dot);
+  });
+}
+
+function clearDots(){ dots.forEach(d=>d.remove()); dots=[]; }
+
+/* --- puzzle loading --- */
+async function loadPuzzles(){
+  // Try JSON first
+  try {
+    const res = await fetch('pzl/puzzles.json', {cache:'no-store'});
+    if(res.ok){
+      const json = await res.json();
+      if(Array.isArray(json)) PUZZLES = json;
+      else PUZZLES = [json];
+      console.log('Loaded puzzles.json, count:', PUZZLES.length);
+      return;
+    }
+  } catch(e){
+    console.log('puzzles.json not found or failed:', e);
+  }
+
+  // Try loading pzl/puzzles.js by injection; it must define window.PUZZLES or window.puzzles
+  try {
+    await new Promise((resolve, reject)=>{
+      const s = document.createElement('script');
+      s.src = 'pzl/puzzles.js';
+      s.onload = ()=>resolve();
+      s.onerror = ()=>reject(new Error('load error'));
+      document.head.appendChild(s);
+    });
+    if(window.PUZZLES && Array.isArray(window.PUZZLES)) PUZZLES = window.PUZZLES;
+    else if(window.puzzles && Array.isArray(window.puzzles)) PUZZLES = window.puzzles;
+    else {
+      console.warn('pzl/puzzles.js loaded but global array not found');
+      PUZZLES = [];
+    }
+    console.log('Loaded puzzles.js, count:', PUZZLES.length);
+    return;
+  } catch(e){
+    console.warn('pzl/puzzles.js not found or failed to load:', e);
+  }
+
+  // nothing found
+  PUZZLES = [];
+}
+
+/* --- pick random puzzle --- */
+function pickRandomPuzzle(){
+  if(!PUZZLES || PUZZLES.length===0) return null;
+  const idx = Math.floor(Math.random()*PUZZLES.length);
+  const p = JSON.parse(JSON.stringify(PUZZLES[idx]));
+  if(!Array.isArray(p.answer)) p.answer = [p.answer].flat();
+  return p;
+}
+
+/* --- normalize SAN strings for comparison (strip +,#, whitespace) --- */
+function normSAN(s){
+  if(!s) return '';
+  return s.replace(/[+#]/g,'').trim();
+}
+
+/* --- submit player's last move and validate against puzzle solution --- */
+function submitMove(){
+  if(!currentPuzzle) return;
+
+  if(seqIndex >= expectingSequence.length){
+    alert('No move expected, loading next puzzle.');
+    loadNextPuzzle();
+    return;
+  }
+
+  const sideAt = (i) => (i%2===0 ? playerSide : (playerSide==='w'?'b':'w'));
+
+  // find next index in expectingSequence that belongs to player
+  let nextPlayerIndex = seqIndex;
+  while(nextPlayerIndex < expectingSequence.length && sideAt(nextPlayerIndex) !== playerSide) nextPlayerIndex++;
+
+  if(nextPlayerIndex >= expectingSequence.length){
+    loadNextPuzzle();
+    return;
+  }
+
+  const historyVerbose = game.history({verbose:true});
+  if(historyVerbose.length === 0){
+    alert('Make a move before submitting.');
+    return;
+  }
+
+  // find the SAN for the last move that belongs to player's color
+  let lastPlayerSan = null;
+  for(let i=historyVerbose.length-1;i>=0;i--){
+    const mv = historyVerbose[i];
+    if(mv.color === playerSide){
+      lastPlayerSan = mv.san;
+      break;
+    }
+  }
+  if(!lastPlayerSan){
+    alert('No player move found. Make a move before submitting.');
+    return;
+  }
+
+  const expectedSAN = expectingSequence[nextPlayerIndex];
+  const normPlayed = normSAN(lastPlayerSan);
+  const normExpected = normSAN(expectedSAN);
+
+  if(normPlayed === normExpected){
+    seqIndex = nextPlayerIndex + 1;
+    while(seqIndex < expectingSequence.length){
+      const side = (seqIndex%2===0 ? playerSide : (playerSide==='w'?'b':'w'));
+      if(side === playerSide) break;
+      const sanMove = expectingSequence[seqIndex];
+      const applied = game.move(sanMove);
+      if(!applied){
+        console.warn('Failed to apply opponent SAN:', sanMove);
+        break;
+      }
+      seqIndex++;
+    }
+    correct++;
+    correctEl.textContent = correct;
+    renderPosition();
+    solutionShown = false;
+    solutionBox.style.display='none';
+    setTimeout(()=>{ loadNextPuzzle(); }, 250);
+  } else {
+    wrong++;
+    wrongEl.textContent = wrong;
+    if(mode === 'survival'){
+      lives--;
+      updateTimeOrLives();
+      showSolution(true);
+      if(lives <= 0){
+        endRush();
+      } else {
+        setTimeout(()=>{ currentPuzzle=null; chooseAndLoadPuzzle(); }, 800);
+      }
+    } else {
+      showSolution(true);
+      setTimeout(()=>{ chooseAndLoadPuzzle(); }, 800);
+    }
+  }
+}
+
+/* --- show solution --- */
+function showSolution(autoOpen){
+  solutionShown = true;
+  if(!currentPuzzle) return;
+  solutionBox.style.display='block';
+  solutionBox.innerHTML = `<div style="font-weight:bold;margin-bottom:6px">Solution (SAN sequence)</div><div>${expectingSequence.join(', ')}</div>`;
+  if(autoOpen){
+    const copyGame = new Chess(currentPuzzle.fen);
+    let i=0;
+    const play = ()=>{
+      if(i >= expectingSequence.length) return;
+      try { copyGame.move(expectingSequence[i]); } catch(e){}
+      i++;
+      if(i === expectingSequence.length){
+        game.load(copyGame.fen());
+        renderPosition();
+      } else {
+        setTimeout(play, 150);
+      }
+    };
+    play();
+  }
+}
+
+/* --- choose and load puzzle (fixed alignment between puzzle.color and FEN side-to-move) --- */
+function chooseAndLoadPuzzle(){
+  currentPuzzle = pickRandomPuzzle();
+  if(!currentPuzzle){
+    alert('No puzzles found. Place pzl/puzzles.json or pzl/puzzles.js with a global array.');
+    return;
+  }
+
+  expectingSequence = Array.isArray(currentPuzzle.answer) ? currentPuzzle.answer.slice() : [currentPuzzle.answer];
+  seqIndex = 0;
+
+  // Load FEN into game and determine which side is to move in the position
+  game = new Chess();
+  const ok = game.load(currentPuzzle.fen);
+  if(!ok){ console.warn('Invalid FEN for puzzle', currentPuzzle); game.reset(); }
+
+  const fenTurn = game.turn(); // 'w' or 'b'
+
+  // If puzzle declares a color, normalize it.
+  const rawCol = (currentPuzzle.color || '').toString().toLowerCase().trim();
+  let declared = null;
+  if(rawCol === 'b' || rawCol.startsWith('b') || rawCol.includes('black')) declared = 'b';
+  else if(rawCol === 'w' || rawCol.startsWith('w') || rawCol.includes('white')) declared = 'w';
+
+  // Decide playerSide:
+  // - If declared and matches FEN's side-to-move then use it.
+  // - If declared but does NOT match FEN, prefer the FEN (the position's side-to-move).
+  // - If not declared, use FEN's side-to-move.
+  if(declared && declared === fenTurn) playerSide = declared;
+  else playerSide = fenTurn;
+
+  renderPosition();
+  updateStatus();
+  solutionBox.style.display='none';
+  solutionShown=false;
+}
+
+/* --- end rush --- */
+function endRush(){
+  clearInterval(timer);
+  timer = null;
+  alert(`Puzzle Rush finished.\nCorrect: ${correct}\nWrong: ${wrong}`);
+  currentPuzzle = null;
+  createBoard();
+  renderPosition();
+  document.getElementById('startModal').style.display='flex';
+}
+
+/* --- start routine --- */
+async function startRush(){
+  document.getElementById('startModal').style.display='none';
+  mode = modeSelect.value;
+  if(mode === 'timed'){
+    duration = parseInt(durationSelect.value,10);
+    timeLeft = duration;
+    updateTimeOrLives();
+    timer = setInterval(()=>{
+      timeLeft--;
+      updateTimeOrLives();
+      if(timeLeft <= 0){
+        endRush();
+      }
+    },1000);
+  } else {
+    lives = 3;
+    updateTimeOrLives();
+  }
+  correct = 0; wrong = 0;
+  correctEl.textContent = correct; wrongEl.textContent = wrong;
+  await loadPuzzles();
+  createBoard();
+  chooseAndLoadPuzzle();
+  updateStatus();
+}
+
+/* --- utility update for timer/lives display --- */
+function updateTimeOrLives(){
+  modeLabelEl.textContent = `Mode: ${mode === 'timed' ? 'Timed' : 'Survival'}`;
+  if(mode === 'timed'){
+    const mm = Math.floor(timeLeft/60).toString().padStart(2,'0');
+    const ss = (timeLeft%60).toString().padStart(2,'0');
+    timeOrLivesEl.textContent = `Time: ${mm}:${ss}`;
+  } else {
+    timeOrLivesEl.textContent = `Lives: ${lives}`;
+  }
+}
+
+/* --- undo support --- */
+function undoMove(){
+  if(!currentPuzzle) return;
+  const hist = game.history({verbose:true});
+  if(hist.length === 0) return;
+  const last = hist[hist.length-1];
+  if(last.color === playerSide){
+    game.undo();
+    renderPosition();
+  } else {
+    alert('Cannot undo opponent move here.');
+  }
+}
+
+/* --- helper to load next puzzle after correct / wrong etc. --- */
+function loadNextPuzzle(){
+  chooseAndLoadPuzzle();
+}
+
+/* --- initialize UI --- */
+createBoard();
+renderPosition();
+updateTimeOrLives();
+
+// expose functions used by buttons on the page
+window.startRush = startRush;
+window.submitMove = submitMove;
+window.showSolution = showSolution;
+window.undoMove = undoMove;
+</script>
+
+</body>
+</html>

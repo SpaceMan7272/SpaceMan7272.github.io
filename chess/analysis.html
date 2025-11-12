@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Chess Analysis Board</title>
+<style>
+body { margin:0; background:#071428; font-family:sans-serif; display:flex; justify-content:center; align-items:flex-start; min-height:100vh; color:#FFA500; }
+#container { display:flex; gap:20px; margin-top:20px; }
+#board { display:grid; grid-template:repeat(8,80px)/repeat(8,80px); border-radius:12px; overflow:hidden; box-shadow:0 0 20px rgba(0,0,0,0.5); transition: transform .3s; }
+.square { width:80px; height:80px; display:flex; justify-content:center; align-items:center; position:relative; }
+.square.light { background:#DDB88C; }
+.square.dark { background:#A66D4F; }
+.square:hover { filter: brightness(1.05); }
+img { width:70px; height:70px; cursor:grab; }
+.dot { width:15px; height:15px; background:orange; border-radius:50%; position:absolute; pointer-events:none; opacity:0.7; }
+#piecePool { display:grid; grid-template-columns: repeat(2, 60px); gap:5px; padding:5px; background:#0C2133; border:2px solid #FFA500; border-radius:8px; }
+#piecePool img { cursor:grab; }
+#deleteZone { margin-top:10px; width:120px; height:60px; background:#FF4C4C; color:white; display:flex; justify-content:center; align-items:center; border-radius:8px; font-weight:bold; user-select:none; }
+button { margin:5px 0; padding:5px 10px; border:none; border-radius:5px; background:#0C2133; color:#FFA500; cursor:pointer; font-weight:bold; }
+#status { margin-bottom:5px; font-weight:bold; }
+#moveHistory { max-height:400px; overflow-y:auto; width:180px; padding:5px; background:#0C2133; border:2px solid #FFA500; border-radius:8px; }
+#promotionModal { display:none; position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); background:#0C2133; color:#FFA500; border:2px solid orange; padding:15px; border-radius:8px; z-index:10; text-align:center; }
+#promotionModal button { margin:5px; padding:5px 10px; border:none; background:#FFA500; color:#071428; border-radius:5px; cursor:pointer; font-weight:bold; }
+</style>
+</head>
+<body>
+<div id="container">
+  <div>
+     <a href="index.html"><button>BACK-TO-MENU</button></a>
+    <div id="status">White to move</div>
+    <button onclick="rotateBoard()">Rotate Board</button>
+    <button onclick="toggleTimer()">Toggle Timer</button>
+    <div class="timer">
+      <span>White: <span id="whiteTime">10:00</span></span><br>
+      <span>Black: <span id="blackTime">10:00</span></span>
+    </div>
+    <button onclick="clearBoard()">Clear Board</button>
+    <button onclick="undoMove()">Undo</button>
+    <button onclick="redoMove()">Redo</button>
+    <div id="board"></div>
+    <div id="deleteZone">Drop to Delete</div>
+  </div>
+  <div>
+    <div id="piecePool"></div>
+    <div id="moveHistory"></div>
+  </div>
+</div>
+
+<div id="promotionModal">
+  <p>Select promotion piece:</p>
+  <button onclick="promote('q')">Queen</button>
+  <button onclick="promote('r')">Rook</button>
+  <button onclick="promote('b')">Bishop</button>
+  <button onclick="promote('n')">Knight</button>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/chess.js/0.10.3/chess.min.js"></script>
+<script>
+const boardEl=document.getElementById('board');
+const poolEl=document.getElementById('piecePool');
+const moveHistoryEl=document.getElementById('moveHistory');
+const statusEl=document.getElementById('status');
+const promotionModal=document.getElementById('promotionModal');
+const whiteTimeEl=document.getElementById('whiteTime');
+const blackTimeEl=document.getElementById('blackTime');
+const deleteZone=document.getElementById('deleteZone');
+
+const game=new Chess();
+let squares=[], selected=null, rotation=0, pendingPromotion=null;
+let dots=[];
+let dragged=null, redoStack=[];
+
+// Timer
+let timerOn=false;
+let whiteTime=10*60, blackTime=10*60, timerInterval=null;
+
+// Piece pool
+const pieces=['wp','wr','wn','wb','wq','wk','bp','br','bn','bb','bq','bk'];
+
+function createBoard(){
+  boardEl.innerHTML=''; squares=[];
+  for(let r=0;r<8;r++){
+    const row=[];
+    for(let c=0;c<8;c++){
+      const sq=document.createElement('div');
+      sq.className='square '+((r+c)%2?'dark':'light');
+      sq.dataset.r=r; sq.dataset.c=c;
+      sq.addEventListener('dragover',e=>e.preventDefault());
+      sq.addEventListener('drop',dropPiece);
+      row.push(sq);
+      boardEl.appendChild(sq);
+    }
+    squares.push(row);
+  }
+}
+
+function createPiecePool(){
+  poolEl.innerHTML='';
+  pieces.forEach(code=>{
+    const img=document.createElement('img');
+    img.src='img/'+code+'.png';
+    img.draggable=true;
+    img.dataset.code=code;
+    img.addEventListener('dragstart',startDrag);
+    poolEl.appendChild(img);
+  });
+}
+
+function startDrag(e){ dragged=e.target; }
+
+function dropPiece(e){
+  const sq=e.currentTarget;
+  if(dragged){
+    // Remove from board if dragged
+    if(dragged.parentElement.parentElement===boardEl) dragged.parentElement.innerHTML='';
+
+    // Drop on delete zone
+    if(e.target===deleteZone || deleteZone.contains(e.target)) return;
+
+    const img=document.createElement('img');
+    img.src=dragged.src;
+    img.draggable=true;
+    img.addEventListener('dragstart',startDrag);
+    sq.innerHTML='';
+    sq.appendChild(img);
+  }
+}
+
+deleteZone.addEventListener('dragover',e=>e.preventDefault());
+deleteZone.addEventListener('drop',e=>{
+  if(dragged && dragged.parentElement.parentElement===boardEl){
+    dragged.parentElement.innerHTML='';
+  }
+});
+
+function renderPosition(){
+  squares.flat().forEach(sq=>sq.innerHTML='');
+  dots.forEach(d=>d.remove());
+  dots=[];
+  const board=game.board();
+  for(let r=0;r<8;r++){
+    for(let c=0;c<8;c++){
+      const sq=squares[r][c];
+      const piece=board[r][c];
+      if(piece){
+        const img=document.createElement('img');
+        img.src='img/'+piece.color+piece.type+'.png';
+        img.draggable=true;
+        img.addEventListener('dragstart',startDrag);
+        sq.appendChild(img);
+      }
+      sq.classList.remove('highlight');
+    }
+  }
+  updateStatus();
+  updateMoveHistory();
+}
+
+function showDots(from){
+  clearDots();
+  const moves=game.moves({square:from,verbose:true});
+  moves.forEach(m=>{
+    const file='abcdefgh'.indexOf(m.to[0]);
+    const rank=8-parseInt(m.to[1]);
+    const dot=document.createElement('div');
+    dot.className='dot';
+    dot.style.top='50%'; dot.style.left='50%';
+    dot.style.transform='translate(-50%,-50%)';
+    squares[rank][file].appendChild(dot);
+    dots.push(dot);
+  });
+}
+
+function clearDots(){ dots.forEach(d=>d.remove()); dots=[]; }
+
+function squareClick(e){
+  const r=+e.currentTarget.dataset.r;
+  const c=+e.currentTarget.dataset.c;
+  const file='abcdefgh'[c];
+  const rank=8-r;
+  const sq=file+rank;
+  const piece=game.get(sq);
+  
+  if(selected){
+    let moveObj={from:selected,to:sq,promotion:'q'};
+    if(game.get(selected) && game.get(selected).type==='p' && (rank===1||rank===8)){
+      pendingPromotion=moveObj;
+      promotionModal.style.display='block';
+      clearDots();
+      return;
+    }
+    const move=game.move(moveObj);
+    if(move){
+      selected=null;
+      redoStack=[];
+      renderPosition();
+    }
+  } else if(piece){
+    selected=sq;
+    showDots(selected);
+  }
+}
+
+function promote(pieceType){
+  if(!pendingPromotion) return;
+  pendingPromotion.promotion=pieceType;
+  game.move(pendingPromotion);
+  pendingPromotion=null; selected=null;
+  renderPosition();
+}
+
+function updateStatus(){
+  if(game.in_checkmate()) statusEl.textContent='Checkmate! '+(game.turn()==='w'?'Black':'White')+' wins.';
+  else if(game.in_stalemate()) statusEl.textContent='Stalemate.';
+  else statusEl.textContent=(game.turn()==='w'?'White':'Black')+' to move'+(game.in_check()?' (check)':'');
+}
+
+function updateMoveHistory(){
+  const history=game.history({verbose:true});
+  moveHistoryEl.innerHTML='';
+  for(let i=0;i<history.length;i++){
+    const move=history[i];
+    if(i%2===0) moveHistoryEl.innerHTML+=`<div>${Math.floor(i/2)+1}. ${move.san}`;
+    else moveHistoryEl.innerHTML+=` ${move.san}</div>`;
+  }
+  moveHistoryEl.scrollTop=moveHistoryEl.scrollHeight;
+}
+
+function undoMove(){
+  const move=game.undo();
+  if(move) redoStack.push(move);
+  renderPosition();
+}
+
+function redoMove(){
+  const move=redoStack.pop();
+  if(move) game.move(move);
+  renderPosition();
+}
+
+// Timer
+function toggleTimer(){
+  timerOn=!timerOn;
+  if(timerOn) startTimer();
+  else clearInterval(timerInterval);
+}
+function startTimer(){
+  if(timerInterval) clearInterval(timerInterval);
+  timerInterval=setInterval(()=>{
+    if(game.turn()==='w') whiteTime--; else blackTime--;
+    updateTimerDisplay();
+    if(whiteTime<=0 || blackTime<=0){
+      clearInterval(timerInterval);
+      statusEl.textContent=(whiteTime<=0?'Black':'White')+' wins on time!';
+    }
+  },1000);
+}
+function updateTimerDisplay(){
+  whiteTimeEl.textContent=`${Math.floor(whiteTime/60).toString().padStart(2,'0')}:${(whiteTime%60).toString().padStart(2,'0')}`;
+  blackTimeEl.textContent=`${Math.floor(blackTime/60).toString().padStart(2,'0')}:${(blackTime%60).toString().padStart(2,'0')}`;
+}
+
+function clearBoard(){ squares.flat().forEach(sq=>sq.innerHTML=''); }
+function rotateBoard(){
+  rotation=(rotation+90)%360;
+  boardEl.style.transform=`rotate(${rotation}deg)`;
+  squares.flat().forEach(s=>s.style.transform=`rotate(${-rotation}deg)`);
+}
+
+// Initialize
+createBoard();
+createPiecePool();
+renderPosition();
+squares.flat().forEach(sq=>sq.addEventListener('click',squareClick));
+</script>
+</body>
+</html>
