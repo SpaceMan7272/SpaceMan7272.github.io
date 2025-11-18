@@ -24,7 +24,7 @@
     /* EDITABLE: Default tab URLs */
     :root {
         --default-url-1: "https://example.com";
-        --default-url-2: "https://apple.com";
+        --default-url-2: "https://downr.org";
     }
 
     .browser-container {
@@ -253,6 +253,13 @@
         max-width: 100%;
         max-height: 100%;
         width: 100%;
+        display: block;
+    }
+
+    .loading-message {
+        color: #faf6de;
+        text-align: center;
+        padding: 20px;
     }
 
     .video-controls {
@@ -528,7 +535,7 @@
                     </div>
                     <div class="video-player-container" id="player-${tab.id}">
                         <div class="video-wrapper">
-                            <video id="video-element-${tab.id}"></video>
+                            <video id="video-element-${tab.id}" controls controlsList="nodownload"></video>
                         </div>
                         <div class="video-controls">
                             <div class="progress-container">
@@ -541,6 +548,7 @@
                                 <button class="control-btn" id="back-${tab.id}" title="Back 10s">⏪</button>
                                 <button class="control-btn play-pause" id="play-pause-${tab.id}">▶</button>
                                 <button class="control-btn" id="forward-${tab.id}" title="Forward 10s">⏩</button>
+                                <button class="control-btn" id="fullscreen-${tab.id}" title="Fullscreen">⛶</button>
                                 <div class="volume-container">
                                     <span>🔊</span>
                                     <input type="range" class="volume-slider" id="volume-${tab.id}" min="0" max="100" value="100">
@@ -570,6 +578,7 @@
         const playPauseBtn = document.getElementById(`play-pause-${tabId}`);
         const backBtn = document.getElementById(`back-${tabId}`);
         const forwardBtn = document.getElementById(`forward-${tabId}`);
+        const fullscreenBtn = document.getElementById(`fullscreen-${tabId}`);
         const volumeSlider = document.getElementById(`volume-${tabId}`);
         const progressBar = document.getElementById(`progress-${tabId}`);
         const progressFilled = document.getElementById(`progress-filled-${tabId}`);
@@ -587,9 +596,19 @@
             }
 
             video.src = videoUrl;
+            video.load();
             tab.videoUrl = videoUrl;
             inputContainer.style.display = 'none';
             playerContainer.classList.add('active');
+            
+            video.addEventListener('loadedmetadata', () => {
+                console.log('Video loaded successfully');
+            });
+            
+            video.addEventListener('error', (e) => {
+                console.error('Video error:', e);
+                alert('Error loading video. Please check the URL and try again.');
+            });
         }
 
         loadBtn.addEventListener('click', loadVideo);
@@ -621,26 +640,50 @@
             video.currentTime = Math.min(video.duration, video.currentTime + 10);
         });
 
+        fullscreenBtn.addEventListener('click', () => {
+            if (video.requestFullscreen) {
+                video.requestFullscreen();
+            } else if (video.webkitRequestFullscreen) {
+                video.webkitRequestFullscreen();
+            } else if (video.mozRequestFullScreen) {
+                video.mozRequestFullScreen();
+            } else if (video.msRequestFullscreen) {
+                video.msRequestFullscreen();
+            }
+        });
+
         volumeSlider.addEventListener('input', (e) => {
             video.volume = e.target.value / 100;
         });
 
         video.addEventListener('timeupdate', () => {
-            const percent = (video.currentTime / video.duration) * 100;
-            progressFilled.style.width = `${percent}%`;
-            
-            const currentMin = Math.floor(video.currentTime / 60);
-            const currentSec = Math.floor(video.currentTime % 60);
-            const durationMin = Math.floor(video.duration / 60);
-            const durationSec = Math.floor(video.duration % 60);
-            
-            timeDisplay.textContent = `${currentMin}:${currentSec.toString().padStart(2, '0')} / ${durationMin}:${durationSec.toString().padStart(2, '0')}`;
+            if (video.duration && !isNaN(video.duration)) {
+                const percent = (video.currentTime / video.duration) * 100;
+                progressFilled.style.width = `${percent}%`;
+                
+                const currentMin = Math.floor(video.currentTime / 60);
+                const currentSec = Math.floor(video.currentTime % 60);
+                const durationMin = Math.floor(video.duration / 60);
+                const durationSec = Math.floor(video.duration % 60);
+                
+                timeDisplay.textContent = `${currentMin}:${currentSec.toString().padStart(2, '0')} / ${durationMin}:${durationSec.toString().padStart(2, '0')}`;
+            }
+        });
+
+        video.addEventListener('play', () => {
+            playPauseBtn.textContent = '⏸';
+        });
+
+        video.addEventListener('pause', () => {
+            playPauseBtn.textContent = '▶';
         });
 
         progressBar.addEventListener('click', (e) => {
-            const rect = progressBar.getBoundingClientRect();
-            const percent = (e.clientX - rect.left) / rect.width;
-            video.currentTime = percent * video.duration;
+            if (video.duration && !isNaN(video.duration)) {
+                const rect = progressBar.getBoundingClientRect();
+                const percent = (e.clientX - rect.left) / rect.width;
+                video.currentTime = percent * video.duration;
+            }
         });
     }
 
