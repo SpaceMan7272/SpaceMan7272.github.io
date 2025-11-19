@@ -1,0 +1,621 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+ <meta charset="UTF-8" />
+ <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+ <title>Freedom of Personal Information - A.S.C.A.M</title>
+  <link rel="icon" href="img/fav.png" type="image/x-icon">
+ <style>
+   /* --- Reset & Basics --- */
+   * {
+     margin: 0;
+     padding: 0;
+     box-sizing: border-box;
+   }
+
+
+   body {
+     font-family: 'Segoe UI', Roboto, sans-serif;
+     line-height: 1.6;
+     color: #222;
+     background-color: #f9f9f5;
+   }
+
+
+   /* --- Color Palette --- */
+   :root {
+     --primary: #a4c639;
+     --primary-dark: #7da029;
+     --bg-dark: #1f1f1f;
+     --text-light: #fff;
+   }
+
+
+   /* --- Navbar --- */
+   nav {
+     display: flex;
+     justify-content: space-between;
+     align-items: center;
+     padding: 1rem 2rem;
+     background-color: var(--primary);
+     color: var(--text-light);
+     position: fixed;
+     width: 100%;
+     top: 0;
+     z-index: 10;
+     box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+   }
+
+
+   .nav-left {
+     display: flex;
+     gap: 0;
+     flex: 1;
+   }
+
+
+   .nav-left a {
+     color: var(--text-light);
+     text-decoration: none;
+     font-weight: 600;
+     transition: all 0.3s;
+     padding: 0.75rem 1.5rem;
+     background-color: var(--primary);
+     border-right: 1px solid rgba(255, 255, 255, 0.2);
+     cursor: pointer;
+     font-size: 1rem;
+     letter-spacing: 0.5px;
+   }
+
+
+   .nav-left a:last-child {
+     border-right: none;
+   }
+
+      /* --- Donate Button --- */
+.donate {
+  background-color: var(--text-light);
+  color: var(--primary-dark);
+  border: none;
+  padding: 0.75rem 1.5rem;
+  font-size: 0.95rem;
+  font-weight: 700;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  letter-spacing: 0.5px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.donate:hover {
+  background-color: var(--primary-dark);
+  color: var(--text-light);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.25);
+}
+
+.donate:active {
+  transform: translateY(0);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+}
+
+   .nav-left a:hover {
+     background-color: var(--primary-dark);
+     transform: translateY(-2px);
+   }
+
+
+   .nav-right {
+     display: flex;
+     align-items: center;
+     gap: 1rem;
+     margin-left: auto;
+   }
+
+
+   .nav-right span {
+     font-weight: 700;
+     font-size: 1.1rem;
+     letter-spacing: 1px;
+   }
+
+
+   .nav-right img {
+     height: 100px;
+     width: 100px;
+     border-radius: 50%;
+     border: 2px solid var(--text-light);
+   }
+
+
+   /* --- Hero Section --- */
+   .hero {
+     margin-top: 70px;
+     background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+     color: var(--text-light);
+     padding: 4rem 2rem;
+     text-align: center;
+     border-bottom: 4px solid var(--primary-dark);
+   }
+
+
+   .hero h1 {
+     font-size: 3rem;
+     margin-bottom: 1rem;
+     letter-spacing: 1px;
+     font-weight: 700;
+   }
+
+
+   .hero p {
+     font-size: 1.3rem;
+     max-width: 700px;
+     margin: 0 auto;
+     line-height: 1.8;
+   }
+
+
+   /* --- Content Section --- */
+   .container {
+     max-width: 1000px;
+     margin: 0 auto;
+     padding: 3rem 2rem;
+   }
+
+
+   .content-card {
+     background: white;
+     padding: 2.5rem;
+     border-radius: 12px;
+     border-left: 5px solid var(--primary);
+     margin-bottom: 2rem;
+     box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+   }
+
+
+   .content-card h2 {
+     color: var(--primary-dark);
+     font-size: 1.8rem;
+     margin-bottom: 1rem;
+     letter-spacing: 0.5px;
+   }
+
+
+   .content-card p {
+     color: #333;
+     font-size: 1.05rem;
+     line-height: 1.8;
+     margin-bottom: 1rem;
+   }
+
+
+   .content-card ul {
+     margin-left: 2rem;
+     margin-top: 1rem;
+   }
+
+
+   .content-card li {
+     color: #333;
+     margin-bottom: 0.8rem;
+     line-height: 1.7;
+     font-size: 1.05rem;
+   }
+
+
+   /* --- Stats Section --- */
+   .stats {
+     display: grid;
+     grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+     gap: 2rem;
+     margin: 3rem 0;
+   }
+
+
+   .stat-box {
+     background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+     color: var(--text-light);
+     padding: 2rem;
+     border-radius: 12px;
+     text-align: center;
+     box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+   }
+
+
+   .stat-box h3 {
+     font-size: 2.5rem;
+     margin-bottom: 0.5rem;
+     font-weight: 700;
+   }
+
+
+   .stat-box p {
+     font-size: 1.1rem;
+     font-weight: 500;
+   }
+
+
+   /* --- Company Sections --- */
+   .company-section {
+     display: grid;
+     grid-template-columns: 1fr 1fr;
+     gap: 2rem;
+     margin: 3rem 0;
+   }
+
+
+      /* --- Separator --- */
+   .separator {
+     height: 4px;
+     background: linear-gradient(90deg, var(--primary) 0%, var(--primary-dark) 100%);
+     margin: 3rem 2rem;
+   }
+
+
+   /* --- Paragraph Section --- */
+   .paragraph {
+     padding: 2rem;
+     max-width: 900px;
+     margin: auto;
+     text-align: center;
+   }
+
+
+   .paragraph p {
+     font-size: 1.2rem;
+     color: #333;
+     line-height: 1.8;
+     letter-spacing: 0.5px;
+   }
+
+   .company-card {
+     background: white;
+     padding: 2rem;
+     border-radius: 12px;
+     box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+   }
+
+
+   .company-card.hate {
+     border-left: 5px solid #d9534f;
+   }
+
+
+   .company-card.love {
+     border-left: 5px solid #5cb85c;
+   }
+
+
+   .company-card h3 {
+     font-size: 1.5rem;
+     margin-bottom: 1.5rem;
+     letter-spacing: 0.5px;
+   }
+
+
+   .company-card.hate h3 {
+     color: #d9534f;
+   }
+
+
+   .company-card.love h3 {
+     color: #5cb85c;
+   }
+
+
+   .company-list {
+     list-style: none;
+   }
+
+
+   .company-list li {
+     padding: 1rem;
+     margin-bottom: 0.5rem;
+     border-radius: 8px;
+     font-weight: 500;
+     transition: all 0.3s;
+   }
+
+
+   .company-card.hate .company-list li {
+     background-color: #fff5f5;
+     color: #d9534f;
+     border-left: 3px solid #d9534f;
+     padding-left: 1rem;
+   }
+
+
+   .company-card.hate .company-list li:hover {
+     background-color: #ffe6e6;
+     transform: translateX(5px);
+   }
+
+
+   .company-card.love .company-list li {
+     background-color: #f5fff5;
+     color: #5cb85c;
+     border-left: 3px solid #5cb85c;
+     padding-left: 1rem;
+   }
+
+
+   .company-card.love .company-list li:hover {
+     background-color: #e6ffe6;
+     transform: translateX(5px);
+   }
+
+
+   /* --- Responsive for Company Section --- */
+   @media (max-width: 768px) {
+     .company-section {
+       grid-template-columns: 1fr;
+     }
+   }
+
+
+   /* --- CTA Button --- */
+   .cta-button {
+     display: inline-block;
+     background-color: var(--primary);
+     color: var(--text-light);
+     padding: 1rem 2.5rem;
+     border-radius: 8px;
+     text-decoration: none;
+     font-weight: 600;
+     font-size: 1.1rem;
+     transition: all 0.3s;
+     border: none;
+     cursor: pointer;
+     margin-top: 1rem;
+   }
+
+
+   .cta-button:hover {
+     background-color: var(--primary-dark);
+     transform: translateY(-3px);
+     box-shadow: 0 8px 20px rgba(164, 198, 57, 0.3);
+   }
+
+
+   /* --- Back Link --- */
+   .back-link {
+     display: inline-block;
+     color: var(--primary);
+     text-decoration: none;
+     font-weight: 600;
+     margin-bottom: 2rem;
+     transition: color 0.3s;
+   }
+
+
+   .back-link:hover {
+     color: var(--primary-dark);
+   }
+
+
+   /* --- Footer --- */
+   footer {
+     background-color: var(--bg-dark);
+     color: var(--text-light);
+     text-align: center;
+     padding: 1.5rem;
+     margin-top: 3rem;
+     font-size: 0.95rem;
+   }
+
+
+   footer a {
+     color: var(--primary);
+     text-decoration: none;
+     font-weight: 500;
+     transition: color 0.3s;
+   }
+
+
+   footer a:hover {
+     color: var(--primary-dark);
+   }
+
+
+   /* --- Responsive --- */
+   @media (max-width: 768px) {
+     .hero h1 {
+       font-size: 2rem;
+     }
+
+
+     .hero p {
+       font-size: 1.1rem;
+     }
+
+
+     .content-card {
+       padding: 1.5rem;
+     }
+
+
+     .stats {
+       grid-template-columns: 1fr;
+     }
+   }
+   .stat-box h3 {
+  min-height: 3rem;
+}
+ </style>
+</head>
+<body>
+ <!-- Navbar -->
+ <nav>
+   <div class="nav-left">
+     <a href="index.html">Home</a>
+     <a href="index.html#mission">Mission</a>
+     <a href="index.html#issues">Issues</a>
+     <a href="index.html#videos">Videos</a>
+        <a href="contact.html">Contact US</a>
+      <a href="donate.html"> <button class="donate"> DONATE </button> </a>
+      
+   </div>
+   <div class="nav-right">
+     <span>A.S.C.A.M</span>
+     <img src="img/logo.jpg" alt="Logo" />
+   </div>
+ </nav>
+
+
+ <!-- Title Section -->
+ <div class="hero">
+   <h1>Freedom of Personal Information</h1>
+   <p>Everyone deserves the right to control how their personal data is collected, used, and shared by companies, programs, and organizations without invasive surveillance or exploitation.</p>
+ </div>
+
+
+ <!-- Main Content -->
+ <div class="container">
+   <a href="index.html" class="back-link">← Back to Home</a>
+
+
+   <div class="content-card">
+     <h2>Why Freedom of Personal Information Matters</h2>
+     <p>The freedom of personal information is fundamental to digital privacy rights and personal autonomy. When mega-corporations exploit their dominant market position through invasive data collection, targeted surveillance, manipulative algorithms, and opaque privacy policies, it leads to:</p>
+     <ul>
+       <li><strong>Mass surveillance:</strong> Personal data is collected without meaningful consent or user understanding</li>
+       <li><strong>Behavioral manipulation:</strong> Algorithms track and influence user behavior for profit</li>
+       <li><strong>Loss of privacy:</strong> Intimate details of life are harvested and monetized by corporations</li>
+       <li><strong>Identity theft & fraud:</strong> Data breaches expose millions to financial and personal harm</li>
+       <li><strong>Discriminatory practices:</strong> Data is used to target, exclude, or discriminate against individuals</li>
+     </ul>
+   </div>
+
+
+   <div class="stats">
+     <div class="stat-box">
+       <h3><span class="counter" data-target="256">0</span>M</h3>
+       <p>People affected by data breaches in only the US and 2024</p>
+     </div>
+     <div class="stat-box">
+       <h3>$<span class="counter" data-target="230">0</span>M</h3>
+       <p>Worth of personal data harvested yearly</p>
+     </div>
+     <div class="stat-box">
+       <h3><span class="counter" data-target="92">0</span>%</h3>
+       <p>Of adults concerned about data privacy</p>
+     </div>
+   </div>
+
+
+   <div class="content-card">
+     <h2>Our Fight for Personal Information Freedom</h2>
+     <p>We advocate for:</p>
+     <ul>
+       <li>Transparent data collection practices with explicit user consent</li>
+       <li>Right to know what data companies hold about you</li>
+       <li>Right to delete and control your personal information</li>
+       <li>Strict regulation against discriminatory data practices</li>
+       <li>Accountability and penalties for data breaches and misuse</li>
+       <li>Privacy by design in all technology products</li>
+     </ul>
+   </div>
+
+
+   <div class="content-card">
+     <h2>What You Can Do</h2>
+     <p>Join the fight for personal information freedom:</p>
+     <ul>
+       <li>Use privacy-focused browsers and search engines</li>
+       <li>Enable two-factor authentication on your accounts</li>
+       <li>Regularly review and adjust privacy settings on your devices</li>
+       <li>Support legislation protecting digital privacy rights</li>
+       <li>Advocate for transparent data policies in your community</li>
+       <li>Share your data privacy concerns on social media</li>
+       <li>Donate to privacy advocacy organizations</li>
+     </ul>
+     <button class="cta-button">Get Involved</button>
+   </div>
+ </div>
+
+
+   <div class="company-section">
+     <div class="company-card hate">
+       <h3>Who We're Fighting Against</h3>
+       <p style="margin-bottom: 1rem; color: #666; font-size: 0.95rem;">Companies with invasive data collection and surveillance practices:</p>
+       <ul class="company-list">
+         <li>Facebook/Meta - Collects vast amounts of personal data through tracking pixels</li>
+         <li>Google - Dominates web tracking and builds detailed user profiles</li>
+         <li>Microsoft - Integrates surveillance into Windows and OneDrive</li>
+         <li>AT&T - Harvests location data and sells it to third parties (NSA) </li>
+         <li>Verizon - Sells customer data and location information without proper consent</li>
+       </ul>
+     </div>
+
+
+     <div class="company-card love">
+       <h3>Who We LOVE</h3>
+       <p style="margin-bottom: 1rem; color: #666; font-size: 0.95rem;">Companies prioritizing user privacy and data freedom:</p>
+       <ul class="company-list">
+         <li>DuckDuckGo - Privacy-focused search engine, no tracking</li>
+         <li>Firefox - Browser built with privacy and user control in mind</li>
+         <li>Apple - Implements privacy features and on-device processing</li>
+         <li>Reddit - Community-focused with less invasive data practices</li>
+         <li>Snapchat - Disappearing messages and privacy-first design approach</li>
+         <li>Linux - Open-source OS with full user control and transparency</li>
+       </ul>
+     </div>
+   </div>
+ </div>
+
+
+ <!-- Footer -->
+ <footer>
+   <p>© 2025 A.S.C.A.M | <a href="legal.html">Legal Policy</a> | <a href="#">Back to Top</a></p>
+ </footer>
+
+ <script>
+  function animateCounters() {
+    const counters = document.querySelectorAll('.counter');
+    
+    counters.forEach(counter => {
+      const target = parseFloat(counter.getAttribute('data-target'));
+      const isDecimal = target % 1 !== 0;
+      let current = 0;
+      const increment = target / 100;
+      
+      const updateCounter = () => {
+        current += increment;
+        
+        if (current < target) {
+          if (isDecimal) {
+            counter.textContent = current.toFixed(1);
+          } else {
+            counter.textContent = Math.floor(current).toLocaleString();
+          }
+          requestAnimationFrame(updateCounter);
+        } else {
+          if (isDecimal) {
+            counter.textContent = target.toFixed(1);
+          } else {
+            counter.textContent = target.toLocaleString();
+          }
+        }
+      };
+      
+      updateCounter();
+    });
+  }
+
+  window.addEventListener('load', animateCounters);
+  
+  const statsSection = document.querySelector('.stats');
+  if (statsSection) {
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          animateCounters();
+          observer.unobserve(entry.target);
+        }
+      });
+    });
+    observer.observe(statsSection);
+  }
+</script>
+</body>
+</html>
