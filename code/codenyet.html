@@ -1,0 +1,1109 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>LibreCode.nyet</title>
+<link rel="icon" type="image/x-icon" href="img.svg">
+<style>
+  body { margin:0; font-family:system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial; background:#0b0f19; color:#fff; height:100vh; display:flex; flex-direction:column; }
+  .header { display:flex; justify-content:space-between; align-items:center; padding:16px 20px; border-bottom:1px solid #1a1f2e; background:#0b0f19; }
+  .header h1 { margin:0; font-size:18px; font-weight:700; background:linear-gradient(90deg,#00d4ff,#a855f7); -webkit-background-clip:text; -webkit-text-fill-color:transparent; letter-spacing:0.5px; background-clip: text; }
+  .button { background:#111; color:#fff; border:1px solid #2a2f3a; padding:8px 14px; margin-left:8px; border-radius:6px; cursor:pointer; font-size:13px; transition:all 0.2s; }
+  .button:hover { background:#1a1f2e; border-color:#00d4ff; }
+  .container { flex:1; display:flex; overflow:hidden; }
+  .panel { overflow:auto; padding:12px; background:#0b0f19; }
+  .left { width:22%; border-right:1px solid #1a1f2e; }
+  .middle { width:28%; border-right:1px solid #1a1f2e; }
+  .right { width:50%; background:#0f1219; display:flex; flex-direction:column; }
+  
+  /* Tag group styling */
+  .tag-group { margin-bottom:16px; }
+  .tag-group-title { font-size:11px; font-weight:700; color:#a855f7; text-transform:uppercase; letter-spacing:1px; padding:8px 6px; opacity:0.8; margin-bottom:6px; }
+  .tag-buttons { display:flex; flex-wrap:wrap; gap:6px; }
+  .tag-btn { background:#111; color:#fff; border:1px solid #2a2f3a; padding:6px 10px; border-radius:5px; cursor:pointer; font-size:12px; transition:all 0.2s; flex:1; min-width:60px; text-align:center; }
+  .tag-btn:hover { background:#1a1f2e; border-color:#00d4ff; }
+  
+  .block { border-left:3px solid; padding:8px 10px; margin:6px 0; cursor:pointer; position:relative; user-select:none; background:transparent; transition:all 0.15s; border-radius:4px; }
+  .block.selected { background: rgba(0,212,255,0.08); border-left-color:#00d4ff !important; }
+  .children { margin-left:14px; position:relative; min-height: 2px; }
+  .input-inline { background:transparent; border:0; color:inherit; width:90%; outline:none; }
+  iframe { flex:1; border:0; background:#fff; }
+  .popup { position:fixed; top:50%; left:50%; transform:translate(-50%,-50%); background:#12141a; border:2px solid rgba(0,212,255,0.2); padding:18px; z-index:9999; max-height:76vh; overflow:auto; width:500px; border-radius:8px; box-shadow:0 10px 40px rgba(0,0,0,0.5); }
+  .popup h3{ margin:0 0 12px 0; font-size:15px; color:#00d4ff; font-weight:700; }
+  .hidden { display:none; }
+  .collapse-btn { position:absolute; left:-16px; top:10px; cursor:pointer; user-select:none; color:#666; transition:color 0.2s; }
+  .collapse-btn:hover { color:#00d4ff; }
+  .drag-handle { position:absolute; left:-34px; top:10px; cursor:grab; user-select:none; font-size:12px; color:#666; transition:color 0.2s; }
+  .drag-handle:hover { color:#00d4ff; }
+  .drop-indicator {
+    height: 4px;
+    background: #00d4ff;
+    margin: 2px 0;
+    border-radius: 2px;
+    pointer-events: none;
+    position: relative;
+    z-index: 0;
+  }
+  .children-drop-zone {
+    height: 20px;
+    background: rgba(0, 212, 255,0.12);
+    border: 1px dashed #00d4ff;
+    margin: 4px 0;
+    border-radius: 4px;
+    pointer-events: none;
+    position: relative;
+    z-index: 0;
+    display: none;
+  }
+  textarea.code-panel { width:100%; height:320px; background:#0a0d15; color:#9ee7ff; border:1px solid #1f2333; padding:14px; font-family:'Courier New',monospace; font-size:12px; resize:vertical; box-sizing:border-box; border-radius:4px; line-height:1.5; }
+  .shortcut-popup { position:fixed; top:50%; left:50%; transform:translate(-50%,-50%); background:#12141a; border:2px solid rgba(0,212,255,0.2); padding:18px; z-index:9999; width:400px; border-radius:8px; box-shadow:0 10px 40px rgba(0,0,0,0.5); }
+  .shortcut-popup ul { margin:0; padding-left:20px; }
+  .shortcut-popup li { margin:8px 0; font-size:13px; line-height:1.6; }
+  .shortcut-popup strong { color:#00d4ff; }
+  
+  /* Example popup styles */
+  .example-tabs { display:flex; border-bottom:1px solid #2a2f3a; margin-bottom:14px; gap:0; }
+  .example-tab { padding:10px 16px; cursor:pointer; border-bottom:3px solid transparent; font-size:13px; transition:all 0.2s; color:#999; }
+  .example-tab:hover { color:#00d4ff; }
+  .example-tab.active { border-bottom-color:#00d4ff; color:#00d4ff; font-weight:600; }
+  .example-content { display:none; }
+  .example-content.active { display:block; }
+  .example-preview { background:#fff; border:1px solid #2a2f3a; border-radius:6px; padding:14px; min-height:120px; color:#000; }
+  .example-code { background:#0a0d15; border:1px solid #1f2333; border-radius:6px; padding:12px; font-family:'Courier New',monospace; font-size:12px; color:#9ee7ff; overflow:auto; max-height:220px; white-space:pre-wrap; line-height:1.5; }
+</style>
+</head>
+<body>
+  <div class="header">
+    <h1><img src="code.nyet/img.svg" alt="SVG" height="25px" width="25px"> LibreCode.nyet</h1>
+    <div>
+      <button class="button" id="undoBtn" title="Undo (Alt+Z)">Undo</button>
+      <button class="button" id="redoBtn" title="Redo (Alt+Y)">Redo</button>
+      <button class="button" id="copyBtn">Copy</button>
+      <button class="button" id="downloadBtn">Download</button>
+      <button class="button" id="toggleCodeBtn">Toggle Code</button>
+      <button class="button" id="refreshBtn">Refresh</button>
+      <button class="button" id="shortcutsBtn">Shortcuts</button>
+    </div>
+  </div>
+
+  <div class="container">
+    <div class="panel left" id="blockList"></div>
+    <div class="panel middle" id="editor"></div>
+    <div class="right">
+      <div style="padding:12px; border-bottom:1px solid #1a1f2e; font-weight:600; font-size:13px;">Preview</div>
+      <iframe id="preview"></iframe>
+      <textarea id="codeEditor" class="code-panel hidden"></textarea>
+    </div>
+  </div>
+
+  <div id="attributePopupContainer"></div>
+  <div id="shortcutsPopup" class="shortcut-popup hidden">
+    <h3>Keyboard Shortcuts</h3>
+    <ul>
+      <li><strong>Alt + Click</strong> — Edit block attributes</li>
+      <li><strong>Delete / Backspace</strong> — Delete selected block</li>
+      <li><strong>Alt + D</strong> — Duplicate selected block</li>
+      <li><strong>Alt + E</strong> — Show tag example</li>
+      <li><strong>Double-click on text</strong> — Edit text inline</li>
+      <li><strong>Shift + Arrow Up / Arrow Down</strong> — Move selected block up / down</li>
+      <li><strong>Alt + Z</strong> — Undo</li>
+      <li><strong>Alt + Y</strong> — Redo</li>
+      <li><strong>Escape</strong> — Close popups</li>
+    </ul>
+    <div style="text-align:right; margin-top:14px;"><button class="button" onclick="document.getElementById('shortcutsPopup').classList.add('hidden')">Close</button></div>
+  </div>
+
+<script>
+/* Improved examples with code and visual preview */
+
+/* ------------------------------------------------------------------------
+   Core data model & utilities
+   ------------------------------------------------------------------------ */
+let blocks = [];
+let selectedBlock = null;
+let idCounter = 0;
+
+const history = { past: [], future: [] };
+function pushHistory() {
+  history.past.push(JSON.parse(JSON.stringify({ blocks, selectedId: selectedBlock ? selectedBlock.id : null })));
+  if (history.past.length > 80) history.past.shift();
+  history.future = [];
+}
+function doUndo() {
+  if (!history.past.length) return;
+  const snapshot = history.past.pop();
+  history.future.push(JSON.parse(JSON.stringify({ blocks, selectedId: selectedBlock ? selectedBlock.id : null })));
+  blocks = JSON.parse(JSON.stringify(snapshot.blocks));
+  selectedBlock = snapshot.selectedId ? findBlockById(snapshot.selectedId, blocks) : null;
+  renderEditor();
+  updateCodeEditor();
+}
+function doRedo() {
+  if (!history.future.length) return;
+  const snapshot = history.future.pop();
+  history.past.push(JSON.parse(JSON.stringify({ blocks, selectedId: selectedBlock ? selectedBlock.id : null })));
+  blocks = JSON.parse(JSON.stringify(snapshot.blocks));
+  selectedBlock = snapshot.selectedId ? findBlockById(snapshot.selectedId, blocks) : null;
+  renderEditor();
+  updateCodeEditor();
+}
+
+function createBlock(tag, content = '', children = []) {
+  return { id: 'b' + (idCounter++), tag, content, children, attributes: {}, collapsed: false };
+}
+function deepClone(obj) { return JSON.parse(JSON.stringify(obj)); }
+
+function findParentArrayAndIndex(id, arr = blocks, parent = null) {
+  for (let i = 0; i < arr.length; i++) {
+    if (arr[i].id === id) return { parentArray: arr, index: i, parentBlock: parent };
+    if (arr[i].children && arr[i].children.length) {
+      const res = findParentArrayAndIndex(id, arr[i].children, arr[i]);
+      if (res) return res;
+    }
+  }
+  return null;
+}
+function findBlockById(id, arr = blocks) {
+  for (const b of arr) {
+    if (b.id === id) return b;
+    if (b.children && b.children.length) {
+      const res = findBlockById(id, b.children);
+      if (res) return res;
+    }
+  }
+  return null;
+}
+
+/* ------------------------------------------------------------------------
+   Tags & attributes
+   ------------------------------------------------------------------------ */
+const tagGroups = {
+  'made for code.nyet': ['text', 'comment'],
+  'text & content': ['p','h1','h2','h3','h4','h5','h6','span','strong','em','b','i','u','mark','code'],
+  'links & media': ['a','img','video','audio'],
+  'structure': ['div','section','article','aside','header','footer','main','nav'],
+  'lists': ['ul','ol','li'],
+  'tables': ['table','tr','td','th'],
+  'forms & input': ['button','input','textarea','select','option','label','form','fieldset'],
+  'advanced': ['canvas','iframe','script','style','link','meta']
+};
+
+const blockTags = Object.values(tagGroups).flat();
+
+const commonAttributes = {
+  global: ['id','class','style','title'],
+  a: ['href','target','rel'],
+  img: ['src','alt','width','height'],
+  video: ['src','poster','width','height','controls','autoplay','loop','muted'],
+  audio: ['src','controls','autoplay','loop','muted'],
+  input: ['type','name','value','placeholder','required','disabled'],
+  button: ['type','disabled'],
+  form: ['action','method'],
+  iframe: ['src','width','height'],
+  canvas: ['width','height'],
+  textarea: ['name','rows','cols','placeholder'],
+  select: ['name','multiple','required'],
+  script: ['src','type'],
+  link: ['href','rel','type'],
+  meta: ['name','content']
+};
+
+function getColor(tag) {
+  if (['text','p','h1','h2','h3','h4','h5','h6','span','strong','em','b','i','u','mark','code'].includes(tag)) return '#00d4ff';
+  if (['div','section','article','aside','header','footer','main','nav','ul','ol','li','table','tr','td','th'].includes(tag)) return '#a855f7';
+  if (['button','input','textarea','select','option','label','form','fieldset','canvas','iframe'].includes(tag)) return '#ff6b35';
+  if (['img','video','audio','a'].includes(tag)) return '#00ff88';
+  if (['text','comment'].includes(tag)) return '#ffc107';
+  if (['script','style','link','meta'].includes(tag)) return '#ff4757';
+  return '#ffeb3b';
+}
+
+/* ------------------------------------------------------------------------
+   Block list UI with groups
+   ------------------------------------------------------------------------ */
+function renderBlockList() {
+  const list = document.getElementById('blockList');
+  list.innerHTML = '';
+  
+  Object.entries(tagGroups).forEach(([groupName, tags]) => {
+    const group = document.createElement('div');
+    group.className = 'tag-group';
+    
+    const title = document.createElement('div');
+    title.className = 'tag-group-title';
+    title.textContent = groupName;
+    group.appendChild(title);
+    
+    const buttonContainer = document.createElement('div');
+    buttonContainer.className = 'tag-buttons';
+    
+    tags.forEach(t => {
+      const btn = document.createElement('button');
+      btn.className = 'tag-btn';
+      btn.textContent = t;
+      btn.style.borderColor = getColor(t);
+      btn.style.color = getColor(t);
+      btn.onclick = () => { pushHistory(); addBlock(t); };
+      btn.oncontextmenu = (ev) => { ev.preventDefault(); showTagExample(t); };
+      buttonContainer.appendChild(btn);
+    });
+    
+    group.appendChild(buttonContainer);
+    list.appendChild(group);
+  });
+}
+
+/* ------------------------------------------------------------------------
+   Editor rendering with completely fixed selection
+   ------------------------------------------------------------------------ */
+let currentDragId = null;
+let dragOverState = null;
+
+function renderEditor() {
+  const editor = document.getElementById('editor');
+  editor.innerHTML = '';
+
+  function createBlockElement(block, depth = 0) {
+    const el = document.createElement('div');
+    el.className = 'block';
+    el.style.borderColor = getColor(block.tag);
+    el.dataset.id = block.id;
+    
+    // SIMPLE SELECTION - Click anywhere on block to select it
+    el.addEventListener('click', (e) => {
+      // Only select if we're not clicking on special elements
+      if (!e.target.classList.contains('collapse-btn') && 
+          !e.target.classList.contains('drag-handle')) {
+        selectedBlock = block;
+        renderEditor();
+        e.stopPropagation(); // Prevent event from bubbling to parent blocks
+      }
+    });
+    
+    if (selectedBlock && selectedBlock.id === block.id) el.classList.add('selected');
+
+    // Add drag handle for all blocks
+    const dragHandle = document.createElement('span');
+    dragHandle.className = 'drag-handle';
+    dragHandle.textContent = '☰';
+    dragHandle.draggable = true;
+    
+    dragHandle.addEventListener('dragstart', (e) => {
+      currentDragId = block.id;
+      try { e.dataTransfer.setData('text/plain', block.id); } catch (err) {}
+      e.dataTransfer.effectAllowed = 'move';
+      e.stopPropagation();
+    });
+    
+    dragHandle.addEventListener('dragend', (e) => {
+      currentDragId = null;
+      dragOverState = null;
+      removeDropIndicators();
+      e.stopPropagation();
+    });
+    el.appendChild(dragHandle);
+
+    if (block.children && block.children.length) {
+      const cbtn = document.createElement('span');
+      cbtn.className = 'collapse-btn';
+      cbtn.textContent = block.collapsed ? '▶' : '▼';
+      cbtn.addEventListener('click', (e) => { 
+        e.stopPropagation(); 
+        pushHistory(); 
+        block.collapsed = !block.collapsed; 
+        renderEditor(); 
+        updateCodeEditor(); 
+      });
+      el.appendChild(cbtn);
+    }
+
+    // Handle different block types
+    if (block.tag === 'text') {
+      const span = document.createElement('span');
+      span.textContent = block.content || 'Double-click to edit';
+      span.style.cursor = 'text';
+      span.style.color = '#ffc107';
+      span.addEventListener('dblclick', (e) => { 
+        e.stopPropagation(); 
+        editTextInline(block, span); 
+      });
+      span.addEventListener('click', (e) => {
+        e.stopPropagation();
+      });
+      el.appendChild(span);
+    } else if (block.tag === 'comment') {
+      const span = document.createElement('span');
+      span.textContent = `<!-- ${block.content || 'Comment'} -->`;
+      span.style.color = '#ffc107';
+      span.style.cursor = 'text';
+      span.addEventListener('dblclick', (e) => { 
+        e.stopPropagation(); 
+        editTextInline(block, span); 
+      });
+      span.addEventListener('click', (e) => {
+        e.stopPropagation();
+      });
+      el.appendChild(span);
+    } else {
+      const tagLabel = document.createElement('span');
+      tagLabel.textContent = `<${block.tag}>`;
+      tagLabel.addEventListener('click', (e) => {
+        e.stopPropagation();
+        if (e.ctrlKey || e.metaKey) { 
+          showAttributeEditor(block); 
+        }
+      });
+      el.appendChild(tagLabel);
+    }
+
+    // Enhanced drag and drop events
+    el.addEventListener('dragenter', (e) => {
+      e.preventDefault();
+      if (!currentDragId || currentDragId === block.id) return;
+      
+      const rect = el.getBoundingClientRect();
+      const y = e.clientY - rect.top;
+      const height = rect.height;
+      
+      const topZone = height * 0.3;
+      const bottomZone = height * 0.7;
+      
+      let position = 'inside';
+      if (y < topZone) position = 'before';
+      else if (y > bottomZone) position = 'after';
+      
+      dragOverState = { targetId: block.id, position };
+      showDropIndicator(el, position);
+      e.dataTransfer.dropEffect = 'move';
+    });
+    
+    el.addEventListener('dragover', (e) => { 
+      e.preventDefault(); 
+      e.dataTransfer.dropEffect = 'move'; 
+    });
+    
+    el.addEventListener('dragleave', (e) => {
+      e.preventDefault();
+      const rect = el.getBoundingClientRect();
+      if (e.clientY < rect.top || e.clientY > rect.bottom || 
+          e.clientX < rect.left || e.clientX > rect.right) {
+        removeDropIndicators();
+        dragOverState = null;
+      }
+    });
+    
+    el.addEventListener('drop', (e) => {
+      e.preventDefault();
+      removeDropIndicators();
+      const draggedId = e.dataTransfer.getData('text/plain') || currentDragId;
+      if (!draggedId || draggedId === block.id) { 
+        dragOverState = null; 
+        return; 
+      }
+      pushHistory();
+      performDrop(draggedId, block.id, dragOverState ? dragOverState.position : 'inside');
+      currentDragId = null;
+      dragOverState = null;
+      renderEditor();
+      updateCodeEditor();
+    });
+
+    // Add children if not collapsed
+    if (block.children && block.children.length && !block.collapsed) {
+      const childWrap = document.createElement('div');
+      childWrap.className = 'children';
+      
+      // Add bottom drop zone for pulling out of nest
+      const bottomDropZone = document.createElement('div');
+      bottomDropZone.className = 'children-drop-zone';
+      bottomDropZone.dataset.parentId = block.id;
+      bottomDropZone.dataset.position = 'after-children';
+      
+      // Make children container a drop target
+      childWrap.addEventListener('dragenter', (e) => {
+        e.preventDefault();
+        if (!currentDragId) return;
+        bottomDropZone.style.display = 'block';
+        dragOverState = { targetId: block.id, position: 'after-children' };
+        e.dataTransfer.dropEffect = 'move';
+      });
+      
+      childWrap.addEventListener('dragover', (e) => { 
+        e.preventDefault(); 
+        e.dataTransfer.dropEffect = 'move'; 
+      });
+      
+      childWrap.addEventListener('dragleave', (e) => {
+        e.preventDefault();
+        const rect = childWrap.getBoundingClientRect();
+        if (e.clientY < rect.top || e.clientY > rect.bottom || 
+            e.clientX < rect.left || e.clientX > rect.right) {
+          bottomDropZone.style.display = 'none';
+          dragOverState = null;
+        }
+      });
+      
+      childWrap.addEventListener('drop', (e) => {
+        e.preventDefault();
+        bottomDropZone.style.display = 'none';
+        const draggedId = e.dataTransfer.getData('text/plain') || currentDragId;
+        if (!draggedId) return;
+        
+        pushHistory();
+        performDrop(draggedId, block.id, 'after-children');
+        currentDragId = null;
+        dragOverState = null;
+        renderEditor();
+        updateCodeEditor();
+      });
+      
+      // Add children blocks
+      block.children.forEach(child => {
+        childWrap.appendChild(createBlockElement(child, depth + 1));
+      });
+      
+      // Add the bottom drop zone at the end
+      childWrap.appendChild(bottomDropZone);
+      el.appendChild(childWrap);
+    }
+
+    return el;
+  }
+
+  blocks.forEach(b => editor.appendChild(createBlockElement(b)));
+
+  // Editor-level drag to append to root
+  editor.addEventListener('dragenter', (e) => {
+    e.preventDefault();
+    if (!currentDragId) return;
+    dragOverState = { targetId: null, position: 'after-root' };
+    showDropIndicator(editor, 'after-root');
+    e.dataTransfer.dropEffect = 'move';
+  });
+  
+  editor.addEventListener('dragover', (e) => { 
+    e.preventDefault(); 
+    e.dataTransfer.dropEffect = 'move'; 
+  });
+  
+  editor.addEventListener('dragleave', (e) => {
+    e.preventDefault();
+    const rect = editor.getBoundingClientRect();
+    if (e.clientY < rect.top || e.clientY > rect.bottom || 
+        e.clientX < rect.left || e.clientX > rect.right) {
+      removeDropIndicators();
+      dragOverState = null;
+    }
+  });
+  
+  editor.addEventListener('drop', (e) => {
+    e.preventDefault();
+    removeDropIndicators();
+    const draggedId = e.dataTransfer.getData('text/plain') || currentDragId;
+    if (!draggedId) return;
+    pushHistory();
+    performDrop(draggedId, null, 'after-root');
+    currentDragId = null;
+    dragOverState = null;
+    renderEditor();
+    updateCodeEditor();
+  });
+
+  updateCodeEditorPreviewOnly();
+}
+
+/* Drop indicators - fixed to prevent accumulation */
+function showDropIndicator(targetEl, position) {
+  removeDropIndicators();
+  const indicator = document.createElement('div');
+  indicator.className = 'drop-indicator';
+  indicator.dataset._dropIndicator = '1';
+  
+  if (position === 'before') {
+    targetEl.parentNode.insertBefore(indicator, targetEl);
+  } else if (position === 'after') {
+    const next = targetEl.nextSibling;
+    if (next) targetEl.parentNode.insertBefore(indicator, next);
+    else targetEl.parentNode.appendChild(indicator);
+  } else if (position === 'inside') {
+    const childrenWrap = targetEl.querySelector('.children');
+    if (childrenWrap) {
+      childrenWrap.insertBefore(indicator, childrenWrap.firstChild);
+    } else {
+      const cw = document.createElement('div');
+      cw.className = 'children';
+      cw.appendChild(indicator);
+      targetEl.appendChild(cw);
+    }
+  } else if (position === 'after-root') {
+    targetEl.appendChild(indicator);
+  }
+}
+
+function removeDropIndicators() {
+  document.querySelectorAll('[data-_dropIndicator]').forEach(n => n.remove());
+  document.querySelectorAll('.children-drop-zone').forEach(zone => {
+    zone.style.display = 'none';
+  });
+}
+
+/* Improved performDrop function */
+function performDrop(draggedId, targetId, position) {
+  if (!draggedId) return;
+  
+  const srcInfo = findParentArrayAndIndex(draggedId);
+  if (!srcInfo) return;
+  
+  // Remove from current position
+  const draggedBlock = srcInfo.parentArray.splice(srcInfo.index, 1)[0];
+
+  if (!targetId) {
+    // Append to root
+    blocks.push(draggedBlock);
+    return;
+  }
+
+  const targetInfo = findParentArrayAndIndex(targetId);
+  if (!targetInfo) return;
+  
+  const targetParentArray = targetInfo.parentArray;
+  const targetIndex = targetInfo.index;
+  const targetBlock = targetParentArray[targetIndex];
+
+  // Calculate insert position
+  let insertIndex = targetIndex;
+  
+  if (position === 'before') {
+    if (srcInfo.parentArray === targetParentArray && srcInfo.index < targetIndex) {
+      insertIndex = targetIndex - 1;
+    }
+    targetParentArray.splice(insertIndex, 0, draggedBlock);
+  } else if (position === 'after') {
+    insertIndex = targetIndex + 1;
+    if (srcInfo.parentArray === targetParentArray && srcInfo.index < targetIndex) {
+      insertIndex = targetIndex;
+    }
+    targetParentArray.splice(insertIndex, 0, draggedBlock);
+  } else if (position === 'inside') {
+    if (!targetBlock.children) targetBlock.children = [];
+    targetBlock.children.push(draggedBlock);
+    targetBlock.collapsed = false;
+  } else if (position === 'after-children') {
+    // Move after the parent block (pull out of nest)
+    const parentInfo = findParentArrayAndIndex(targetBlock.id);
+    if (parentInfo) {
+      parentInfo.parentArray.splice(parentInfo.index + 1, 0, draggedBlock);
+    }
+  }
+}
+
+/* ------------------------------------------------------------------------
+   Add / Delete / Duplicate / Move by keys
+   ------------------------------------------------------------------------ */
+function addBlock(tag) {
+  const content = tag === 'text' ? 'New Text' : 
+                 tag === 'comment' ? 'New Comment' : '';
+  const b = createBlock(tag, content);
+  
+  if (!selectedBlock) {
+    blocks.push(b);
+  } else {
+    selectedBlock.children = selectedBlock.children || [];
+    selectedBlock.children.push(b);
+    selectedBlock.collapsed = false;
+  }
+  
+  selectedBlock = b;
+  renderEditor();
+  updateCodeEditor();
+}
+
+function deleteBlock(id) {
+  pushHistory();
+  const info = findParentArrayAndIndex(id);
+  if (!info) return;
+  info.parentArray.splice(info.index, 1);
+  if (selectedBlock && selectedBlock.id === id) selectedBlock = null;
+  renderEditor();
+  updateCodeEditor();
+}
+
+function duplicateBlock(id) {
+  pushHistory();
+  const srcInfo = findParentArrayAndIndex(id);
+  if (!srcInfo) return;
+  const block = srcInfo.parentArray[srcInfo.index];
+  
+  function clone(b) {
+    return { 
+      id: 'b' + (idCounter++), 
+      tag: b.tag, 
+      content: b.content, 
+      attributes: deepClone(b.attributes || {}), 
+      collapsed: b.collapsed, 
+      children: (b.children || []).map(clone) 
+    };
+  }
+  
+  const newBlock = clone(block);
+  srcInfo.parentArray.splice(srcInfo.index + 1, 0, newBlock);
+  selectedBlock = newBlock;
+  renderEditor();
+  updateCodeEditor();
+}
+
+function moveSelectedBlockByOffset(offset) {
+  if (!selectedBlock) return;
+  const info = findParentArrayAndIndex(selectedBlock.id);
+  if (!info) return;
+  const arr = info.parentArray;
+  const idx = info.index;
+  const newIndex = idx + offset;
+  if (newIndex < 0 || newIndex >= arr.length) return;
+  const [item] = arr.splice(idx, 1);
+  arr.splice(newIndex, 0, item);
+  selectedBlock = findBlockById(item.id, blocks);
+}
+
+/* ------------------------------------------------------------------------
+   Improved inline text edit - now uses double-click
+   ------------------------------------------------------------------------ */
+function editTextInline(block, spanEl) {
+  const input = document.createElement('input');
+  input.className = 'input-inline';
+  input.value = block.content || '';
+  spanEl.replaceWith(input);
+  input.focus();
+  input.select();
+  
+  const finishEdit = () => { 
+    pushHistory(); 
+    block.content = input.value; 
+    renderEditor(); 
+    updateCodeEditor(); 
+  };
+  
+  input.addEventListener('blur', finishEdit);
+  input.addEventListener('keydown', (e) => { 
+    if (e.key === 'Enter') finishEdit();
+    if (e.key === 'Escape') {
+      input.value = block.content || '';
+      finishEdit();
+    }
+  });
+}
+
+/* ------------------------------------------------------------------------
+   Attributes editor
+   ------------------------------------------------------------------------ */
+function showAttributeEditor(block) {
+  const container = document.getElementById('attributePopupContainer');
+  container.innerHTML = '';
+  const popup = document.createElement('div'); 
+  popup.className = 'popup';
+  
+  const title = document.createElement('h3'); 
+  title.textContent = `<${block.tag}> Properties`; 
+  popup.appendChild(title);
+
+  const attrsSpecific = (commonAttributes[block.tag] || []).slice();
+  const attrsAll = Array.from(new Set([...commonAttributes.global, ...attrsSpecific]));
+
+  attrsAll.forEach(attr => {
+    const label = document.createElement('div');
+    label.style.fontSize = '13px';
+    label.style.marginTop = '8px';
+    label.style.color = '#ddd';
+    label.textContent = attr;
+    
+    const input = document.createElement('input');
+    input.style.width = '100%';
+    input.style.marginTop = '6px';
+    input.value = (block.attributes && block.attributes[attr]) ? block.attributes[attr] : '';
+    
+    input.addEventListener('input', () => {
+      if (!block.attributes) block.attributes = {};
+      block.attributes[attr] = input.value;
+      updateCodeEditor();
+    });
+    
+    popup.appendChild(label);
+    popup.appendChild(input);
+  });
+
+  const btnRow = document.createElement('div'); 
+  btnRow.style.marginTop = '12px'; 
+  btnRow.style.textAlign = 'right';
+  
+  const saveBtn = document.createElement('button'); 
+  saveBtn.className = 'button'; 
+  saveBtn.textContent = 'Save';
+  saveBtn.addEventListener('click', () => { 
+    pushHistory(); 
+    container.innerHTML = ''; 
+    renderEditor(); 
+    updateCodeEditor(); 
+  });
+  
+  const cancelBtn = document.createElement('button'); 
+  cancelBtn.className = 'button'; 
+  cancelBtn.textContent = 'Cancel';
+  cancelBtn.addEventListener('click', () => { container.innerHTML = ''; });
+  
+  btnRow.appendChild(cancelBtn); 
+  btnRow.appendChild(saveBtn);
+  popup.appendChild(btnRow);
+  container.appendChild(popup);
+}
+
+/* ------------------------------------------------------------------------
+   HTML generation & parsing with comment support
+   ------------------------------------------------------------------------ */
+function escapeHTML(s) {
+  if (s === undefined || s === null) return '';
+  return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+}
+
+function escapeAttr(s) {
+  if (s === undefined || s === null) return '';
+  return String(s).replace(/"/g, '&quot;');
+}
+
+function generateHTML() {
+  function renderNode(node, indent = 0) {
+    const sp = '  '.repeat(indent);
+    
+    if (node.tag === 'text') return sp + escapeHTML(node.content || '');
+    if (node.tag === 'comment') return sp + `<!-- ${escapeHTML(node.content || '')} -->`;
+    
+    const attrs = node.attributes ? 
+      Object.entries(node.attributes)
+        .filter(([k,v]) => v !== undefined && v !== null && v !== '')
+        .map(([k,v]) => ` ${k}="${escapeAttr(v)}"`)
+        .join('') : '';
+    
+    if (node.children && node.children.length) {
+      const children = node.children.map(c => renderNode(c, indent + 1)).join('\n');
+      return `${sp}<${node.tag}${attrs}>\n${children}\n${sp}</${node.tag}>`;
+    } else {
+      return `${sp}<${node.tag}${attrs}></${node.tag}>`;
+    }
+  }
+  
+  const bodyContent = blocks.map(b => renderNode(b, 1)).join('\n');
+  return `<!DOCTYPE html>\n<html lang="en">\n<head>\n  <meta charset="utf-8" />\n  <meta name="viewport" content="width=device-width,initial-scale=1" />\n  <title>Preview</title>\n</head>\n<body>\n${bodyContent}\n</body>\n</html>`;
+}
+
+function parseHTMLToBlocks(html) {
+  const parser = new DOMParser();
+  const doc = parser.parseFromString(html, 'text/html');
+  const body = doc.body;
+  
+  function convert(node) {
+    const arr = [];
+    node.childNodes.forEach(n => {
+      if (n.nodeType === Node.TEXT_NODE) {
+        const txt = n.nodeValue;
+        if (txt && txt.trim() !== '') arr.push(createBlock('text', txt.trim(), []));
+      } else if (n.nodeType === Node.ELEMENT_NODE) {
+        const tag = n.tagName.toLowerCase();
+        const b = createBlock(tag, '', []);
+        
+        for (let i = 0; i < n.attributes.length; i++) {
+          const a = n.attributes[i];
+          b.attributes[a.name] = a.value;
+        }
+        
+        b.children = convert(n);
+        arr.push(b);
+      } else if (n.nodeType === Node.COMMENT_NODE) {
+        arr.push(createBlock('comment', n.nodeValue.trim(), []));
+      }
+    });
+    return arr;
+  }
+  
+  return convert(body);
+}
+
+/* ------------------------------------------------------------------------
+   Code editor syncing with live preview and block updates
+   ------------------------------------------------------------------------ */
+const codeEditor = document.getElementById('codeEditor');
+let suppressCodeListener = false;
+let codeEditTimer = null;
+
+function updateCodeEditor() {
+  const html = generateHTML();
+  const iframe = document.getElementById('preview');
+  
+  try { 
+    const doc = iframe.contentDocument || iframe.contentWindow.document; 
+    doc.open(); 
+    doc.write(html); 
+    doc.close(); 
+  } catch (err) {}
+  
+  if (!suppressCodeListener) {
+    codeEditor.value = html;
+  }
+}
+
+function updateCodeEditorPreviewOnly() {
+  const html = generateHTML();
+  const iframe = document.getElementById('preview');
+  
+  try { 
+    const doc = iframe.contentDocument || iframe.contentWindow.document; 
+    doc.open(); 
+    doc.write(html); 
+    doc.close(); 
+  } catch (err) {}
+}
+
+codeEditor.addEventListener('input', () => {
+  if (suppressCodeListener) return;
+  
+  if (codeEditTimer) clearTimeout(codeEditTimer);
+  codeEditTimer = setTimeout(() => {
+    try {
+      const html = codeEditor.value;
+      const parsedBlocks = parseHTMLToBlocks(html);
+      if (parsedBlocks) { 
+        pushHistory(); 
+        blocks = parsedBlocks; 
+        selectedBlock = null;
+        renderEditor(); 
+        updateCodeEditorPreviewOnly(); 
+      }
+    } catch (err) { 
+      console.warn('Parse error:', err);
+      updateCodeEditorPreviewOnly();
+    }
+  }, 500);
+});
+
+/* ------------------------------------------------------------------------
+   Improved keyboard handling
+   ------------------------------------------------------------------------ */
+document.addEventListener('keydown', (e) => {
+  if ((e.altKey) && !e.shiftKey && e.key.toLowerCase() === 'z') { 
+    e.preventDefault(); 
+    doUndo(); 
+    return; 
+  }
+  
+  if ((e.altKey) && (e.key.toLowerCase() === 'y' || (e.shiftKey && e.key.toLowerCase() === 'z'))) { 
+    e.preventDefault(); 
+    doRedo(); 
+    return; 
+  }
+  
+  if (!selectedBlock) return;
+  
+  if (e.key === 'Delete' || e.key === 'Backspace') { 
+    e.preventDefault(); 
+    pushHistory(); 
+    deleteBlock(selectedBlock.id); 
+    renderEditor(); 
+    updateCodeEditor(); 
+    return; 
+  }
+  
+  if ((e.altKey) && e.key.toLowerCase() === 'd') { 
+    e.preventDefault(); 
+    pushHistory(); 
+    duplicateBlock(selectedBlock.id); 
+    renderEditor(); 
+    updateCodeEditor(); 
+    return; 
+  }
+  
+  if (e.shiftKey && (e.key === 'ArrowUp' || e.key === 'ArrowDown')) { 
+    e.preventDefault(); 
+    pushHistory(); 
+    moveSelectedBlockByOffset(e.key === 'ArrowUp' ? -1 : 1); 
+    renderEditor(); 
+    updateCodeEditor(); 
+    return; 
+  }
+  
+  if ((e.altKey) && e.key.toLowerCase() === 'e') { 
+    e.preventDefault(); 
+    if (selectedBlock) showTagExample(selectedBlock.tag); 
+    return; 
+  }
+  
+  if (e.key === 'Escape') { 
+    document.getElementById('attributePopupContainer').innerHTML = ''; 
+    document.getElementById('shortcutsPopup').classList.add('hidden'); 
+  }
+}); 
+
+/* ------------------------------------------------------------------------
+   IMPROVED Tag examples with code and visual preview
+   ------------------------------------------------------------------------ */
+function showTagExample(tag) {
+  const popup = document.createElement('div'); 
+  popup.className = 'popup';
+  
+  const title = document.createElement('h3'); 
+  title.textContent = `<${tag}> Examples`; 
+  popup.appendChild(title);
+
+  const tabs = document.createElement('div');
+  tabs.className = 'example-tabs';
+  
+  const codeTab = document.createElement('div');
+  codeTab.className = 'example-tab active';
+  codeTab.textContent = 'Code Example';
+  codeTab.onclick = () => switchTab('code');
+  
+  const visualTab = document.createElement('div');
+  visualTab.className = 'example-tab';
+  visualTab.textContent = 'Visual Example';
+  visualTab.onclick = () => switchTab('visual');
+  
+  tabs.appendChild(codeTab);
+  tabs.appendChild(visualTab);
+  popup.appendChild(tabs);
+
+  const codeContent = document.createElement('div');
+  codeContent.className = 'example-content active';
+  codeContent.id = 'code-example';
+  
+  const visualContent = document.createElement('div');
+  visualContent.className = 'example-content';
+  visualContent.id = 'visual-example';
+
+  function switchTab(tabName) {
+    document.querySelectorAll('.example-tab').forEach(tab => tab.classList.remove('active'));
+    document.querySelectorAll('.example-content').forEach(content => content.classList.remove('active'));
+    
+    if (tabName === 'code') {
+      codeTab.classList.add('active');
+      codeContent.classList.add('active');
+    } else {
+      visualTab.classList.add('active');
+      visualContent.classList.add('active');
+    }
+  }
+
+  const codeExamples = {
+    p: `<p>This is a paragraph of text. Paragraphs are block-level elements that typically contain text content.</p>\n\n<p>You can have multiple paragraphs to structure your content.</p>`,
+    h1: `<h1>Main Page Title</h1>\n<h2>Section Heading</h2>\n<h3>Subsection Heading</h3>`,
+    a: `<a href="https://example.com" target="_blank">Visit Example.com</a>\n<a href="#section2">Jump to Section 2</a>\n<a href="mailto:user@example.com">Send Email</a>`,
+    img: `<img src="https://via.placeholder.com/150" alt="Placeholder Image" width="150" height="150">\n<img src="photo.jpg" alt="Beautiful landscape" style="border-radius: 8px;">`,
+    text: `This is plain text content that can be placed directly in the body or within other elements.\n\nYou can use text nodes for any textual content.`,
+    comment: `<!-- This is a comment that won't be visible in the browser -->\n<!-- Multi-line comments are also possible -->`,
+    div: `<div class="container" style="border: 1px solid #ccc; padding: 20px;">\n  <h2>Container Title</h2>\n  <p>This is content inside a div container.</p>\n</div>`,
+    span: `<p>This is a <span style="color: red; font-weight: bold;">styled span</span> inside a paragraph.</p>`,
+    ul: `<ul>\n  <li>First list item</li>\n  <li>Second list item</li>\n  <li>Third list item</li>\n</ul>`,
+    ol: `<ol>\n  <li>First step</li>\n  <li>Second step</li>\n  <li>Third step</li>\n</ol>`,
+    button: `<button onclick="alert('Button clicked!')">Click Me</button>\n<button style="background: #4CAF50; color: white; padding: 10px 20px; border: none; border-radius: 4px;">Styled Button</button>`,
+    input: `<input type="text" placeholder="Enter your name">\n<input type="email" placeholder="Enter your email">\n<input type="checkbox" id="agree"> <label for="agree">I agree</label>`,
+    textarea: `<textarea rows="4" cols="50" placeholder="Enter your message here..."></textarea>`,
+    form: `<form onsubmit="alert('Form submitted!'); return false;">\n  <label for="name">Name:</label>\n  <input type="text" id="name" name="name"><br><br>\n  <button type="submit">Submit</button>\n</form>`,
+    table: `<table border="1" style="border-collapse: collapse; width: 100%;">\n  <tr><th>Name</th><th>Age</th></tr>\n  <tr><td>John</td><td>25</td></tr>\n</table>`,
+    nav: `<nav style="background: #333; padding: 10px;">\n  <a href="#home" style="color: white; margin-right: 15px;">Home</a>\n  <a href="#about" style="color: white;">About</a>\n</nav>`,
+    header: `<header style="background: #f8f9fa; padding: 20px; text-align: center;">\n  <h1>Website Header</h1>\n  <p>Welcome to our site</p>\n</header>`,
+    footer: `<footer style="background: #333; color: white; padding: 20px; text-align: center;">\n  <p>&copy; 2024 Your Company. All rights reserved.</p>\n</footer>`,
+    section: `<section style="padding: 20px; margin: 10px 0; background: #f0f0f0;">\n  <h2>Section Title</h2>\n  <p>This is a section of content.</p>\n</section>`
+  };
+
+  const codePre = document.createElement('pre');
+  codePre.className = 'example-code';
+  codePre.textContent = codeExamples[tag] || `<${tag}>Content here</${tag}>`;
+  codeContent.appendChild(codePre);
+
+  const visualPreview = document.createElement('div');
+  visualPreview.className = 'example-preview';
+  
+  const nonVisualTags = ['text', 'comment', 'script', 'style', 'link', 'meta'];
+  
+  if (nonVisualTags.includes(tag)) {
+    visualPreview.innerHTML = `<div style="color: #666; text-align: center; padding: 40px;"><p>This element doesn't have a visual representation in the browser.</p><p>Check the code example to see how to use it.</p></div>`;
+  } else {
+    const previewIframe = document.createElement('iframe');
+    previewIframe.style.width = '100%';
+    previewIframe.style.height = '200px';
+    previewIframe.style.border = 'none';
+    previewIframe.style.borderRadius = '4px';
+    
+    const previewHTML = `<!DOCTYPE html><html><head><style>body { font-family: Arial, sans-serif; padding: 10px; margin: 0; background: white; } * { box-sizing: border-box; }</style></head><body>${codeExamples[tag] || `<${tag}>Example content</${tag}>`}</body></html>`;
+    
+    previewIframe.srcdoc = previewHTML;
+    visualPreview.appendChild(previewIframe);
+  }
+  
+  visualContent.appendChild(visualPreview);
+
+  popup.appendChild(codeContent);
+  popup.appendChild(visualContent);
+
+  const close = document.createElement('button'); 
+  close.className = 'button'; 
+  close.textContent = 'Close'; 
+  close.addEventListener('click', () => popup.remove());
+  
+  popup.appendChild(close); 
+  document.body.appendChild(popup);
+}
+
+/* ------------------------------------------------------------------------
+   Buttons wiring
+   ------------------------------------------------------------------------ */
+document.getElementById('copyBtn').addEventListener('click', () => { 
+  navigator.clipboard.writeText(generateHTML()).then(
+    () => alert('HTML copied'), 
+    () => alert('Copy failed')
+  ); 
+});
+
+document.getElementById('downloadBtn').addEventListener('click', () => { 
+  const blob = new Blob([generateHTML()], { type: 'text/html' }); 
+  const a = document.createElement('a'); 
+  a.href = URL.createObjectURL(blob); 
+  a.download = 'page.html'; 
+  a.click(); 
+});
+
+document.getElementById('toggleCodeBtn').addEventListener('click', () => { 
+  const ce = document.getElementById('codeEditor'); 
+  ce.classList.toggle('hidden'); 
+  if (!ce.classList.contains('hidden')) {
+    suppressCodeListener = true;
+    ce.value = generateHTML();
+    setTimeout(() => { suppressCodeListener = false; }, 100);
+  }
+});
+
+document.getElementById('refreshBtn').addEventListener('click', () => {
+  updateCodeEditor();
+});
+
+document.getElementById('shortcutsBtn').addEventListener('click', () => 
+  document.getElementById('shortcutsPopup').classList.remove('hidden'));
+
+document.getElementById('undoBtn').addEventListener('click', () => doUndo());
+document.getElementById('redoBtn').addEventListener('click', () => doRedo());
+
+/* ------------------------------------------------------------------------
+   Initial sample & init
+   ------------------------------------------------------------------------ */
+blocks = [
+  createBlock('div', '', [
+    createBlock('h1', '', [createBlock('text', 'Code.nyet HTML Builder')]),
+    createBlock('p', '', [createBlock('text', 'Click to select blocks. Double-click text to edit. Drag to reorganize. Press Ctrl+E for examples.')]),
+    createBlock('comment', 'This is a comment block')
+  ])
+];
+
+pushHistory();
+renderBlockList();
+renderEditor();
+updateCodeEditor();
+</script>
+</body>
+</html>
