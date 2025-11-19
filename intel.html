@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>INTERL</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            width: 100%;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        iframe {
+            width: 100%;
+            height: 100%;
+            border: none;
+            display: block;
+        }
+    </style>
+</head>
+<body>
+    <iframe id="contentFrame"></iframe>
+
+    <script>
+        // CHANGE THIS URL TO EMBED A DIFFERENT WEBSITE
+        const websiteUrl = "https://minitoolai.com";
+        
+        document.getElementById('contentFrame').src = websiteUrl;
+
+        document.addEventListener('keydown', function(e) {
+            if (e.altKey && (e.key === 'f' || e.key === 'F')) {
+                e.preventDefault();
+                const frame = document.getElementById('contentFrame');
+                if (!document.fullscreenElement) {
+                    frame.requestFullscreen().catch(err => {
+                        console.log('Fullscreen request failed:', err);
+                    });
+                } else {
+                    document.exitFullscreen();
+                }
+            }
+        });
+    </script>
+</body>
+</html>

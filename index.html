@@ -1,0 +1,462 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Website</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Courier New', monospace;
+            background: #0a0e27;
+            color: #00ff00;
+            transition: all 0.3s ease;
+        }
+
+        body.color-blue {
+            --primary: #0066ff;
+            --secondary: #0099ff;
+            background: #0a0a2e;
+        }
+
+        body.color-green {
+            --primary: #00ff00;
+            --secondary: #00cc00;
+            background: #0a0e27;
+        }
+
+        body.color-red {
+            --primary: #ff0000;
+            --secondary: #cc0000;
+            background: #2a0a0a;
+        }
+
+        body.color-yellow {
+            --primary: #ffff00;
+            --secondary: #cccc00;
+            background: #2a2a0a;
+        }
+
+        body.color-gray {
+            --primary: #cccccc;
+            --secondary: #999999;
+            background: #1a1a1a;
+        }
+
+        body.color-white {
+            --primary: #ffffff;
+            --secondary: #e0e0e0;
+            background: #1a1a1a;
+        }
+
+        :root {
+            --primary: #00ff00;
+            --secondary: #00cc00;
+        }
+
+        .container {
+            padding: 40px;
+        }
+
+        h1 {
+            text-align: center;
+            margin-bottom: 40px;
+            font-size: 2.5em;
+            text-shadow: 0 0 10px var(--primary);
+            animation: glow 2s ease-in-out infinite;
+        }
+
+        @keyframes glow {
+            0%, 100% { text-shadow: 0 0 10px var(--primary); }
+            50% { text-shadow: 0 0 20px var(--primary), 0 0 30px var(--primary); }
+        }
+
+        .boxes {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 30px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .box {
+            background: rgba(0, 255, 0, 0.05);
+            border: 2px solid var(--primary);
+            padding: 30px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-align: center;
+            box-shadow: 0 0 10px rgba(0, 255, 0, 0.1);
+        }
+
+        .box:hover {
+            box-shadow: 0 0 20px var(--primary), inset 0 0 20px rgba(0, 255, 0, 0.1);
+            transform: scale(1.05);
+            background: rgba(0, 255, 0, 0.1);
+        }
+
+        .box h2 {
+            font-size: 1.5em;
+            margin-bottom: 15px;
+            color: var(--primary);
+        }
+
+        .box p {
+            font-size: 0.9em;
+            color: var(--secondary);
+            line-height: 1.6;
+        }
+
+        .terminal-box {
+            background: rgba(0, 255, 0, 0.05);
+            border: 2px solid var(--primary);
+            padding: 30px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-align: center;
+            box-shadow: 0 0 10px rgba(0, 255, 0, 0.1);
+        }
+
+        .terminal-box:hover {
+            box-shadow: 0 0 20px var(--primary), inset 0 0 20px rgba(0, 255, 0, 0.1);
+            transform: scale(1.05);
+            background: rgba(0, 255, 0, 0.1);
+        }
+
+        .terminal-box h2 {
+            font-size: 1.5em;
+            margin-bottom: 15px;
+            color: var(--primary);
+        }
+
+        .terminal-box p {
+            font-size: 0.9em;
+            color: var(--secondary);
+        }
+
+        .terminal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(10, 14, 39, 0.95);
+            border: 2px solid var(--primary);
+            padding: 20px;
+            display: none;
+            z-index: 1000;
+            flex-direction: column;
+        }
+
+        .terminal.active {
+            display: flex;
+        }
+
+        .terminal-output {
+            flex: 1;
+            overflow-y: auto;
+            margin-bottom: 20px;
+            font-size: 0.95em;
+            line-height: 1.5;
+        }
+
+        .terminal-line {
+            margin: 5px 0;
+            color: var(--primary);
+        }
+
+        .terminal-input-line {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .terminal-input-line span {
+            color: var(--primary);
+            font-weight: bold;
+        }
+
+        .terminal-input {
+            flex: 1;
+            background: transparent;
+            border: none;
+            color: var(--primary);
+            font-family: 'Courier New', monospace;
+            font-size: 0.95em;
+            outline: none;
+        }
+
+        .terminal-input::placeholder {
+            color: var(--secondary);
+        }
+
+        .iframe-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: none;
+            z-index: 1001;
+        }
+
+        .iframe-container.active {
+            display: block;
+        }
+
+        .iframe-container iframe {
+            width: 100%;
+            height: 100%;
+            border: none;
+        }
+
+        .back-hint {
+            position: fixed;
+            top: 10px;
+            right: 10px;
+            color: var(--secondary);
+            font-size: 0.8em;
+            z-index: 1002;
+        }
+
+        .terminal-button {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            padding: 10px 16px;
+            background: rgba(0, 255, 0, 0.1);
+            border: 2px solid var(--primary);
+            color: var(--primary);
+            font-family: 'Courier New', monospace;
+            font-size: 0.9em;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            z-index: 999;
+            box-shadow: 0 0 10px rgba(0, 255, 0, 0.2);
+        }
+
+        .terminal-button:hover {
+            background: rgba(0, 255, 0, 0.2);
+            box-shadow: 0 0 20px var(--primary);
+            transform: scale(1.05);
+        }
+
+        @media (max-width: 768px) {
+            .boxes {
+                grid-template-columns: 1fr;
+            }
+
+            h1 {
+                font-size: 1.8em;
+            }
+
+            .terminal-button {
+                padding: 8px 12px;
+                font-size: 0.8em;
+            }
+        }
+    </style>
+</head>
+<body class="color-green">
+    <div class="container">
+        <h1>> WELCOME</h1>
+        <div class="boxes">
+            <div class="box" onclick="openPage('gov/index.html')">
+                <h2>AP US GoPo</h2>
+                <p>Vocab Words</p>
+            </div>
+            <div class="box" onclick="openPage('ASCAM/index.html')">
+                <h2>ASCAM</h2>
+                <p>its a scam</p>
+            </div>
+            <div class="box" onclick="openPage('chess/index.html')">
+                <h2>Chess</h2>
+                <p>Its really old.</p>
+            </div>
+            <div class="box" onclick="openPage('example.html')">
+                <h2>EXAMPLE 4</h2>
+                <p>d</p>
+            </div>
+            <div class="box" onclick="openPage('example.html')">
+                <h2>EXAMPLE 5</h2>
+                <p>e</p>
+            </div>
+            <div class="box" onclick="openPage('example.html')">
+                <h2>EXAMPLE 6</h2>
+                <p>f</p>
+            </div>
+        </div>
+    </div>
+
+    <button class="terminal-button" onclick="openTerminal()" title="Press Q to open terminal">TERMINAL</button>
+
+    <div class="terminal" id="terminal">
+        <div class="terminal-output" id="terminalOutput"></div>
+        <div class="terminal-input-line">
+            <span id="userDisplay">urmom@matrix</span>
+            <span>$</span>
+            <input type="text" class="terminal-input" id="terminalInput" placeholder="">
+        </div>
+        <div class="back-hint">Press ESC to close | Alt+R to go back</div>
+    </div>
+
+    <div class="iframe-container" id="iframeContainer">
+        <iframe id="contentIframe"></iframe>
+        <div class="back-hint">Alt+R to go back</div>
+    </div>
+
+    <script>
+        let currentUser = 'urmom';
+        let killTarget = '';
+        let currentTheme = 'green';
+        let previousPage = 'index.html';
+
+        function addTerminalLine(text, isCommand = false) {
+            const output = document.getElementById('terminalOutput');
+            const line = document.createElement('div');
+            line.className = 'terminal-line';
+            if (isCommand) {
+                line.textContent = `${currentUser}@matrix $ ${text}`;
+            } else {
+                line.textContent = text;
+            }
+            output.appendChild(line);
+            output.scrollTop = output.scrollHeight;
+        }
+
+        function initializeTerminal() {
+            const output = document.getElementById('terminalOutput');
+            output.innerHTML = '';
+            addTerminalLine('type superuser do help for help');
+            document.getElementById('terminalInput').value = '';
+            document.getElementById('terminalInput').focus();
+        }
+
+        function openTerminal() {
+            document.getElementById('terminal').classList.add('active');
+            previousPage = 'index.html';
+            initializeTerminal();
+        }
+
+        function closeTerminal() {
+            document.getElementById('terminal').classList.remove('active');
+            document.getElementById('terminalInput').value = '';
+        }
+
+        function openPage(page) {
+            previousPage = page === 'doge.html' || page === 'intel.html' || page === 'game.html' || page === 'tools.html' || page === 'web.html' ? 'index.html' : page;
+            document.getElementById('contentIframe').src = page;
+            document.getElementById('iframeContainer').classList.add('active');
+        }
+
+        function goBack() {
+            document.getElementById('iframeContainer').classList.remove('active');
+            document.getElementById('terminal').classList.remove('active');
+        }
+
+        function changeColor(colorName) {
+            const validColors = ['blue', 'green', 'red', 'yellow', 'gray', 'white'];
+            if (validColors.includes(colorName.toLowerCase())) {
+                document.body.className = `color-${colorName.toLowerCase()}`;
+                currentTheme = colorName.toLowerCase();
+                addTerminalLine(`Color changed to ${colorName}`);
+                return true;
+            }
+            return false;
+        }
+
+        document.getElementById('terminalInput').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                const input = this.value.trim();
+                addTerminalLine(input, true);
+
+                if (input === 'sudo help') {
+                    addTerminalLine('Available commands:');
+                    addTerminalLine('  sudo help              - Display this help menu');
+                    addTerminalLine('  sudo dogeinitramfs     - Open doge.html');
+                    addTerminalLine('  sudo ai                - Open intel.html');
+                    addTerminalLine('  sudo game              - Open game.html');
+                    addTerminalLine('  sudo tools             - Open tools.html');
+                    addTerminalLine('  sudo web               - Open web.html');
+                    addTerminalLine('  sudo websiteset <url>  - Set website for kill command');
+                    addTerminalLine('  sudo color <color>     - Change theme (blue, green, red, yellow, gray, white)');
+                    addTerminalLine('  kill                   - Open specified website in new tab');
+                    addTerminalLine('  clear                  - Clear terminal');
+                } else if (input === 'sudo dogeinitramfs') {
+                    addTerminalLine('Loading doge.html...');
+                    previousPage = 'doge.html';
+                    closeTerminal();
+                    openPage('doge.html');
+                } else if (input === 'sudo ai') {
+                    addTerminalLine('Loading intel.html...');
+                    previousPage = 'intel.html';
+                    closeTerminal();
+                    openPage('intel.html');
+                } else if (input === 'sudo game') {
+                    addTerminalLine('Loading game.html...');
+                    previousPage = 'game.html';
+                    closeTerminal();
+                    openPage('game.html');
+                } else if (input === 'sudo tools') {
+                    addTerminalLine('Loading tools.html...');
+                    previousPage = 'tools.html';
+                    closeTerminal();
+                    openPage('tool.html');
+                } else if (input === 'sudo web') {
+                    addTerminalLine('Loading web.html...');
+                    previousPage = 'web.html';
+                    closeTerminal();
+                    openPage('web.html');
+                } else if (input === 'kill') {
+                    if (killTarget) {
+                        addTerminalLine(`Opening ${killTarget}...`);
+                        window.open(killTarget, '_blank');
+                    } else {
+                        addTerminalLine('Error: Website not set. Use "sudo websiteset <url>"');
+                    }
+                } else if (input.startsWith('sudo websiteset ')) {
+                    const url = input.replace('sudo websiteset ', '').trim();
+                    killTarget = url;
+                    addTerminalLine(`Website set to: ${url}`);
+                } else if (input.startsWith('sudo color ')) {
+                    const color = input.replace('sudo color ', '').trim();
+                    if (changeColor(color)) {
+                        // Already added the message in changeColor function
+                    } else {
+                        addTerminalLine(`Error: Invalid color. Available colors: blue, green, red, yellow, gray, white`);
+                    }
+                } else if (input === 'clear') {
+                    document.getElementById('terminalOutput').innerHTML = '';
+                } else if (input === '') {
+                    // Do nothing for empty input
+                } else {
+                    addTerminalLine(`command not found: ${input}`);
+                }
+
+                this.value = '';
+            }
+        });
+
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'q' || e.key === 'Q') {
+                if (!document.getElementById('terminal').classList.contains('active') && 
+                    !document.getElementById('iframeContainer').classList.contains('active')) {
+                    openTerminal();
+                }
+            }
+            if (e.key === 'Escape') {
+                closeTerminal();
+            }
+            if (e.altKey && (e.key === 'r' || e.key === 'R')) {
+                e.preventDefault();
+                goBack();
+            }
+        });
+    </script>
+</body>
+</html>
