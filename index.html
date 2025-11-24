@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>System Boot</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: #000;
+            color: #2596be;
+            font-family: 'Courier New', monospace;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+
+        #logo {
+            width: 200px;
+            height: 200px;
+            margin-bottom: 40px;
+            opacity: 0;
+            animation: fadeInLogo 2s ease-in forwards;
+        }
+
+        @keyframes fadeInLogo {
+            to {
+                opacity: 1;
+            }
+        }
+
+        #boot-container {
+            width: 80%;
+            max-width: 800px;
+        }
+
+        .boot-message {
+            margin: 8px 0;
+            opacity: 0;
+            font-size: 16px;
+            letter-spacing: 1px;
+        }
+
+        .boot-message.show {
+            animation: typeIn 0.5s ease-in forwards;
+        }
+
+        @keyframes typeIn {
+            to {
+                opacity: 1;
+            }
+        }
+
+        .shortcut-key {
+            color: #fff;
+            font-weight: bold;
+            text-shadow: 0 0 10px #2596be;
+        }
+
+        #progress-bar {
+            width: 100%;
+            height: 4px;
+            background: #111;
+            margin-top: 30px;
+            border-radius: 2px;
+            overflow: hidden;
+            opacity: 0;
+        }
+
+        #progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #2596be, #4db8e8);
+            width: 0%;
+            transition: width 0.3s ease;
+            box-shadow: 0 0 20px #2596be;
+        }
+
+        .pulse {
+            animation: pulse 2s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% {
+                opacity: 1;
+            }
+            50% {
+                opacity: 0.5;
+            }
+        }
+
+        .system-ready {
+            font-size: 20px;
+            text-align: center;
+            margin-top: 20px;
+            opacity: 0;
+            text-shadow: 0 0 15px #2596be;
+        }
+
+        .system-ready.show {
+            animation: fadeInPulse 1s ease-in forwards;
+        }
+
+        @keyframes fadeInPulse {
+            to {
+                opacity: 1;
+            }
+        }
+    </style>
+</head>
+<body>
+    <svg id="logo" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+            <linearGradient id="fishGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                <animate attributeName="x1" values="0%;100%;0%" dur="4s" repeatCount="indefinite" />
+                <animate attributeName="x2" values="100%;0%;100%" dur="4s" repeatCount="indefinite" />
+                <stop offset="0%" style="stop-color:#2596be;stop-opacity:1" />
+                <stop offset="100%" style="stop-color:#4db8e8;stop-opacity:1" />
+            </linearGradient>
+        </defs>
+        <!-- Fish body -->
+        <ellipse cx="100" cy="100" rx="60" ry="30" fill="url(#fishGradient)" />
+        <!-- Fish tail -->
+        <path d="M 40 100 L 10 85 L 20 100 L 10 115 Z" fill="url(#fishGradient)" />
+        <!-- Fish eye -->
+        <circle cx="130" cy="95" r="8" fill="#000" />
+        <circle cx="133" cy="93" r="3" fill="#fff" />
+        <!-- Fish fins -->
+        <ellipse cx="90" cy="125" rx="15" ry="8" fill="url(#fishGradient)" opacity="0.8" />
+        <ellipse cx="90" cy="75" rx="15" ry="8" fill="url(#fishGradient)" opacity="0.8" />
+    </svg>
+
+    <div id="boot-container">
+        <div id="messages"></div>
+        <div id="progress-bar">
+            <div id="progress-fill"></div>
+        </div>
+        <div id="ready-message" class="system-ready"></div>
+    </div>
+
+    <script>
+    // ===== PASSWORD CONFIG =====
+    const allowedPasswords = [
+        "pi","paayas","carson","hudson","lexi","joseph","jt","jaketyler","daniel",
+        "mauhammad","johnston","cooper","justin","brycetin","claudia","hyder",
+        "ryan","louis","uriel","veer","claire","holden","sumalee","jahaira",
+        "tiffany","maheen","kaley","arron","brody","corbin","hugo","ethan",
+        "grace","madylin","nia","val","abdash","max"
+    ];
+
+    // If true, user never gets prompted again.
+    const alreadyAuthed = localStorage.getItem("auth_ok") === "true";
+
+    // ===== SHORTCUT CONFIG =====
+    const shortcuts = [
+        { key: 'z', alt: true, url: '/index.html', description: 'Home Page' },
+        { key: 'x', alt: true, url: 'other/index.html', description: 'Others' },
+        { key: 'c', alt: true, url: 'class/index.html', description: 'Education' },
+        { key: 'v', alt: true, url: 'web/index.html', description: 'Web' }
+    ];
+
+    const defaultRedirect = 'video.mp3';
+    const bootDuration = 20000;
+    // ===== END CONFIG =====
+
+    const messages = [
+        'Initializing system...',
+        'Loading kernel modules...',
+        'Checking hardware configuration...',
+        'Require root verification before proceeding...',
+        'Starting system services...',
+        ...shortcuts.map(s => `Press <span class="shortcut-key">ALT+${s.key.toUpperCase()}</span> to go to ${s.description}`),
+        'System initialization complete.'
+    ];
+
+    let currentMessage = 0;
+    let bootComplete = false;
+    const messageDelay = bootDuration / messages.length;
+    const messagesContainer = document.getElementById('messages');
+    const progressBar = document.getElementById('progress-bar');
+    const progressFill = document.getElementById('progress-fill');
+    const readyMessage = document.getElementById('ready-message');
+
+    setTimeout(() => {
+        progressBar.style.opacity = '1';
+    }, 2000);
+
+    function showNextMessage() {
+        if (currentMessage < messages.length) {
+            const msgDiv = document.createElement('div');
+            msgDiv.className = 'boot-message';
+            msgDiv.innerHTML = `> ${messages[currentMessage]}`;
+            messagesContainer.appendChild(msgDiv);
+
+            setTimeout(() => {
+                msgDiv.classList.add('show');
+            }, 50);
+
+            const progress = ((currentMessage + 1) / messages.length) * 100;
+            progressFill.style.width = `${progress}%`;
+
+            currentMessage++;
+            setTimeout(showNextMessage, messageDelay);
+        } else {
+            setTimeout(() => {
+                readyMessage.textContent = '[ SYSTEM READY ]';
+                readyMessage.classList.add('show', 'pulse');
+                bootComplete = true;
+            }, 500);
+        }
+    }
+
+    setTimeout(showNextMessage, 2500);
+
+    // ========= SHORTCUT + PASSWORD LOGIC =========
+    document.addEventListener('keydown', (e) => {
+        shortcuts.forEach(shortcut => {
+            if (e.altKey === shortcut.alt && e.key.toLowerCase() === shortcut.key.toLowerCase()) {
+                e.preventDefault();
+
+                // If user validated before → no prompt
+                if (alreadyAuthed) {
+                    window.location.href = shortcut.url;
+                    return;
+                }
+
+                const entered = prompt("Enter password:");
+                if (!entered) return;
+
+                if (allowedPasswords.includes(entered)) {
+                    // First successful authentication → save forever
+                    localStorage.setItem("auth_ok", "true");
+                    window.location.href = shortcut.url;
+                } else {
+                    alert("Incorrect password");
+                }
+            }
+        });
+    });
+
+    // Auto-redirect after boot duration
+    setTimeout(() => {
+        if (bootComplete) {
+            window.location.href = defaultRedirect;
+        }
+    }, bootDuration);
+</script>
+
+
+</body>
+</html>
