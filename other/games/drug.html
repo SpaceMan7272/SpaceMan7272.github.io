@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Insane Chess</title>
+<style>
+body {
+  margin:0; background:#000; font-family:sans-serif; display:flex; justify-content:center; align-items:flex-start; min-height:100vh; color:#fff; overflow:hidden;
+}
+#container { display:flex; margin-top:20px; gap:20px; flex-wrap:wrap; }
+#board { display:grid; grid-template:repeat(8,80px)/repeat(8,80px); border-radius:12px; overflow:hidden; box-shadow:0 0 100px #fff; transition: transform 0.1s; }
+.square { width:80px; height:80px; display:flex; justify-content:center; align-items:center; position:relative; cursor:pointer; }
+.square.light, .square.dark { transition: background 0.1s; }
+.square.highlight { outline:5px solid yellow; }
+.dot { width:20px; height:20px; border-radius:50%; position:absolute; pointer-events:none; opacity:1; background:lime; }
+img { width:70px; height:70px; pointer-events:none; animation:pulse 0.5s infinite alternate, spin 1s linear infinite; transform-origin:center; }
+@keyframes pulse { 0% { transform:scale(1); } 100% { transform:scale(1.5); } }
+@keyframes spin { 0% { transform:rotate(0deg) scale(1); } 100% { transform:rotate(360deg) scale(1.5); } }
+.explosion { position:absolute; width:80px; height:80px; border-radius:50%; background:orange; animation:explode 0.5s forwards; pointer-events:none; z-index:50; }
+@keyframes explode { 0% { transform:scale(0.2); opacity:1; } 100% { transform:scale(3); opacity:0; } }
+#status { font-weight:bold; text-align:center; margin-bottom:10px; animation:flash 0.5s infinite alternate; }
+#moveHistory { max-height:650px; overflow-y:auto; width:180px; padding:5px; background:#000; border:2px solid #fff; border-radius:8px; animation:flash 1s infinite alternate; }
+@keyframes flash { 0%{color:#fff;} 50%{color:#f0f;} 100%{color:#0ff;} }
+button { margin:2px; padding:5px 10px; background:#222; color:#fff; border:none; cursor:pointer; border-radius:5px; font-weight:bold; }
+</style>
+</head>
+<body>
+<div id="container">
+  <div>
+     <a href="index.html"><button>BACK-TO-MENU</button></a>
+    <div id="status">White to move</div>
+    <button onclick="randomizeBoard()">Randomize Board</button>
+    <div id="board"></div>
+    <div id="moveHistory"></div>
+  </div>
+</div>
+
+<audio id="cryAudio" src="cry.mp3"></audio>
+<audio id="expAudio" src="exp.mp3"></audio>
+<audio id="hopAudio" src="hop.mp3"></audio>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/chess.js/0.10.3/chess.min.js"></script>
+<script>
+const boardEl = document.getElementById('board');
+const statusEl = document.getElementById('status');
+const moveHistoryEl = document.getElementById('moveHistory');
+const cryAudio=document.getElementById('cryAudio');
+const expAudio=document.getElementById('expAudio');
+const hopAudio=document.getElementById('hopAudio');
+
+const game = new Chess();
+let squares=[], selected=null, pendingPromotion=null, dots=[];
+let rotation=0;
+
+// Create squares
+function createBoard(){
+  boardEl.innerHTML=''; squares=[];
+  for(let r=0;r<8;r++){
+    const row=[];
+    for(let c=0;c<8;c++){
+      const sq=document.createElement('div');
+      sq.className='square '+((r+c)%2?'dark':'light');
+      sq.dataset.r=r; sq.dataset.c=c;
+      sq.addEventListener('click',squareClick);
+      row.push(sq);
+      boardEl.appendChild(sq);
+    }
+    squares.push(row);
+  }
+}
+
+// Render pieces and board
+function renderPosition(){
+  const board = game.board();
+  squares.flat().forEach(sq=>sq.innerHTML='');
+  dots.forEach(d=>d.remove());
+  dots=[];
+  for(let r=0;r<8;r++){
+    for(let c=0;c<8;c++){
+      const sq=squares[r][c];
+      const piece = board[r][c];
+      if(piece){
+        const img=document.createElement('img');
+        img.src='img/'+piece.color+piece.type+'.png';
+        // King grows on check
+        if(game.in_check() && piece.type==='k' && piece.color===game.turn()) img.style.transform='scale(3)';
+        sq.appendChild(img);
+      }
+      // Random neon colors constantly
+      sq.style.backgroundColor=`hsl(${Math.random()*360},100%,50%)`;
+    }
+  }
+  updateStatus(); updateMoveHistory();
+}
+
+// Show legal moves
+function showDots(from){
+  clearDots();
+  const moves = game.moves({square:from,verbose:true});
+  moves.forEach(m=>{
+    const file='abcdefgh'.indexOf(m.to[0]);
+    const rank=8-parseInt(m.to[1]);
+    const dot=document.createElement('div');
+    dot.className='dot';
+    dot.style.top='50%'; dot.style.left='50%';
+    dot.style.transform='translate(-50%,-50%)';
+    squares[rank][file].appendChild(dot);
+    dots.push(dot);
+  });
+}
+function clearDots(){ dots.forEach(d=>d.remove()); dots=[]; }
+
+// Move logic
+function squareClick(){
+  const r=+this.dataset.r, c=+this.dataset.c;
+  const sq='abcdefgh'[c]+(8-r);
+  const piece = game.get(sq);
+  if(selected){
+    let moveObj={from:selected,to:sq,promotion:'q'};
+    const captured=game.get(sq);
+    const move=game.move(moveObj);
+    if(move){
+      selected=null;
+      hopAudio.play();
+      if(captured){ explodePiece(sq); expAudio.play(); }
+      if(game.in_check()) cryAudio.play();
+    }
+    renderPosition();
+  } else if(piece && piece.color===game.turn()){
+    selected=sq;
+    showDots(selected);
+  }
+}
+
+// Explosion
+function explodePiece(sq){
+  const el=document.createElement('div');
+  el.className='explosion';
+  const r='abcdefgh'.indexOf(sq[0]);
+  const rank=8-parseInt(sq[1]);
+  squares[rank][r].appendChild(el);
+  setTimeout(()=>el.remove(),500);
+}
+
+// Randomize board with at least king+2 pieces each
+function randomizeBoard(){
+  game.clear();
+  const types=['p','r','n','b','q'];
+  ['w','b'].forEach(color=>{
+    const placedSquares = [];
+    // Place king
+    let ksq='abcdefgh'[Math.floor(Math.random()*8)]+(Math.floor(Math.random()*8)+1);
+    game.put({type:'k', color}, ksq); placedSquares.push(ksq);
+    // Place 2 random pieces
+    for(let i=0;i<2;i++){
+      let sq;
+      do { sq='abcdefgh'[Math.floor(Math.random()*8)]+(Math.floor(Math.random()*8)+1); } while(placedSquares.includes(sq));
+      let t=types[Math.floor(Math.random()*types.length)];
+      game.put({type:t,color}, sq); placedSquares.push(sq);
+    }
+  });
+  renderPosition();
+}
+
+// Status
+function updateStatus(){
+  if(game.in_checkmate()) statusEl.textContent='Checkmate! '+(game.turn()==='w'?'Black':'White')+' wins.';
+  else if(game.in_stalemate()) statusEl.textContent='Stalemate.';
+  else statusEl.textContent=(game.turn()==='w'?'White':'Black')+' to move'+(game.in_check()?' (CHECK!!!)':'');
+}
+function updateMoveHistory(){
+  const history = game.history({verbose:true});
+  moveHistoryEl.innerHTML='';
+  for(let i=0;i<history.length;i++){
+    const move=history[i];
+    if(i%2===0) moveHistoryEl.innerHTML+=`<div>${Math.floor(i/2)+1}. ${move.san}`;
+    else moveHistoryEl.innerHTML+=` ${move.san}</div>`;
+  }
+  moveHistoryEl.scrollTop=moveHistoryEl.scrollHeight;
+}
+
+// Continuous board rotation
+setInterval(()=>{ rotation+=1; boardEl.style.transform=`rotate(${rotation}deg)`; squares.flat().forEach(s=>s.style.transform=`rotate(${-rotation}deg)`); },30);
+
+// Initialize
+createBoard();
+renderPosition(); // Start with normal chess position
+squares.flat().forEach(sq=>sq.addEventListener('click',squareClick));
+
+// Constantly change neon colors
+setInterval(()=>{
+  squares.flat().forEach(sq=>{ sq.style.backgroundColor=`hsl(${Math.random()*360},100%,50%)`; });
+},100);
+</script>
+</body>
+</html>
