@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Website Embedder</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Courier New', monospace;
+            background: #0a0e27;
+            color: #2596be;
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        .header {
+            padding: 20px;
+            background: rgba(0, 255, 0, 0.05);
+            border-bottom: 2px solid #2596be;
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .header input {
+            flex: 1;
+            min-width: 300px;
+            background: rgba(0, 255, 0, 0.1);
+            border: 1px solid #2596be;
+            color: #2596be;
+            padding: 10px;
+            font-family: 'Courier New', monospace;
+            font-size: 1em;
+        }
+
+        .header input::placeholder {
+            color: #2596be;
+        }
+
+        .header button {
+            padding: 10px 20px;
+            background: #2596be;
+            color: #0a0e27;
+            border: none;
+            cursor: pointer;
+            font-weight: bold;
+            font-family: 'Courier New', monospace;
+            transition: all 0.3s;
+        }
+
+        .header button:hover {
+            background: #2596be;
+            box-shadow: 0 0 10px #2596be;
+        }
+
+        .info {
+            padding: 10px 20px;
+            background: rgba(0, 255, 0, 0.03);
+            border-bottom: 1px solid #2596be;
+            font-size: 0.85em;
+            color: #2596be;
+        }
+
+        .container {
+            flex: 1;
+            position: relative;
+            overflow: hidden;
+        }
+
+        iframe {
+            width: 100%;
+            height: 100%;
+            border: none;
+            display: block;
+        }
+
+        .fullscreen-notice {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: #2596be;
+            color: #0a0e27;
+            padding: 15px 20px;
+            border: 2px solid #2596be;
+            font-weight: bold;
+            z-index: 10000;
+            display: none;
+            animation: slideIn 0.3s ease;
+        }
+
+        @keyframes slideIn {
+            from {
+                transform: translateX(400px);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+
+        .fullscreen-notice.show {
+            display: block;
+        }
+
+        iframe:fullscreen {
+            width: 100%;
+            height: 100%;
+        }
+
+        @media (max-width: 768px) {
+            .header {
+                flex-direction: column;
+            }
+
+            .header input {
+                min-width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <input type="text" id="urlInput" placeholder="Enter website URL (e.g., https://example.com)" value="https://example.com">
+        <button onclick="loadWebsite()">LOAD</button>
+    </div>
+    <div class="container">
+        <iframe id="contentFrame"></iframe>
+    </div>
+    <div class="fullscreen-notice" id="notice">Fullscreen Mode - Press ESC to exit</div>
+
+    <script>
+        const urlInput = document.getElementById('urlInput');
+        const contentFrame = document.getElementById('contentFrame');
+        const notice = document.getElementById('notice');
+
+        function loadWebsite() {
+            let url = urlInput.value.trim();
+            
+            if (!url) {
+                alert('Please enter a URL');
+                return;
+            }
+
+            if (!url.startsWith('http://') && !url.startsWith('https://')) {
+                url = 'https://' + url;
+            }
+
+            contentFrame.src = url;
+        }
+
+        urlInput.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                loadWebsite();
+            }
+        });
+
+        document.addEventListener('keydown', function(e) {
+            if (e.altKey && (e.key === 'f' || e.key === 'F')) {
+                e.preventDefault();
+                if (!document.fullscreenElement) {
+                    contentFrame.requestFullscreen().catch(err => {
+                        console.log('Fullscreen request failed:', err);
+                    });
+                    notice.classList.add('show');
+                } else {
+                    document.exitFullscreen();
+                    notice.classList.remove('show');
+                }
+            }
+        });
+
+        document.addEventListener('fullscreenchange', function() {
+            if (!document.fullscreenElement) {
+                notice.classList.remove('show');
+            }
+        });
+
+        // Load default website on startup
+        window.addEventListener('load', function() {
+            loadWebsite();
+        });
+    </script>
+</body>
+</html>
