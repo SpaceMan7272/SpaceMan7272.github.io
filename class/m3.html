@@ -1,0 +1,481 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cyber Notes</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Courier New', monospace;
+            background: #000;
+            color: #2596be;
+            padding: 20px;
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        header {
+            border: 2px solid #2596be;
+            padding: 20px;
+            margin-bottom: 20px;
+            background: rgba(37, 150, 190, 0.05);
+            box-shadow: 0 0 20px rgba(37, 150, 190, 0.3);
+        }
+
+        h1 {
+            color: #4db8e8;
+            text-shadow: 0 0 10px #2596be;
+            font-size: 2em;
+            margin-bottom: 10px;
+        }
+
+        .controls {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin-top: 15px;
+        }
+
+        button {
+            background: #000;
+            border: 2px solid #2596be;
+            color: #2596be;
+            padding: 8px 16px;
+            cursor: pointer;
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+            transition: all 0.3s;
+        }
+
+        button:hover {
+            background: #2596be;
+            color: #000;
+            box-shadow: 0 0 15px #2596be;
+        }
+
+        button.active {
+            background: #2596be;
+            color: #000;
+        }
+
+        .toolbar {
+            display: none;
+            gap: 10px;
+            padding: 15px;
+            border: 2px solid #2596be;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+            background: rgba(37, 150, 190, 0.05);
+        }
+
+        .toolbar.visible {
+            display: flex;
+        }
+
+        .toolbar select, .toolbar input[type="color"], .toolbar input[type="number"] {
+            background: #000;
+            border: 1px solid #2596be;
+            color: #2596be;
+            padding: 5px;
+            font-family: 'Courier New', monospace;
+        }
+
+        .toolbar input[type="file"] {
+            color: #2596be;
+        }
+
+        #notes-container {
+            border: 2px solid #2596be;
+            padding: 20px;
+            min-height: 400px;
+            background: rgba(37, 150, 190, 0.02);
+        }
+
+        .unit {
+            border-left: 3px solid #2596be;
+            margin-bottom: 20px;
+            padding-left: 15px;
+        }
+
+        .unit-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 10px;
+            cursor: pointer;
+            padding: 5px;
+            transition: all 0.3s;
+        }
+
+        .unit-header:hover {
+            background: rgba(37, 150, 190, 0.1);
+        }
+
+        .toggle {
+            color: #4db8e8;
+            font-size: 1.2em;
+            user-select: none;
+        }
+
+        .unit-title {
+            color: #4db8e8;
+            font-size: 1.3em;
+            font-weight: bold;
+            text-shadow: 0 0 5px #2596be;
+        }
+
+        .unit-content {
+            padding-left: 20px;
+        }
+
+        .unit-content.collapsed {
+            display: none;
+        }
+
+        .subsection {
+            border-left: 2px solid #2596be;
+            margin: 15px 0;
+            padding-left: 12px;
+        }
+
+        .subsection-header {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            cursor: pointer;
+            padding: 3px;
+            margin-bottom: 8px;
+            transition: all 0.3s;
+        }
+
+        .subsection-header:hover {
+            background: rgba(37, 150, 190, 0.1);
+        }
+
+        .subsection-title {
+            color: #2596be;
+            font-size: 1.1em;
+            font-weight: bold;
+        }
+
+        .body-content {
+            color: #2596be;
+            padding: 10px;
+            line-height: 1.8;
+            border-left: 1px solid rgba(37, 150, 190, 0.3);
+            padding-left: 15px;
+        }
+
+        .body-content.collapsed {
+            display: none;
+        }
+
+        .body-content img {
+            max-width: 100%;
+            height: auto;
+            border: 2px solid #2596be;
+            margin: 10px 0;
+            box-shadow: 0 0 10px rgba(37, 150, 190, 0.3);
+        }
+
+        [contenteditable="true"] {
+            outline: 2px dashed #4db8e8;
+            outline-offset: 2px;
+        }
+
+        .add-section {
+            margin: 10px 0;
+            font-size: 0.9em;
+        }
+
+        input[type="file"] {
+            display: none;
+        }
+
+        .status {
+            color: #4db8e8;
+            font-size: 0.9em;
+            margin-top: 10px;
+        }
+
+        ::selection {
+            background: #2596be;
+            color: #000;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>[ NC MATH 3 NOTES ]</h1>
+            <div class="controls">
+                <button id="edit-btn">EDIT MODE</button>
+                <button id="add-unit-btn">+ ADD UNIT</button>
+                <button id="export-btn">EXPORT</button>
+                <button id="import-btn">IMPORT</button>
+                <input type="file" id="import-file" accept=".json">
+                <div class="status" id="status"></div>
+            </div>
+        </header>
+
+        <div class="toolbar" id="toolbar">
+            <button onclick="format('bold')"><b>BOLD</b></button>
+            <button onclick="format('italic')"><i>ITALIC</i></button>
+            <button onclick="format('underline')"><u>UNDERLINE</u></button>
+            
+            <select onchange="format('fontSize', this.value)">
+                <option value="">Font Size</option>
+                <option value="1">Small</option>
+                <option value="3">Normal</option>
+                <option value="5">Large</option>
+                <option value="7">XLarge</option>
+            </select>
+            
+            <input type="color" id="text-color" value="#2596be" onchange="format('foreColor', this.value)">
+            <label for="text-color" style="cursor: pointer;">TEXT COLOR</label>
+            
+            <button onclick="document.getElementById('image-upload').click()">+ IMAGE</button>
+            <input type="file" id="image-upload" accept="image/*">
+        </div>
+
+        <div id="notes-container"></div>
+    </div>
+
+    <script>
+        let notes = { units: [] };
+        let editMode = false;
+        const STORAGE_KEY = 'cyber-notes-data';
+
+        // Load notes on startup
+        async function loadNotes() {
+            try {
+                const result = await window.storage.get(STORAGE_KEY);
+                if (result && result.value) {
+                    notes = JSON.parse(result.value);
+                    renderNotes();
+                    showStatus('Notes loaded', 2000);
+                }
+            } catch (error) {
+                console.log('No saved notes found, starting fresh');
+            }
+        }
+
+        // Save notes
+        async function saveNotes() {
+            try {
+                await window.storage.set(STORAGE_KEY, JSON.stringify(notes));
+                showStatus('Saved', 1500);
+            } catch (error) {
+                showStatus('Error saving', 2000);
+                console.error('Save error:', error);
+            }
+        }
+
+        // Show status message
+        function showStatus(message, duration = 2000) {
+            const status = document.getElementById('status');
+            status.textContent = `[ ${message} ]`;
+            setTimeout(() => status.textContent = '', duration);
+        }
+
+        // Toggle edit mode
+        document.getElementById('edit-btn').addEventListener('click', () => {
+            editMode = !editMode;
+            document.getElementById('edit-btn').classList.toggle('active', editMode);
+            document.getElementById('toolbar').classList.toggle('visible', editMode);
+            document.querySelectorAll('[data-editable]').forEach(el => {
+                el.contentEditable = editMode;
+            });
+            if (!editMode) {
+                collectNotes();
+                saveNotes();
+            }
+        });
+
+        // Add unit
+        document.getElementById('add-unit-btn').addEventListener('click', () => {
+            notes.units.push({
+                title: 'New Unit',
+                subsections: []
+            });
+            renderNotes();
+            saveNotes();
+        });
+
+        // Render notes
+        function renderNotes() {
+            const container = document.getElementById('notes-container');
+            container.innerHTML = '';
+            
+            notes.units.forEach((unit, unitIdx) => {
+                const unitDiv = document.createElement('div');
+                unitDiv.className = 'unit';
+                unitDiv.innerHTML = `
+                    <div class="unit-header" onclick="toggleUnit(${unitIdx})">
+                        <span class="toggle">▼</span>
+                        <div class="unit-title" data-editable data-unit="${unitIdx}" data-field="title">${unit.title}</div>
+                    </div>
+                    <div class="unit-content" id="unit-${unitIdx}">
+                        <div class="add-section">
+                            <button onclick="addSubsection(${unitIdx})">+ ADD SUBSECTION</button>
+                            <button onclick="deleteUnit(${unitIdx})" style="border-color: #be2525; color: #be2525;">DELETE UNIT</button>
+                        </div>
+                        <div id="subsections-${unitIdx}"></div>
+                    </div>
+                `;
+                container.appendChild(unitDiv);
+                
+                // Render subsections
+                const subsectionsDiv = document.getElementById(`subsections-${unitIdx}`);
+                unit.subsections.forEach((sub, subIdx) => {
+                    const subDiv = document.createElement('div');
+                    subDiv.className = 'subsection';
+                    subDiv.innerHTML = `
+                        <div class="subsection-header" onclick="toggleSubsection(${unitIdx}, ${subIdx})">
+                            <span class="toggle">▼</span>
+                            <div class="subsection-title" data-editable data-unit="${unitIdx}" data-sub="${subIdx}" data-field="title">${sub.title}</div>
+                        </div>
+                        <div class="body-content" id="sub-${unitIdx}-${subIdx}" data-editable data-unit="${unitIdx}" data-sub="${subIdx}" data-field="body">${sub.body}</div>
+                        <div class="add-section">
+                            <button onclick="deleteSubsection(${unitIdx}, ${subIdx})" style="border-color: #be2525; color: #be2525;">DELETE SUBSECTION</button>
+                        </div>
+                    `;
+                    subsectionsDiv.appendChild(subDiv);
+                });
+            });
+
+            // Apply edit mode if active
+            if (editMode) {
+                document.querySelectorAll('[data-editable]').forEach(el => {
+                    el.contentEditable = true;
+                });
+            }
+        }
+
+        // Collect notes from DOM
+        function collectNotes() {
+            document.querySelectorAll('[data-editable]').forEach(el => {
+                const unitIdx = parseInt(el.dataset.unit);
+                const field = el.dataset.field;
+                
+                if (el.dataset.sub !== undefined) {
+                    const subIdx = parseInt(el.dataset.sub);
+                    notes.units[unitIdx].subsections[subIdx][field] = el.innerHTML;
+                } else {
+                    notes.units[unitIdx][field] = el.textContent;
+                }
+            });
+        }
+
+        // Toggle functions
+        function toggleUnit(idx) {
+            const content = document.getElementById(`unit-${idx}`);
+            const toggle = content.previousElementSibling.querySelector('.toggle');
+            content.classList.toggle('collapsed');
+            toggle.textContent = content.classList.contains('collapsed') ? '▶' : '▼';
+        }
+
+        function toggleSubsection(unitIdx, subIdx) {
+            const content = document.getElementById(`sub-${unitIdx}-${subIdx}`);
+            const header = content.previousElementSibling;
+            const toggle = header.querySelector('.toggle');
+            content.classList.toggle('collapsed');
+            toggle.textContent = content.classList.contains('collapsed') ? '▶' : '▼';
+        }
+
+        // Add/Delete functions
+        function addSubsection(unitIdx) {
+            notes.units[unitIdx].subsections.push({
+                title: 'New Subsection',
+                body: 'Content here...'
+            });
+            renderNotes();
+            saveNotes();
+        }
+
+        function deleteUnit(unitIdx) {
+            if (confirm('Delete this unit?')) {
+                notes.units.splice(unitIdx, 1);
+                renderNotes();
+                saveNotes();
+            }
+        }
+
+        function deleteSubsection(unitIdx, subIdx) {
+            if (confirm('Delete this subsection?')) {
+                notes.units[unitIdx].subsections.splice(subIdx, 1);
+                renderNotes();
+                saveNotes();
+            }
+        }
+
+        // Format functions
+        function format(cmd, value = null) {
+            document.execCommand(cmd, false, value);
+        }
+
+        // Image upload
+        document.getElementById('image-upload').addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = (event) => {
+                    const img = `<img src="${event.target.result}" alt="uploaded">`;
+                    document.execCommand('insertHTML', false, img);
+                };
+                reader.readAsDataURL(file);
+            }
+        });
+
+        // Export
+        document.getElementById('export-btn').addEventListener('click', () => {
+            collectNotes();
+            const dataStr = JSON.stringify(notes, null, 2);
+            const blob = new Blob([dataStr], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'cyber-notes-export.json';
+            a.click();
+            URL.revokeObjectURL(url);
+            showStatus('Exported', 2000);
+        });
+
+        // Import
+        document.getElementById('import-btn').addEventListener('click', () => {
+            document.getElementById('import-file').click();
+        });
+
+        document.getElementById('import-file').addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = (event) => {
+                    try {
+                        notes = JSON.parse(event.target.result);
+                        renderNotes();
+                        saveNotes();
+                        showStatus('Imported', 2000);
+                    } catch (error) {
+                        showStatus('Import failed', 2000);
+                    }
+                };
+                reader.readAsText(file);
+            }
+        });
+
+        // Initialize
+        loadNotes();
+    </script>
+</body>
+</html>
