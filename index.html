@@ -178,6 +178,11 @@
         'Starting system services...',
         ...shortcuts.map(s => `Press <span class="shortcut-key">ALT+${s.key.toUpperCase()}</span> to go to ${s.description}`),
         'System initialization complete.'
+        'Credits.....'
+        'pi - for putting this together and development.'
+          'dinguschan - for  making the backend for nautilous and oregon.'
+              'everyone looking at this - for providing ideas and supporting the mission.'
+                  'Opus/Sonnet 4.5 - for helping debug and come up with the styling.'
     ];
 
     let currentMessage = 0;
@@ -231,7 +236,7 @@
                     return;
                 }
 
-                const entered = prompt("Enter password:");
+                const entered = prompt("The password is your first name, enter it and you will be accepted.");
                 if (!entered) return;
 
                 if (allowedPasswords.includes(entered)) {
