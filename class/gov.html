@@ -317,6 +317,66 @@
             border: 2px solid #ff0000;
             background: rgba(255, 0, 0, 0.1);
         }
+
+        .toggle-switch {
+            position: relative;
+            display: inline-block;
+            width: 60px;
+            height: 34px;
+        }
+
+        .toggle-switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .toggle-slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: transparent;
+            border: 2px solid #2596be;
+            transition: .4s;
+            border-radius: 34px;
+        }
+
+        .toggle-slider:before {
+            position: absolute;
+            content: "";
+            height: 22px;
+            width: 22px;
+            left: 3px;
+            bottom: 3px;
+            background-color: #2596be;
+            transition: .4s;
+            border-radius: 50%;
+        }
+
+        input:checked + .toggle-slider {
+            background-color: #2596be;
+        }
+
+        input:checked + .toggle-slider:before {
+            transform: translateX(26px);
+            background-color: #000;
+        }
+
+        .toggle-container {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .toggle-label {
+            color: #2596be;
+            font-size: 14px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
     </style>
 </head>
 <body>
@@ -331,6 +391,13 @@
                 <option value="all">All Units</option>
             </select>
             <button class="btn" id="shuffleBtn">Shuffle</button>
+            <div class="toggle-container" id="quizToggleContainer" style="display: none;">
+                <span class="toggle-label">Reverse</span>
+                <label class="toggle-switch">
+                    <input type="checkbox" id="reverseToggle">
+                    <span class="toggle-slider"></span>
+                </label>
+            </div>
         </div>
     </div>
 
@@ -381,22 +448,22 @@
         
         // Define your unit names here - this controls what displays in the selector
         const unitNames = {
-              "69": "Foundational Documents",
+            "69": "Foundational Documents",
             "0": "Constitution (Article & Ammend)",
-          "1": "Unit 1 -> Federalism (Actual unit 1)",
-           "2": "Unit 2 -> Grants and stuff (Actual unit 1 / 2)",
+            "1": "Unit 1 -> Federalism (Actual unit 1)",
+            "2": "Unit 2 -> Grants and stuff (Actual unit 1 / 2)",
             "3": "Unit 3 -> Civil Rights (Actual unit 3)",
-             "32": "Court Cases",
-              "4": "Unit 4 -> Voting and Ideologies (Actual unit 4)",
-               "5": "Unit 4 -> Elections (Actual unit 5)",
-                "6": "Unit 6 -> Congress (Actual unit 2)",
-                 "7": "Unit 7 -> President (Actual unit 2)",
-             "8": "Unit 8 -> Judiciary (Actual unit 2)",
+            "32": "Court Cases",
+            "4": "Unit 4 -> Voting and Ideologies (Actual unit 4)",
+            "5": "Unit 4 -> Elections (Actual unit 5)",
+            "6": "Unit 6 -> Congress (Actual unit 2)",
+            "7": "Unit 7 -> President (Actual unit 2)",
+            "8": "Unit 8 -> Judiciary (Actual unit 2)",
         };
 
         // Add your flashcards here
         const flashcardsData = [
-           {
+          {
       "term": "Article I (Legislative Branch)",
       "def": "Creates Congress (House and Senate), grants lawmaking powers including taxation, spending, regulation of commerce, and declares war; sets structure, powers, and limits for the legislative branch.",
       "simdef": "establishes Congress",
@@ -2769,7 +2836,6 @@
     "simdef": "Fed adjusts interest rates.",
     "unit": "8"
   }
-            
         ];
         
         // ========================================
@@ -2781,6 +2847,7 @@
         let currentMode = 'flashcard';
         let quizType = 'multiple';
         let currentQuizAnswer = null;
+        let reverseMode = false;
 
         const flashcard = document.getElementById('flashcard');
         const cardTerm = document.getElementById('cardTerm');
@@ -2931,15 +2998,25 @@
 
             document.querySelectorAll('.menu-left .btn').forEach(btn => btn.classList.remove('active'));
 
+            // Toggle visibility of shuffle button and reverse toggle
+            const shuffleBtn = document.getElementById('shuffleBtn');
+            const quizToggleContainer = document.getElementById('quizToggleContainer');
+
             if (mode === 'flashcard') {
                 document.getElementById('flashcardMode').classList.remove('hidden');
                 document.getElementById('flashcardModeBtn').classList.add('active');
+                shuffleBtn.style.display = 'block';
+                quizToggleContainer.style.display = 'none';
             } else if (mode === 'quiz') {
                 document.getElementById('quizMode').classList.remove('hidden');
                 document.getElementById('quizModeBtn').classList.add('active');
+                shuffleBtn.style.display = 'none';
+                quizToggleContainer.style.display = 'flex';
             } else if (mode === 'list') {
                 document.getElementById('listMode').classList.remove('hidden');
                 document.getElementById('listModeBtn').classList.add('active');
+                shuffleBtn.style.display = 'block';
+                quizToggleContainer.style.display = 'none';
             }
         }
 
@@ -2950,8 +3027,16 @@
             document.getElementById('quizResult').classList.add('hidden');
             
             const randomCard = currentCards[Math.floor(Math.random() * currentCards.length)];
-            document.getElementById('quizQuestion').textContent = randomCard.term;
-            currentQuizAnswer = randomCard.def;
+            
+            if (reverseMode) {
+                // Show definition as question, term as answer
+                document.getElementById('quizQuestion').textContent = randomCard.def;
+                currentQuizAnswer = randomCard.term;
+            } else {
+                // Normal mode: show term as question, definition as answer
+                document.getElementById('quizQuestion').textContent = randomCard.term;
+                currentQuizAnswer = randomCard.def;
+            }
 
             if (quizType === 'multiple') {
                 loadMultipleChoice(randomCard);
@@ -2977,8 +3062,13 @@
             options.forEach((option, index) => {
                 const optionDiv = document.createElement('div');
                 optionDiv.className = 'quiz-option';
-                optionDiv.innerHTML = `<span class="option-number">${index + 1}</span><span>${option.def}</span>`;
-                optionDiv.addEventListener('click', () => checkAnswer(option.def === correctCard.def, optionDiv));
+                
+                // Show term or def based on reverse mode
+                const optionText = reverseMode ? option.term : option.def;
+                const correctAnswer = reverseMode ? correctCard.term : correctCard.def;
+                
+                optionDiv.innerHTML = `<span class="option-number">${index + 1}</span><span>${optionText}</span>`;
+                optionDiv.addEventListener('click', () => checkAnswer(optionText === correctAnswer, optionDiv));
                 optionsContainer.appendChild(optionDiv);
             });
         }
@@ -3034,6 +3124,12 @@
 
         document.getElementById('typeAnswerBtn').addEventListener('click', () => {
             quizType = 'type';
+            loadQuiz();
+        });
+
+        // Reverse toggle
+        document.getElementById('reverseToggle').addEventListener('change', (e) => {
+            reverseMode = e.target.checked;
             loadQuiz();
         });
 
