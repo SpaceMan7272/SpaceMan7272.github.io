@@ -1,0 +1,375 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Archival 4-Player Chess: Strategic Edition</title>
+    <link href="https://fonts.googleapis.com/css2?family=Red+Hat+Display:wght@400;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-primary: #0E0B07;
+            --surface-paper: #1A140C;
+            --text-ink: #F1E7CF;
+            --text-muted: #C7B995;
+            --border-rule: #5A4A2A;
+            --square-light: #C7B995; 
+            --square-dark: #1A140C;  
+            --check-glow: #ff4444;
+            
+            --f-red: sepia(1) saturate(10) hue-rotate(-50deg);
+            --f-blue: sepia(1) saturate(10) hue-rotate(180deg);
+            --f-yellow: sepia(1) saturate(5) hue-rotate(10deg) brightness(1.2);
+            --f-green: sepia(1) saturate(10) hue-rotate(80deg);
+        }
+
+        body {
+            margin: 0; background-color: var(--bg-primary); color: var(--text-ink);
+            font-family: 'Red Hat Display', sans-serif; display: flex;
+            align-items: center; justify-content: center; min-height: 100vh; overflow: hidden;
+        }
+
+        .main-layout { display: flex; gap: 30px; align-items: center; }
+
+        /* Graveyards */
+        .graveyard-column {
+            display: flex; flex-direction: column; gap: 15px;
+            width: 180px; background: var(--surface-paper);
+            border: 1px solid var(--border-rule); padding: 15px; height: 650px;
+        }
+
+        .trophy-zone { flex: 1; border-bottom: 1px solid var(--border-rule); padding-bottom: 10px; overflow-y: auto; }
+        .trophy-zone:last-child { border-bottom: none; }
+        .team-label { font-size: 0.8rem; font-weight: 600; text-transform: uppercase; letter-spacing: 1px; display: block; margin-bottom: 8px;}
+        .trophy-icons { display: flex; flex-wrap: wrap; gap: 4px; }
+        .trophy-icons img { width: 22px; height: 22px; }
+
+        .game-center { display: flex; flex-direction: column; align-items: center; }
+
+        #viewport {
+            width: 630px; height: 630px; border: 5px solid var(--border-rule);
+            position: relative; overflow: hidden; transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+            background: var(--bg-primary);
+        }
+
+        .board { display: grid; grid-template-columns: repeat(14, 45px); grid-template-rows: repeat(14, 45px); }
+        .square { width: 45px; height: 45px; display: flex; justify-content: center; align-items: center; cursor: pointer;}
+        .active-sq.light { background-color: var(--square-light); }
+        .active-sq.dark { background-color: var(--square-dark); }
+        .null-sq { background-color: transparent; pointer-events: none; }
+        
+        .hint::after { content: ''; width: 10px; height: 10px; background: rgba(241, 231, 207, 0.4); border-radius: 50%; }
+        .selected { background-color: var(--border-rule) !important; }
+
+        .piece { width: 38px; height: 38px; z-index: 5; transition: transform 0.3s; pointer-events: none;}
+        .p-red { filter: var(--f-red); }
+        .p-blue { filter: var(--f-blue); }
+        .p-yellow { filter: var(--f-yellow); }
+        .p-green { filter: var(--f-green); }
+
+        .fallback-text { font-weight: bold; font-size: 18px; pointer-events: none; }
+
+        /* Controls */
+        .controls { margin-top: 15px; display: flex; gap: 10px; flex-wrap: wrap; justify-content: center;}
+        button { 
+            background: var(--surface-paper); color: var(--text-ink); border: 1px solid var(--border-rule);
+            padding: 8px 12px; cursor: pointer; font-family: inherit; font-weight: 600; text-transform: uppercase; font-size: 0.7rem;
+        }
+        button:hover { background: var(--bg-primary); }
+        button.active-toggle { background: var(--text-ink); color: var(--bg-primary); }
+
+        #promotion-overlay {
+            position: absolute; top:0; left:0; width:100%; height:100%;
+            background: rgba(0,0,0,0.8); display: none; justify-content: center; align-items: center; z-index: 1000;
+        }
+        .promo-choice { background: var(--surface-paper); border: 1px solid var(--border-rule); padding: 10px; margin: 5px; cursor: pointer; }
+
+        .timer-card { padding: 5px 10px; border: 1px solid var(--border-rule); font-weight: 600; font-size: 0.9rem;}
+        .timer-card.active { border-color: white; box-shadow: 0 0 8px white; }
+    </style>
+</head>
+<body>
+
+    <div class="main-layout">
+        <div class="graveyard-column">
+            <div class="trophy-zone">
+                <span class="team-label" style="color:#4444ff">Pieces captured by Blue</span>
+                <div id="trophy-b" class="trophy-icons"></div>
+            </div>
+            <div class="trophy-zone">
+                <span class="team-label" style="color:#ff4444">Pieces captured by Red</span>
+                <div id="trophy-r" class="trophy-icons"></div>
+            </div>
+        </div>
+
+        <div class="game-center">
+            <div class="controls" style="margin-bottom: 10px;">
+                <div id="card-y" class="timer-card">Yellow: <span id="t-y">05:00</span></div>
+                <div id="card-g" class="timer-card">Green: <span id="t-g">05:00</span></div>
+                <div id="card-b" class="timer-card">Blue: <span id="t-b">05:00</span></div>
+                <div id="card-r" class="timer-card active">Red: <span id="t-r">05:00</span></div>
+            </div>
+
+            <div id="viewport">
+                <div id="board" class="board"></div>
+                <div id="promotion-overlay"></div>
+            </div>
+
+            <div class="controls">
+                <button onclick="rotateManual()">Rotate 90°</button>
+                <button id="auto-rotate-btn" onclick="toggleAutoRotate()">Auto-Rotate: OFF</button>
+                <button onclick="toggleGame()" id="start-btn">Start Game</button>
+                <button onclick="location.reload()">Reset</button>
+            </div>
+        </div>
+
+        <div class="graveyard-column">
+            <div class="trophy-zone">
+                <span class="team-label" style="color:#ffff44">Pieces captured by Yellow</span>
+                <div id="trophy-y" class="trophy-icons"></div>
+            </div>
+            <div class="trophy-zone">
+                <span class="team-label" style="color:#44ff44">Pieces captured by Green</span>
+                <div id="trophy-g" class="trophy-icons"></div>
+            </div>
+        </div>
+    </div>
+
+<script>
+    const boardEl = document.getElementById('board');
+    const viewport = document.getElementById('viewport');
+    const promoOverlay = document.getElementById('promotion-overlay');
+    const players = ['r', 'b', 'y', 'g'];
+    const teamNames = { r: 'Red', b: 'Blue', y: 'Yellow', g: 'Green' };
+    
+    let turnIndex = 0;
+    let turn = 'r';
+    let board = Array(14).fill().map(() => Array(14).fill(null));
+    let selectedSquare = null;
+    let validMoves = [];
+    let gameActive = false;
+    let autoRotate = false;
+    let currentRotation = 0;
+    let timers = { r: 300, b: 300, y: 300, g: 300 };
+    let trophies = { r: [], b: [], y: [], g: [] };
+    let interval = null;
+
+    function initBoard() {
+        const pieces = ['r','n','b','q','k','b','n','r'];
+        // Bottom (Red)
+        for(let i=0; i<8; i++) {
+            board[13][3+i] = { c: 'r', t: pieces[i], m: 0 };
+            board[12][3+i] = { c: 'r', t: 'p', m: 0 };
+        }
+        // Top (Yellow)
+        for(let i=0; i<8; i++) {
+            board[0][3+i] = { c: 'y', t: pieces[i], m: 0 };
+            board[1][3+i] = { c: 'y', t: 'p', m: 0 };
+        }
+        // Left (Blue)
+        for(let i=0; i<8; i++) {
+            board[3+i][0] = { c: 'b', t: pieces[i], m: 0 };
+            board[3+i][1] = { c: 'b', t: 'p', m: 0 };
+        }
+        // Right (Green)
+        for(let i=0; i<8; i++) {
+            board[3+i][13] = { c: 'g', t: pieces[i], m: 0 };
+            board[3+i][12] = { c: 'g', t: 'p', m: 0 };
+        }
+        render();
+    }
+
+    function isInsideCross(r, c) {
+        if (r < 0 || r > 13 || c < 0 || c > 13) return false;
+        return !((r < 3 || r > 10) && (c < 3 || c > 10));
+    }
+
+    function render() {
+        boardEl.innerHTML = '';
+        for (let r = 0; r < 14; r++) {
+            for (let c = 0; c < 14; c++) {
+                const sq = document.createElement('div');
+                const active = isInsideCross(r, c);
+                sq.className = `square ${active ? 'active-sq' : 'null-sq'} ${(r+c)%2===0?'light':'dark'}`;
+                
+                if (active) {
+                    if (selectedSquare?.r === r && selectedSquare?.c === c) sq.classList.add('selected');
+                    if (validMoves.some(m => m.r === r && m.c === c)) sq.classList.add('hint');
+                    
+                    const p = board[r][c];
+                    if (p) {
+                        const img = document.createElement('img');
+                        img.src = `chp/w${p.t}.png`;
+                        img.className = `piece p-${teamNames[p.c].toLowerCase()}`;
+                        img.style.transform = `rotate(${-currentRotation}deg)`;
+                        img.onerror = function() {
+                            this.style.display = 'none';
+                            const fallback = document.createElement('span');
+                            fallback.className = `fallback-text p-${teamNames[p.c].toLowerCase()}`;
+                            fallback.innerText = p.t.toUpperCase();
+                            sq.appendChild(fallback);
+                        };
+                        sq.appendChild(img);
+                    }
+                    sq.onclick = () => handleSquareClick(r, c);
+                }
+                boardEl.appendChild(sq);
+            }
+        }
+        updateTrophiesUI();
+    }
+
+    function handleSquareClick(r, c) {
+        if (!gameActive) return;
+        const p = board[r][c];
+
+        if (selectedSquare) {
+            const move = validMoves.find(m => m.r === r && m.c === c);
+            if (move) {
+                executeMove(selectedSquare, {r, c});
+                return;
+            }
+        }
+
+        if (p && p.c === turn) {
+            selectedSquare = {r, c};
+            validMoves = getMoves(r, c);
+            render();
+        } else {
+            selectedSquare = null;
+            validMoves = [];
+            render();
+        }
+    }
+
+    function getMoves(r, c) {
+        const p = board[r][c];
+        let moves = [];
+        if (p.t === 'p') {
+            const dirs = { r: [-1,0], y: [1,0], b: [0,1], g: [0,-1] };
+            const d = dirs[p.c];
+            if (isInsideCross(r+d[0], c+d[1]) && !board[r+d[0]][c+d[1]]) {
+                moves.push({r:r+d[0], c:c+d[1]});
+                if (p.m === 0 && !board[r+d[0]*2][c+d[1]*2]) moves.push({r:r+d[0]*2, c:c+d[1]*2});
+            }
+            const caps = (p.c==='r'||p.c==='y') ? [[d[0],-1],[d[0],1]] : [[-1,d[1]],[1,d[1]]];
+            caps.forEach(cp => {
+                const tr=r+cp[0], tc=c+cp[1];
+                if (isInsideCross(tr,tc) && board[tr][tc] && board[tr][tc].c!==p.c) moves.push({r:tr, c:tc});
+            });
+        } else {
+            const vectors = {
+                n: [[-2,-1],[-2,1],[-1,-2],[-1,2],[1,-2],[1,2],[2,-1],[2,1]],
+                k: [[1,0],[-1,0],[0,1],[0,-1],[1,1],[1,-1],[-1,1],[-1,-1]],
+                r: [[1,0],[-1,0],[0,1],[0,-1]], b: [[1,1],[1,-1],[-1,1],[-1,-1]], q: [[1,0],[-1,0],[0,1],[0,-1],[1,1],[1,-1],[-1,1],[-1,-1]]
+            };
+            vectors[p.t].forEach(v => {
+                let tr=r+v[0], tc=c+v[1];
+                while(isInsideCross(tr,tc)) {
+                    if (!board[tr][tc]) moves.push({r:tr, c:tc});
+                    else { if (board[tr][tc].c!==p.c) moves.push({r:tr, c:tc}); break; }
+                    if (p.t==='n' || p.t==='k') break;
+                    tr+=v[0]; tc+=v[1];
+                }
+            });
+        }
+        return moves;
+    }
+
+    function executeMove(from, to) {
+        const piece = board[from.r][from.c];
+        const target = board[to.r][to.c];
+        
+        if (target) trophies[turn].push(target);
+        
+        board[to.r][to.c] = piece;
+        board[from.r][from.c] = null;
+        piece.m += 1; // Increment move counter
+
+        // Promotion check: After 4 moves
+        if (piece.t === 'p' && piece.m >= 4) {
+            showPromotion(to.r, to.c);
+        } else {
+            finishTurn();
+        }
+    }
+
+    function showPromotion(r, c) {
+        promoOverlay.style.display = 'flex';
+        promoOverlay.innerHTML = '';
+        ['q', 'r', 'b', 'n'].forEach(type => {
+            const btn = document.createElement('div');
+            btn.className = 'promo-choice';
+            btn.innerHTML = `<img src="chp/w${type}.png" class="p-${teamNames[turn].toLowerCase()}" width="50">`;
+            btn.onclick = () => {
+                board[r][c].t = type;
+                promoOverlay.style.display = 'none';
+                finishTurn();
+            };
+            promoOverlay.appendChild(btn);
+        });
+    }
+
+    function finishTurn() {
+        turnIndex = (turnIndex + 1) % 4;
+        turn = players[turnIndex];
+        
+        if (autoRotate) {
+            currentRotation = turnIndex * 90;
+            viewport.style.transform = `rotate(${-currentRotation}deg)`;
+        }
+
+        selectedSquare = null;
+        validMoves = [];
+        document.querySelectorAll('.timer-card').forEach(c => c.classList.remove('active'));
+        document.getElementById(`card-${turn}`).classList.add('active');
+        render();
+    }
+
+    function rotateManual() {
+        currentRotation += 90;
+        viewport.style.transform = `rotate(${-currentRotation}deg)`;
+        render();
+    }
+
+    function toggleAutoRotate() {
+        autoRotate = !autoRotate;
+        const btn = document.getElementById('auto-rotate-btn');
+        btn.innerText = `Auto-Rotate: ${autoRotate ? 'ON' : 'OFF'}`;
+        btn.classList.toggle('active-toggle', autoRotate);
+        if (autoRotate) {
+            currentRotation = turnIndex * 90;
+            viewport.style.transform = `rotate(${-currentRotation}deg)`;
+            render();
+        }
+    }
+
+    function updateTrophiesUI() {
+        players.forEach(p => {
+            const container = document.getElementById(`trophy-${p}`);
+            container.innerHTML = '';
+            trophies[p].forEach(item => {
+                const img = document.createElement('img');
+                img.src = `chp/w${item.t}.png`;
+                img.className = `p-${teamNames[item.c].toLowerCase()}`;
+                img.onerror = function() { this.style.display='none'; };
+                container.appendChild(img);
+            });
+        });
+    }
+
+    function toggleGame() {
+        gameActive = !gameActive;
+        document.getElementById('start-btn').innerText = gameActive ? "Pause" : "Resume";
+        if (gameActive) {
+            interval = setInterval(() => {
+                timers[turn]--;
+                const m = Math.floor(timers[turn]/60), s = timers[turn]%60;
+                document.getElementById(`t-${turn}`).innerText = `${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
+                if (timers[turn] <= 0) { clearInterval(interval); alert(turn + " out of time!"); }
+            }, 1000);
+        } else { clearInterval(interval); }
+    }
+
+    initBoard();
+</script>
+</body>
+</html>
