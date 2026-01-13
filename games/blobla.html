@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Archival Block Blast: Pro Edition</title>
+    <link href="https://fonts.googleapis.com/css2?family=Red+Hat+Display:wght@400;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg: #0E0B07; --paper: #1A140C; --ink: #F1E7CF; --rule: #5A4A2A;
+            --b-red: #ff4d4d; --b-blue: #4d79ff; --b-green: #2ecc71;
+            --b-yellow: #f1c40f; --b-orange: #e67e22; --b-pink: #fd79a8;
+            --b-brown: #a52a2a; --b-lightblue: #00cec9;
+        }
+
+        body {
+            margin: 0; background: var(--bg); color: var(--ink);
+            font-family: 'Red Hat Display', sans-serif;
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            min-height: 100vh; overflow: hidden; touch-action: none;
+        }
+
+        #score { font-size: 3.5rem; font-weight: 600; margin-bottom: 20px; }
+        
+        #grid {
+            background: var(--paper); border: 6px solid var(--rule);
+            display: grid; grid-template-columns: repeat(8, 48px);
+            grid-template-rows: repeat(8, 48px); gap: 4px; padding: 8px;
+            border-radius: 8px; position: relative;
+        }
+
+        .cell { 
+            width: 48px; height: 48px; background: rgba(241, 231, 207, 0.03); 
+            border-radius: 4px; pointer-events: none;
+        }
+
+        /* The Ghost Shadow - High Performance */
+        .cell.ghost { background: rgba(241, 231, 207, 0.2) !important; transition: background 0.05s; }
+        .cell.filled { border: 1px solid rgba(0,0,0,0.2); transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
+
+        .tray { margin-top: 40px; display: flex; gap: 15px; height: 120px; width: 100%; justify-content: center; }
+        .slot { width: 115px; height: 115px; display: flex; align-items: center; justify-content: center; }
+        
+        .piece { display: grid; gap: 3px; cursor: grab; }
+        .p-block { width: 22px; height: 22px; border-radius: 3px; }
+        
+        .dragging { 
+            position: fixed; pointer-events: none; z-index: 1000; 
+            will-change: transform; /* Boosts performance */
+            transform-origin: center center;
+        }
+        .dragging .p-block { width: 48px; height: 48px; margin: 2px; }
+
+        @keyframes pop { 0% { transform: scale(1); } 50% { transform: scale(1.1); } 100% { transform: scale(1); } }
+        .score-pop { animation: pop 0.2s ease-out; }
+    </style>
+</head>
+<body>
+
+    <div id="score">0</div>
+    <div id="grid"></div>
+
+    <div class="tray">
+        <div class="slot" id="slot-0"></div>
+        <div class="slot" id="slot-1"></div>
+        <div class="slot" id="slot-2"></div>
+    </div>
+
+<script>
+    const gridEl = document.getElementById('grid');
+    const scoreEl = document.getElementById('score');
+    const slots = [0, 1, 2].map(i => document.getElementById(`slot-${i}`));
+    
+    let grid = Array(8).fill().map(() => Array(8).fill(null));
+    let score = 0;
+    let lastGhostCells = []; // Track ghost cells to clear them efficiently
+
+    const shapes = [
+        [[1,1,1],[1,1,1],[1,1,1]], [[1,1],[1,1]], [[1,1,1]], [[1],[1],[1]],
+        [[1,1,1,1]], [[1],[1],[1],[1]], [[1,1],[1,0]], [[1]], [[0,1,0],[1,1,1]]
+    ];
+    const colors = ['red', 'blue', 'green', 'yellow', 'orange', 'pink', 'brown', 'lightblue'];
+
+    function init() {
+        gridEl.innerHTML = '';
+        for(let r=0; r<8; r++) {
+            for(let c=0; c<8; c++) {
+                const cell = document.createElement('div');
+                cell.className = 'cell';
+                cell.id = `r${r}c${c}`;
+                gridEl.appendChild(cell);
+            }
+        }
+        spawnAll();
+    }
+
+    function spawnAll() {
+        slots.forEach(slot => {
+            slot.innerHTML = '';
+            const shape = shapes[Math.floor(Math.random() * shapes.length)];
+            const color = colors[Math.floor(Math.random() * colors.length)];
+            slot.appendChild(createPiece(shape, color));
+        });
+    }
+
+    function createPiece(shape, color) {
+        const div = document.createElement('div');
+        div.className = 'piece';
+        div.dataset.shape = JSON.stringify(shape);
+        div.dataset.color = color;
+        div.style.gridTemplateColumns = `repeat(${shape[0].length}, 22px)`;
+        shape.forEach(row => row.forEach(cell => {
+            const b = document.createElement('div');
+            if(cell) { b.className = 'p-block'; b.style.background = `var(--b-${color})`; }
+            div.appendChild(b);
+        }));
+        div.onpointerdown = startDrag;
+        return div;
+    }
+
+    let dragEl = null;
+    let dragData = null;
+    let lastR = -1, lastC = -1;
+
+    function startDrag(e) {
+        const original = e.currentTarget;
+        const shape = JSON.parse(original.dataset.shape);
+        const color = original.dataset.color;
+
+        dragEl = original.cloneNode(true);
+        dragEl.classList.add('dragging');
+        dragEl.style.gridTemplateColumns = `repeat(${shape[0].length}, 52px)`;
+        document.body.appendChild(dragEl);
+
+        dragData = { shape, color, original };
+        original.style.visibility = 'hidden';
+        
+        moveDrag(e);
+        window.onpointermove = moveDrag;
+        window.onpointerup = endDrag;
+    }
+
+    function moveDrag(e) {
+        if(!dragEl) return;
+        
+        // Smooth positioning: Use transform instead of left/top for better FPS
+        const x = e.clientX - (dragData.shape[0].length * 26);
+        const y = e.clientY - (dragData.shape.length * 26) - 50; // Offset above finger
+        dragEl.style.transform = `translate(${x}px, ${y}px)`;
+
+        const rect = gridEl.getBoundingClientRect();
+        const r = Math.floor((y + (dragData.shape.length * 26) - rect.top) / 52);
+        const c = Math.floor((x + (dragData.shape[0].length * 26) - rect.left) / 52);
+
+        // Optimization: Only update ghost if we moved to a new cell
+        if (r !== lastR || c !== lastC) {
+            clearGhost();
+            if(canFit(dragData.shape, r, c)) {
+                updateGhost(dragData.shape, r, c);
+            }
+            lastR = r; lastC = c;
+        }
+    }
+
+    function clearGhost() {
+        lastGhostCells.forEach(id => {
+            const el = document.getElementById(id);
+            if(el) el.classList.remove('ghost');
+        });
+        lastGhostCells = [];
+    }
+
+    function updateGhost(shape, r, c) {
+        shape.forEach((row, dr) => row.forEach((cell, dc) => {
+            if(cell) {
+                const id = `r${r+dr}c${c+dc}`;
+                const el = document.getElementById(id);
+                if(el) {
+                    el.classList.add('ghost');
+                    lastGhostCells.push(id);
+                }
+            }
+        }));
+    }
+
+    function endDrag(e) {
+        if(lastGhostCells.length > 0) {
+            placePiece(dragData.shape, dragData.color, lastR, lastC);
+            dragData.original.remove();
+            checkLines();
+            if (document.querySelectorAll('.piece:not(.dragging)').length === 0) spawnAll();
+        } else {
+            dragData.original.style.visibility = 'visible';
+        }
+
+        if(dragEl) dragEl.remove();
+        dragEl = null;
+        clearGhost();
+        lastR = -1; lastC = -1;
+        window.onpointermove = null;
+        window.onpointerup = null;
+    }
+
+    function canFit(shape, r, c) {
+        for(let dr=0; dr<shape.length; dr++) {
+            for(let dc=0; dc<shape[0].length; dc++) {
+                if(shape[dr][dc]) {
+                    const nr = r + dr, nc = c + dc;
+                    if(nr < 0 || nr >= 8 || nc < 0 || nc >= 8 || grid[nr][nc]) return false;
+                }
+            }
+        }
+        return true;
+    }
+
+    function placePiece(shape, color, r, c) {
+        shape.forEach((row, dr) => row.forEach((cell, dc) => {
+            if(cell) {
+                grid[r+dr][c+dc] = color;
+                const el = document.getElementById(`r${r+dr}c${c+dc}`);
+                el.style.background = `var(--b-${color})`;
+                el.classList.add('filled');
+            }
+        }));
+        score += 10;
+        updateScoreUI();
+    }
+
+    function checkLines() {
+        let rows = [], cols = [];
+        for(let i=0; i<8; i++) {
+            if(grid[i].every(c => c !== null)) rows.push(i);
+            if(grid.every(row => row[i] !== null)) cols.push(i);
+        }
+
+        rows.forEach(r => {
+            grid[r] = Array(8).fill(null);
+            for(let c=0; c<8; c++) resetCell(r, c);
+        });
+        cols.forEach(c => {
+            for(let r=0; r<8; r++) {
+                grid[r][c] = null;
+                resetCell(r, c);
+            }
+        });
+
+        if(rows.length || cols.length) {
+            score += (rows.length + cols.length) * 100;
+            updateScoreUI();
+        }
+    }
+
+    function resetCell(r, c) {
+        const el = document.getElementById(`r${r}c${c}`);
+        el.style.background = '';
+        el.classList.remove('filled');
+    }
+
+    function updateScoreUI() {
+        scoreEl.innerText = score;
+        scoreEl.classList.remove('score-pop');
+        void scoreEl.offsetWidth; // Trigger reflow
+        scoreEl.classList.add('score-pop');
+    }
+
+    init();
+</script>
+</body>
+</html>

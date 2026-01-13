@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chess UP HIGH</title>
+    <link href="https://fonts.googleapis.com/css2?family=Red+Hat+Display:wght@400;600;900&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-primary: #050505;
+            --text-ink: #ffffff;
+            --growth-amount: 40px;
+            --rotate-speed: 3s;
+            --pulse-speed: 2s;
+            --rgb-intensity: 10px;
+        }
+
+        @keyframes pulsateSize {
+            0%, 100% { width: 45px; height: 45px; }
+            50% { width: calc(45px + var(--growth-amount)); height: calc(45px + var(--growth-amount)); }
+        }
+
+        @keyframes rotateForever {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+
+        @keyframes rgbOverlay {
+            0% { filter: drop-shadow(0 0 var(--rgb-intensity) red) hue-rotate(0deg); }
+            33% { filter: drop-shadow(0 0 var(--rgb-intensity) green) hue-rotate(120deg); }
+            66% { filter: drop-shadow(0 0 var(--rgb-intensity) blue) hue-rotate(240deg); }
+            100% { filter: drop-shadow(0 0 var(--rgb-intensity) red) hue-rotate(360deg); }
+        }
+
+        @keyframes boardCycle {
+            0% { background-color: rgba(255, 0, 0, 0.2); }
+            33% { background-color: rgba(0, 255, 0, 0.2); }
+            66% { background-color: rgba(0, 0, 255, 0.2); }
+            100% { background-color: rgba(255, 0, 0, 0.2); }
+        }
+
+        body {
+            background-color: var(--bg-primary);
+            color: var(--text-ink);
+            font-family: 'Red Hat Display', sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            overflow: hidden;
+        }
+
+        .config-panel {
+            background: #111;
+            padding: 15px;
+            display: flex;
+            gap: 20px;
+            flex-wrap: wrap;
+            justify-content: center;
+            border-bottom: 2px solid #333;
+            width: 100%;
+            z-index: 1000;
+        }
+
+        .control-group { display: flex; flex-direction: column; align-items: center; }
+        label { font-size: 10px; text-transform: uppercase; margin-bottom: 5px; color: #888; }
+
+        #board-container {
+            position: relative;
+            margin-top: 20px;
+            border: 5px solid #fff;
+            background: #000;
+        }
+
+        .board {
+            display: grid;
+            grid-template-columns: repeat(8, 70px);
+            grid-template-rows: repeat(8, 70px);
+            animation: boardCycle 5s infinite linear;
+        }
+
+        .square {
+            width: 70px;
+            height: 70px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            position: relative;
+        }
+
+        .square.light { background-color: rgba(255, 255, 255, 0.1); }
+        .square.dark { background-color: rgba(0, 0, 0, 0.4); }
+
+        .piece-img {
+            z-index: 10;
+            animation: 
+                pulsateSize var(--pulse-speed) infinite ease-in-out, 
+                rotateForever var(--rotate-speed) infinite linear,
+                rgbOverlay 2s infinite linear;
+            pointer-events: none;
+        }
+
+        /* GIF EXPLOSION STYLES */
+        .nuke-gif {
+            position: absolute;
+            pointer-events: none;
+            z-index: 9999;
+            transform: translate(-50%, -50%); /* Center on the point */
+        }
+
+        button { background: #ee0000; border: none; color: white; padding: 10px 20px; cursor: pointer; font-weight: 900; }
+    </style>
+</head>
+<body>
+
+    <div class="config-panel">
+        <div class="control-group">
+            <label>Growth</label>
+            <input type="range" min="0" max="100" value="40" oninput="updateVar('--growth-amount', this.value + 'px')">
+        </div>
+        <div class="control-group">
+            <label>Rotate</label>
+            <input type="range" min="1" max="10" value="3" step="0.5" oninput="updateVar('--rotate-speed', (11 - this.value) + 's')">
+        </div>
+        <div class="control-group">
+            <label>RGB</label>
+            <input type="range" min="0" max="50" value="15" oninput="updateVar('--rgb-intensity', this.value + 'px')">
+        </div>
+        <button onclick="resetGame()">RESET</button>
+    </div>
+
+    <div id="board-container">
+        <div id="board" class="board"></div>
+    </div>
+
+    <h2 id="status">WHITE'S TURN</h2>
+
+<script>
+    const boardEl = document.getElementById('board');
+    let board = [];
+    let turn = 'w';
+    let selectedSquare = null;
+
+    // Value determines size of GIF
+    const PIECE_VALUES = { 'p': 1, 'n': 2.5, 'b': 2.5, 'r': 4, 'q': 7, 'k': 12 };
+
+    // Sourcing a loud explosion sound
+    const boomSound = new Audio('https://www.soundjay.com/mechanical/explosion-01.mp3');
+
+    function updateVar(name, val) {
+        document.documentElement.style.setProperty(name, val);
+    }
+
+    function initGame() {
+        const layout = [
+            ['br', 'bn', 'bb', 'bq', 'bk', 'bb', 'bn', 'br'],
+            ['bp', 'bp', 'bp', 'bp', 'bp', 'bp', 'bp', 'bp'],
+            Array(8).fill(null), Array(8).fill(null), Array(8).fill(null), Array(8).fill(null),
+            ['wp', 'wp', 'wp', 'wp', 'wp', 'wp', 'wp', 'wp'],
+            ['wr', 'wn', 'wb', 'wq', 'wk', 'wb', 'wn', 'wr']
+        ];
+        board = layout.map(row => [...row]);
+        renderBoard();
+    }
+
+    function renderBoard() {
+        boardEl.innerHTML = '';
+        for (let r = 0; r < 8; r++) {
+            for (let c = 0; c < 8; c++) {
+                const square = document.createElement('div');
+                square.className = `square ${(r + c) % 2 === 0 ? 'light' : 'dark'}`;
+                
+                const piece = board[r][c];
+                if (piece) {
+                    const img = document.createElement('img');
+                    img.src = `chp/${piece}.png`;
+                    img.className = 'piece-img';
+                    square.appendChild(img);
+                }
+
+                square.onclick = () => handleSquareClick(r, c);
+                boardEl.appendChild(square);
+            }
+        }
+    }
+
+    function handleSquareClick(r, c) {
+        if (selectedSquare) {
+            const target = board[r][c];
+            if (target && target[0] !== turn) {
+                spawnNukeGif(r, c, target[1]);
+            }
+            
+            board[r][c] = board[selectedSquare.r][selectedSquare.c];
+            board[selectedSquare.r][selectedSquare.c] = null;
+            selectedSquare = null;
+            turn = (turn === 'w') ? 'b' : 'w';
+            document.getElementById('status').innerText = `${turn === 'w' ? "WHITE'S" : "BLACK'S"} TURN`;
+            renderBoard();
+        } else {
+            if (board[r][c] && board[r][c][0] === turn) {
+                selectedSquare = { r, c };
+                const squares = document.querySelectorAll('.square');
+                squares[r * 8 + c].style.boxShadow = "inset 0 0 25px #00ffff";
+            }
+        }
+    }
+
+    function spawnNukeGif(r, c, pieceType) {
+        // Play Boom
+        boomSound.currentTime = 0;
+        boomSound.play();
+
+        const gif = document.createElement('img');
+        // Add a random query param to force GIF to restart from frame 1
+        gif.src = `chp/explosion.gif?t=${Date.now()}`;
+        gif.className = 'nuke-gif';
+        
+        // Calculate size based on piece value
+        // Pawn (1) results in ~150px, Queen (7) results in ~450px
+        const size = 150 + (PIECE_VALUES[pieceType] * 40);
+        gif.style.width = `${size}px`;
+        gif.style.height = `${size}px`;
+        
+        // Position based on the center of the clicked square
+        // We use translate(-50%, -50%) in CSS so these coordinates are the center point
+        gif.style.left = `${(c * 70) + 35}px`;
+        gif.style.top = `${(r * 70) + 35}px`;
+        
+        boardEl.appendChild(gif);
+
+        // Screen shake effect
+        boardEl.style.transform = `translate(${(Math.random()-0.5)*30}px, ${(Math.random()-0.5)*30}px)`;
+        setTimeout(() => {
+            boardEl.style.transform = 'translate(0,0)';
+        }, 100);
+
+        // Remove GIF after 1.5 seconds (adjust based on your gif length)
+        setTimeout(() => gif.remove(), 1500);
+    }
+
+    function resetGame() {
+        turn = 'w';
+        selectedSquare = null;
+        initGame();
+    }
+
+    initGame();
+</script>
+</body>
+</html>
