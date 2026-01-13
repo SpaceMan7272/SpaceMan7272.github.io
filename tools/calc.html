@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Archival Scientific Calculator</title>
+    <link href="https://fonts.googleapis.com/css2?family=Red+Hat+Display:wght@400;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-primary: #0E0B07;
+            --surface-paper: #1A140C;
+            --text-ink: #F1E7CF;
+            --text-muted: #C7B995;
+            --border-rule: #5A4A2A;
+            --accent: #87ceeb; /* Light blue accent for specific toggles */
+        }
+
+        body {
+            margin: 0; background-color: var(--bg-primary); color: var(--text-ink);
+            font-family: 'Red Hat Display', sans-serif; display: flex;
+            align-items: center; justify-content: center; min-height: 100vh;
+        }
+
+        .calc-container {
+            background: var(--surface-paper); border: 4px solid var(--border-rule);
+            padding: 20px; width: 360px; box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+        }
+
+        /* Screen Styles */
+        .display-area {
+            background: #000; border: 1px solid var(--border-rule);
+            padding: 15px; margin-bottom: 20px; text-align: right;
+            min-height: 80px; display: flex; flex-direction: column; justify-content: space-between;
+        }
+        #expression { color: var(--text-muted); font-size: 0.9rem; overflow-x: auto; white-space: nowrap; }
+        #result { color: var(--text-ink); font-size: 2rem; font-weight: 600; overflow: hidden; }
+
+        /* Button Layout */
+        .mode-row { display: flex; justify-content: space-between; margin-bottom: 10px; font-size: 0.7rem; color: var(--text-muted); }
+        .grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; }
+
+        button {
+            background: var(--surface-paper); border: 1px solid var(--border-rule);
+            color: var(--text-ink); padding: 12px 5px; cursor: pointer;
+            font-family: inherit; font-size: 0.85rem; font-weight: 600;
+            transition: all 0.1s;
+        }
+        button:hover { background: var(--border-rule); }
+        button:active { transform: translateY(2px); filter: brightness(1.2); }
+        
+        .op-btn { color: var(--text-muted); }
+        .num-btn { background: rgba(241, 231, 207, 0.05); }
+        .clear-btn { color: #ff4444; }
+        .active-mode { color: var(--accent); border-color: var(--accent); }
+    </style>
+</head>
+<body>
+
+<div class="calc-container">
+    <div class="mode-row">
+        <span id="angle-mode">DEG</span>
+        <span id="format-mode">DECIMAL</span>
+    </div>
+    <div class="display-area">
+        <div id="expression"></div>
+        <div id="result">0</div>
+    </div>
+
+    <div class="grid">
+        <button class="op-btn" onclick="toggleAngle()">DEG/RAD</button>
+        <button class="op-btn" onclick="add('sin(')">sin</button>
+        <button class="op-btn" onclick="add('cos(')">cos</button>
+        <button class="op-btn" onclick="add('tan(')">tan</button>
+        <button class="clear-btn" onclick="clearAll()">AC</button>
+
+        <button class="op-btn" onclick="add('asin(')">sin⁻¹</button>
+        <button class="op-btn" onclick="add('acos(')">cos⁻¹</button>
+        <button class="op-btn" onclick="add('atan(')">tan⁻¹</button>
+        <button class="op-btn" onclick="add('**(-1)')">x⁻¹</button>
+        <button class="op-btn" onclick="backspace()">DEL</button>
+
+        <button class="op-btn" onclick="add('**2')">x²</button>
+        <button class="op-btn" onclick="add('**')">xʸ</button>
+        <button class="op-btn" onclick="add('Math.sqrt(')">√</button>
+        <button class="op-btn" onclick="customRoot()">ʸ√x</button>
+        <button class="op-btn" onclick="add('/')">÷</button>
+
+        <button class="op-btn" onclick="add('Math.log(')">ln</button>
+        <button class="op-btn" onclick="add('Math.log10(')">log₁₀</button>
+        <button class="op-btn" onclick="customLog()">logₓ</button>
+        <button class="op-btn" onclick="add('Math.PI')">π</button>
+        <button class="op-btn" onclick="add('*')">×</button>
+
+        <button class="num-btn" onclick="add('7')">7</button>
+        <button class="num-btn" onclick="add('8')">8</button>
+        <button class="num-btn" onclick="add('9')">9</button>
+        <button class="op-btn" onclick="add('(')">(</button>
+        <button class="op-btn" onclick="add('-')">−</button>
+
+        <button class="num-btn" onclick="add('4')">4</button>
+        <button class="num-btn" onclick="add('5')">5</button>
+        <button class="num-btn" onclick="add('6')">6</button>
+        <button class="op-btn" onclick="add(')')">)</button>
+        <button class="op-btn" onclick="add('+')">+</button>
+
+        <button class="num-btn" onclick="add('1')">1</button>
+        <button class="num-btn" onclick="add('2')">2</button>
+        <button class="num-btn" onclick="add('3')">3</button>
+        <button class="op-btn" onclick="add('Math.E')">e</button>
+        <button class="op-btn" style="grid-row: span 2; background: var(--border-rule);" onclick="calculate()">=</button>
+
+        <button class="num-btn" onclick="negate()">±</button>
+        <button class="num-btn" onclick="add('0')">0</button>
+        <button class="num-btn" onclick="add('.')">.</button>
+        <button class="op-btn" onclick="toggleFormat()">F↔D</button>
+    </div>
+</div>
+
+<script>
+    let expr = "";
+    let isDegree = true;
+    let isFraction = false;
+
+    const displayExpr = document.getElementById('expression');
+    const displayRes = document.getElementById('result');
+
+    function add(val) {
+        expr += val;
+        updateDisplay();
+    }
+
+    function clearAll() {
+        expr = "";
+        displayRes.innerText = "0";
+        updateDisplay();
+    }
+
+    function backspace() {
+        expr = expr.slice(0, -1);
+        updateDisplay();
+    }
+
+    function updateDisplay() {
+        // Human-friendly replacements for the display
+        let friendly = expr
+            .replace(/Math.PI/g, 'π')
+            .replace(/Math.E/g, 'e')
+            .replace(/Math.sqrt\(/g, '√(')
+            .replace(/\*\*/g, '^')
+            .replace(/Math.log10\(/g, 'log(')
+            .replace(/Math.log\(/g, 'ln(');
+        displayExpr.innerText = friendly;
+    }
+
+    function toggleAngle() {
+        isDegree = !isDegree;
+        document.getElementById('angle-mode').innerText = isDegree ? "DEG" : "RAD";
+    }
+
+    function toggleFormat() {
+        isFraction = !isFraction;
+        document.getElementById('format-mode').innerText = isFraction ? "FRACTION" : "DECIMAL";
+        calculate(); // Recalculate with new format
+    }
+
+    function customLog() {
+        let base = prompt("Enter log base:");
+        if(base) add(`(Math.log(x)/Math.log(${base}))`.replace('x', ''));
+    }
+
+    function customRoot() {
+        let root = prompt("Enter root degree (e.g. 3 for cube root):");
+        if(root) add(`**(1/${root})`);
+    }
+
+    function negate() {
+        if(expr.startsWith('-')) expr = expr.slice(1);
+        else expr = '-' + expr;
+        updateDisplay();
+    }
+
+    function calculate() {
+        try {
+            let processedExpr = expr;
+            
+            // Handle Trig angle conversion
+            if (isDegree) {
+                processedExpr = processedExpr.replace(/sin\(/g, 'Math.sin(Math.PI/180*');
+                processedExpr = processedExpr.replace(/cos\(/g, 'Math.cos(Math.PI/180*');
+                processedExpr = processedExpr.replace(/tan\(/g, 'Math.tan(Math.PI/180*');
+                // Inverse trig back to degrees
+                // (This is a simplified approach for a JS-based calculator)
+            } else {
+                processedExpr = processedExpr.replace(/sin\(/g, 'Math.sin(');
+                processedExpr = processedExpr.replace(/cos\(/g, 'Math.cos(');
+                processedExpr = processedExpr.replace(/tan\(/g, 'Math.tan(');
+            }
+
+            let res = eval(processedExpr);
+
+            if (isFraction && !isNaN(res)) {
+                displayRes.innerText = toFraction(res);
+            } else {
+                displayRes.innerText = Number.isInteger(res) ? res : res.toFixed(4);
+            }
+        } catch (e) {
+            displayRes.innerText = "Error";
+        }
+    }
+
+    // Simple decimal to fraction converter
+    function toFraction(decimal) {
+        if (Number.isInteger(decimal)) return decimal;
+        let gcd = function(a, b) { return b ? gcd(b, a % b) : a; };
+        let len = decimal.toString().split('.')[1].length;
+        let denominator = Math.pow(10, len);
+        let numerator = decimal * denominator;
+        let common = gcd(numerator, denominator);
+        return `${numerator / common}/${denominator / common}`;
+    }
+</script>
+
+</body>
+</html>

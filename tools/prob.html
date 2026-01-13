@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Proabablaties</title>
+    <link href="https://fonts.googleapis.com/css2?family=Red+Hat+Display:wght@400;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-primary: #0E0B07;
+            --surface-paper: #1A140C;
+            --text-ink: #F1E7CF;
+            --text-muted: #C7B995;
+            --border-rule: #5A4A2A;
+            --gold: #D4AF37;
+        }
+
+        body {
+            margin: 0; background-color: var(--bg-primary); color: var(--text-ink);
+            font-family: 'Red Hat Display', sans-serif; display: flex;
+            flex-direction: column; align-items: center; min-height: 100vh; padding: 20px;
+            user-select: none;
+        }
+
+        .tab-container { display: flex; gap: 5px; margin-bottom: 20px; flex-wrap: wrap; justify-content: center; }
+        .tab { 
+            padding: 8px 12px; border: 1px solid var(--border-rule); cursor: pointer; 
+            font-size: 0.75rem; text-transform: uppercase; letter-spacing: 1px; transition: 0.2s;
+        }
+        .tab.active { background: var(--border-rule); color: var(--text-ink); }
+
+        .module { 
+            display: none; width: 100%; max-width: 420px; text-align: center;
+            background: var(--surface-paper); border: 4px solid var(--border-rule);
+            padding: 30px; box-sizing: border-box; box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+        }
+        .module.active { display: block; }
+
+        /* Smooth Wheel */
+        #wheel-wrapper { position: relative; width: 280px; height: 280px; margin: 20px auto; }
+        #wheel-canvas { 
+            width: 100%; height: 100%; border-radius: 50%; border: 6px solid var(--border-rule);
+            transition: transform 5s cubic-bezier(0.15, 0, 0, 1);
+        }
+        .pointer { 
+            position: absolute; top: -15px; left: 50%; transform: translateX(-50%);
+            width: 0; height: 0; border-left: 15px solid transparent; 
+            border-right: 15px solid transparent; border-top: 25px solid var(--text-ink); z-index: 10;
+        }
+
+        /* Physical Coin */
+        .coin-scene { width: 120px; height: 120px; perspective: 1000px; margin: 40px auto; }
+        #coin-object {
+            width: 100%; height: 100%; position: relative; transform-style: preserve-3d;
+            transition: transform 2s cubic-bezier(0.1, 0.5, 0.3, 1);
+        }
+        .coin-face {
+            position: absolute; width: 100%; height: 100%; border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            font-weight: 600; font-size: 0.9rem; backface-visibility: hidden;
+            border: 4px solid #8A6D3B;
+            background: radial-gradient(circle, #D4AF37 0%, #8A6D3B 100%);
+            color: #2A1F0B; box-shadow: inset 0 0 15px rgba(0,0,0,0.3);
+        }
+        .coin-back { transform: rotateY(180deg); background: radial-gradient(circle, #C0C0C0 0%, #808080 100%); border-color: #666; }
+
+        /* 3D Dice */
+        .scene { width: 80px; height: 80px; perspective: 600px; margin: 20px auto; display: inline-block; }
+        .cube {
+            width: 100%; height: 100%; position: relative; transform-style: preserve-3d;
+            transition: transform 1.5s cubic-bezier(0.17, 0.67, 0.83, 0.67);
+        }
+        .face {
+            position: absolute; width: 80px; height: 80px; background: var(--surface-paper);
+            border: 2px solid var(--border-rule); display: flex; align-items: center;
+            justify-content: center; font-size: 1.5rem; color: var(--text-ink);
+        }
+        .front  { transform: rotateY(0deg) translateZ(40px); }
+        .back   { transform: rotateY(180deg) translateZ(40px); }
+        .right  { transform: rotateY(90deg) translateZ(40px); }
+        .left   { transform: rotateY(-90deg) translateZ(40px); }
+        .top    { transform: rotateX(90deg) translateZ(40px); }
+        .bottom { transform: rotateX(-90deg) translateZ(40px); }
+
+        /* D20 Polygon */
+        .d20-view {
+            width: 100px; height: 100px; background: var(--border-rule);
+            clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%);
+            display: flex; align-items: center; justify-content: center;
+            margin: 20px auto; font-size: 2rem; font-weight: bold;
+            transition: transform 0.2s;
+        }
+        .rolling { animation: shake 0.1s infinite; }
+        @keyframes shake { 0% { transform: rotate(0deg); } 50% { transform: rotate(10deg); } 100% { transform: rotate(-10deg); } }
+
+        button {
+            background: var(--surface-paper); border: 1px solid var(--border-rule); color: var(--text-ink);
+            padding: 12px 24px; cursor: pointer; text-transform: uppercase; font-weight: 600;
+        }
+        input { 
+            background: #000; border: 1px solid var(--border-rule); color: var(--text-ink);
+            padding: 10px; width: 100%; text-align: center; box-sizing: border-box;
+        }
+        .result-text { font-size: 1.4rem; margin-top: 20px; color: var(--text-muted); }
+    </style>
+</head>
+<body>
+
+    <div class="tab-container">
+        <div class="tab active" onclick="showModule('spinner')">Wheel</div>
+        <div class="tab" onclick="showModule('dice')">Dice</div>
+        <div class="tab" onclick="showModule('coin-flip')">Coin</div>
+        <div class="tab" onclick="showModule('cards')">Cards</div>
+        <div class="tab" onclick="showModule('rng')">RNG</div>
+    </div>
+
+    <div id="spinner" class="module active">
+        <input type="text" id="options" value="Yes, No, Maybe, Later" oninput="drawWheel()">
+        <div id="wheel-wrapper">
+            <div class="pointer"></div>
+            <canvas id="wheel-canvas" width="500" height="500"></canvas>
+        </div>
+        <button onclick="spinWheel()">Spin Wheel</button>
+        <div class="result-text" id="wheel-res">...</div>
+    </div>
+
+    <div id="dice" class="module">
+        <div style="display: flex; justify-content: space-around; align-items: center;">
+            <div>
+                <div class="scene">
+                    <div class="cube" id="cube">
+                        <div class="face front">1</div><div class="face back">6</div>
+                        <div class="face right">3</div><div class="face left">4</div>
+                        <div class="face top">2</div><div class="face bottom">5</div>
+                    </div>
+                </div><br>
+                <button onclick="rollD6()">Roll D6</button>
+            </div>
+            <div>
+                <div class="d20-view" id="d20-visual">20</div>
+                <button onclick="rollD20()">Roll D20</button>
+            </div>
+        </div>
+        <div class="result-text" id="die-res">Pick a die</div>
+    </div>
+
+    <div id="coin-flip" class="module">
+        <div class="coin-scene">
+            <div id="coin-object">
+                <div class="coin-face">HEADS</div>
+                <div class="coin-back coin-face">TAILS</div>
+            </div>
+        </div>
+        <button onclick="flipCoin()">Flip Coin</button>
+        <div class="result-text" id="coin-res">...</div>
+    </div>
+
+    <div id="cards" class="module">
+        <div id="card-display" style="font-size: 5rem; margin-bottom: 20px;">🎴</div>
+        <button onclick="drawCard()">Draw Card</button>
+    </div>
+
+    <div id="rng" class="module">
+        <input type="number" id="min" value="1" style="width: 45%;"> <input type="number" id="max" value="100" style="width: 45%;">
+        <div class="result-text" id="rng-res" style="font-size: 4rem;">-</div>
+        <button onclick="generateRNG()">Generate</button>
+    </div>
+
+<script>
+    function showModule(id) {
+        document.querySelectorAll('.module').forEach(m => m.classList.remove('active'));
+        document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+        document.getElementById(id).classList.add('active');
+        event.currentTarget.classList.add('active');
+    }
+
+    // Wheel logic
+    const canvas = document.getElementById('wheel-canvas');
+    const ctx = canvas.getContext('2d');
+    let currentWheelRot = 0;
+
+    function drawWheel() {
+        const options = document.getElementById('options').value.split(',').map(s => s.trim()).filter(s => s !== "");
+        if (options.length === 0) return;
+        const arc = (Math.PI * 2) / options.length;
+        ctx.clearRect(0,0,500,500);
+        options.forEach((opt, i) => {
+            ctx.beginPath();
+            ctx.fillStyle = i % 2 === 0 ? '#1A140C' : '#5A4A2A';
+            ctx.moveTo(250, 250);
+            ctx.arc(250, 250, 240, i * arc, (i + 1) * arc);
+            ctx.fill(); ctx.stroke();
+            ctx.save();
+            ctx.fillStyle = "#F1E7CF"; ctx.translate(250, 250); ctx.rotate(i * arc + arc / 2);
+            ctx.textAlign = "right"; ctx.font = "bold 24px 'Red Hat Display'";
+            ctx.fillText(opt, 220, 10); ctx.restore();
+        });
+    }
+
+    function spinWheel() {
+        const options = document.getElementById('options').value.split(',').map(s => s.trim()).filter(s => s !== "");
+        currentWheelRot += 1800 + Math.floor(Math.random() * 1800);
+        canvas.style.transform = `rotate(${currentWheelRot}deg)`;
+        setTimeout(() => {
+            const actualDeg = (360 - (currentWheelRot % 360)) % 360;
+            const idx = Math.floor(((actualDeg + 90) % 360) / (360 / options.length));
+            document.getElementById('wheel-res').innerText = options[idx];
+        }, 5000);
+    }
+
+    // Dice Logic
+    let d6Rot = {x:0, y:0};
+    function rollD6() {
+        const cube = document.getElementById('cube');
+        const rots = [{x:0,y:0},{x:-90,y:0},{x:0,y:-90},{x:0,y:90},{x:90,y:0},{x:180,y:0}];
+        const idx = Math.floor(Math.random()*6);
+        d6Rot.x += 720 + rots[idx].x; d6Rot.y += 720 + rots[idx].y;
+        cube.style.transform = `rotateX(${d6Rot.x}deg) rotateY(${d6Rot.y}deg)`;
+        document.getElementById('die-res').innerText = "D6: " + (idx+1);
+    }
+
+    function rollD20() {
+        const visual = document.getElementById('d20-visual');
+        visual.classList.add('rolling');
+        setTimeout(() => {
+            visual.classList.remove('rolling');
+            const res = Math.floor(Math.random()*20)+1;
+            visual.innerText = res;
+            document.getElementById('die-res').innerText = "D20: " + res;
+        }, 600);
+    }
+
+    // Coin Logic
+    let coinRot = 0;
+    function flipCoin() {
+        const isHeads = Math.random() > 0.5;
+        coinRot += 1440 + (isHeads ? 0 : 180);
+        document.getElementById('coin-object').style.transform = `rotateY(${coinRot}deg)`;
+        document.getElementById('coin-res').innerText = "Flipping...";
+        setTimeout(() => { document.getElementById('coin-res').innerText = isHeads ? "HEADS" : "TAILS"; }, 2000);
+    }
+
+    function drawCard() {
+        const s = ['♠','♣','♥','♦'][Math.floor(Math.random()*4)];
+        const v = ['A','2','3','4','5','6','7','8','9','10','J','Q','K'][Math.floor(Math.random()*13)];
+        document.getElementById('card-display').innerText = v + s;
+    }
+
+    function generateRNG() {
+        const min = +document.getElementById('min').value;
+        const max = +document.getElementById('max').value;
+        document.getElementById('rng-res').innerText = Math.floor(Math.random()*(max-min+1))+min;
+    }
+
+    window.onload = drawWheel;
+</script>
+</body>
+</html>

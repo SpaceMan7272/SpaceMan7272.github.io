@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Parchment Desmos Calculator</title>
+
+  <!-- Theme preload (prevents flash) -->
+  <script>
+    (function () {
+      var theme = localStorage.getItem("theme");
+      if (theme !== "light" && theme !== "dark") {
+        theme = "dark";
+        localStorage.setItem("theme", "dark");
+      }
+      document.documentElement.setAttribute("data-theme", theme);
+    })();
+  </script>
+
+  <!-- Red Hat Display -->
+  <link href="https://fonts.googleapis.com/css2?family=Red+Hat+Display:wght@400;600&display=swap" rel="stylesheet">
+
+  <!-- Desmos API -->
+  <script src="https://www.desmos.com/api/v1.11/calculator.js?apiKey=715405afe60c43ca8970e082ef6d4f97"></script>
+
+  <style>
+    /* =========================
+       Design Tokens
+       ========================= */
+
+    :root {
+      --font-primary: "Red Hat Display", system-ui, sans-serif;
+    }
+
+    /* -------- Dark Mode -------- */
+    html[data-theme="dark"] {
+      --bg-primary: #0E0B07;
+      --paper-surface: #1A140C;
+      --text-primary: #F1E7CF;
+      --text-secondary: #C7B995;
+      --border-color: #5A4A2A;
+      --shadow-color: rgba(0, 0, 0, 0.45);
+    }
+
+    /* -------- Light Mode -------- */
+    html[data-theme="light"] {
+      --bg-primary: #EFE6CF;
+      --paper-surface: #FBF6E8;
+      --text-primary: #2B2416;
+      --text-secondary: #4A3F2A;
+      --border-color: #CDBF9B;
+      --shadow-color: rgba(0, 0, 0, 0.18);
+    }
+
+    /* =========================
+       Fullscreen Layout
+       ========================= */
+
+    html, body {
+      width: 100%;
+      height: 100%;
+      margin: 0;
+      background-color: var(--bg-primary);
+      font-family: var(--font-primary);
+      color: var(--text-primary);
+    }
+
+    .paper-surface {
+      position: fixed;
+      inset: 0;
+      background-color: var(--paper-surface);
+      border: 1px solid var(--border-color);
+      box-shadow:
+        0 10px 24px var(--shadow-color),
+        inset 0 0 0 1px rgba(255, 255, 255, 0.02);
+    }
+
+    #calculator {
+      width: 100%;
+      height: 100%;
+    }
+
+    /* Subtle parchment depth */
+    .paper-surface::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      box-shadow: inset 0 0 32px rgba(0, 0, 0, 0.25);
+    }
+  </style>
+</head>
+<body>
+
+  <div class="paper-surface">
+    <div id="calculator"></div>
+  </div>
+
+  <script>
+    var elt = document.getElementById("calculator");
+    var theme = document.documentElement.getAttribute("data-theme");
+
+    var calculator = Desmos.GraphingCalculator(elt, {
+      keypad: true,
+      expressions: true,
+      expressionsTopbar: true,
+      zoomButtons: true,
+      settingsMenu: false,
+      border: false,
+      invertedColors: theme === "dark",
+      fontSize: 14
+    });
+
+    /* Optional default expression (parchment ink) */
+    calculator.setExpression({
+      id: "example",
+      latex: "y=x^2",
+      color: theme === "dark" ? "#C7B995" : "#4A3F2A",
+      lineWidth: 2
+    });
+  </script>
+
+</body>
+</html>

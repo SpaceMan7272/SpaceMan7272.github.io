@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Python Studio</title>
+    <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500&family=Red+Hat+Display:wght@400;600&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/pyodide/v0.23.4/full/pyodide.js"></script>
+    <style>
+        :root {
+            --bg-primary: #0E0B07;
+            --surface-paper: #1A140C;
+            --text-ink: #F1E7CF;
+            --text-muted: #8A7B5E;
+            --border-rule: #3A2F1B;
+            --accent: #D4AF37;
+            --terminal: #000;
+        }
+
+        body, html {
+            margin: 0; padding: 0; height: 100%; width: 100%;
+            background-color: var(--bg-primary); color: var(--text-ink);
+            font-family: 'Red Hat Display', sans-serif; overflow: hidden;
+        }
+
+        .main-nav {
+            height: 50px; background: var(--surface-paper);
+            border-bottom: 2px solid var(--border-rule);
+            display: flex; align-items: center; justify-content: space-between;
+            padding: 0 20px; z-index: 100;
+        }
+
+        .btn {
+            background: transparent; border: 1px solid var(--border-rule);
+            color: var(--text-ink); padding: 6px 12px; cursor: pointer;
+            font-size: 0.8rem; text-transform: uppercase; letter-spacing: 1px;
+        }
+
+        .btn:hover:not(:disabled) { background: var(--border-rule); }
+        .btn:disabled { opacity: 0.5; cursor: wait; }
+
+        .workspace { display: flex; height: calc(100vh - 50px); width: 100vw; }
+
+        /* Editor Section */
+        .editor-section {
+            width: 50%; height: 100%; display: flex; flex-direction: column;
+            border-right: 2px solid var(--border-rule); position: relative;
+        }
+
+        .editor-header {
+            height: 35px; background: #141009; display: flex; align-items: center;
+            padding-left: 15px; font-size: 0.75rem; color: var(--text-ink);
+            border-bottom: 1px solid var(--border-rule);
+        }
+
+        .editor-container {
+            flex-grow: 1; display: flex; background: #000; overflow: hidden;
+        }
+
+        .line-numbers {
+            width: 45px; padding: 15px 5px; text-align: right;
+            font-family: 'Fira Code', monospace; font-size: 13px;
+            color: #3A2F1B; background: #080604; line-height: 1.5;
+        }
+
+        textarea {
+            flex-grow: 1; background: transparent; border: none; outline: none;
+            color: var(--text-ink); font-family: 'Fira Code', monospace;
+            font-size: 14px; padding: 15px; resize: none; line-height: 1.5;
+            white-space: pre; overflow: auto;
+        }
+
+        /* Console Section */
+        .console-section {
+            flex-grow: 1; height: 100%; display: flex; flex-direction: column;
+            background: var(--terminal);
+        }
+
+        .console-header {
+            height: 35px; background: #1a1a1a; display: flex; align-items: center;
+            padding: 0 15px; font-size: 0.75rem; color: #888;
+        }
+
+        #output {
+            flex-grow: 1; padding: 20px; font-family: 'Fira Code', monospace;
+            font-size: 14px; color: #fff; overflow-y: auto; white-space: pre-wrap;
+        }
+
+        #resizer {
+            width: 6px; cursor: col-resize; position: absolute; right: -3px; 
+            top: 0; bottom: 0; z-index: 10;
+        }
+
+        .status-tag { margin-left: auto; color: var(--accent); }
+    </style>
+</head>
+<body>
+
+    <nav class="main-nav">
+        <div class="nav-group">
+            <span style="font-weight: 600; font-size: 0.9rem; color: var(--accent); margin-right: 15px;">PYTHON</span>
+            <button class="btn" id="run-btn" onclick="runPython()" disabled>Loading Runtime...</button>
+        </div>
+        <div class="nav-group">
+            <button class="btn" onclick="clearConsole()">Clear Console</button>
+        </div>
+    </nav>
+
+    <div class="workspace">
+        <div class="editor-section" id="left-panel">
+            <div id="resizer"></div>
+            <div class="editor-header">main.py</div>
+            <div class="editor-container">
+                <div class="line-numbers" id="line-box">1</div>
+                <textarea id="code-editor" spellcheck="false" oninput="updateLineNumbers()" onkeydown="handleTabs(event)">
+#Python Starter
+def greet(name):
+    return f"Welcome, {name}!"
+
+for i in range(5):
+    print(f"{i+1}: {greet('HELLO User')}")
+
+print("\nTry changing the code and clicking 'Run'!")
+                </textarea>
+            </div>
+        </div>
+        <div class="console-section">
+            <div class="console-header">
+                TERMINAL OUTPUT <span id="status" class="status-tag">Initializing Pyodide...</span>
+            </div>
+            <div id="output">Preparing the Python environment. This may take a few seconds on first load...</div>
+        </div>
+    </div>
+
+<script>
+    const editor = document.getElementById('code-editor');
+    const lineBox = document.getElementById('line-box');
+    const output = document.getElementById('output');
+    const runBtn = document.getElementById('run-btn');
+    const status = document.getElementById('status');
+    let pyodide;
+
+    // Initialize Python
+    async function initPython() {
+        try {
+            pyodide = await loadPyodide();
+            runBtn.disabled = false;
+            runBtn.innerText = "Run Script";
+            status.innerText = "Python 3.11 Ready";
+            output.innerText = ">>> Python Runtime Loaded. Ready to execute.";
+        } catch (err) {
+            output.innerText = "Error loading Python: " + err;
+        }
+    }
+
+    async function runPython() {
+        if (!pyodide) return;
+        
+        output.innerText = ""; // Clear console
+        
+        // Redirect Python print() to our console
+        pyodide.setStdout({ batched: (str) => {
+            output.innerText += str + "\n";
+        }});
+        
+        try {
+            await pyodide.runPythonAsync(editor.value);
+        } catch (err) {
+            output.innerText += "\n[PYTHON ERROR]\n" + err;
+        }
+    }
+
+    function clearConsole() {
+        output.innerText = ">>> Console cleared.";
+    }
+
+    // UI Helpers
+    function updateLineNumbers() {
+        const lines = editor.value.split('\n').length;
+        lineBox.innerHTML = Array.from({length: lines}, (_, i) => i + 1).join('<br>');
+    }
+
+    function handleTabs(e) {
+        if(e.key === 'Tab') {
+            e.preventDefault();
+            const start = editor.selectionStart;
+            const end = editor.selectionEnd;
+            editor.value = editor.value.substring(0, start) + "    " + editor.value.substring(end);
+            editor.selectionStart = editor.selectionEnd = start + 4;
+        }
+    }
+
+    // Resizer logic
+    const leftPanel = document.getElementById('left-panel');
+    const resizer = document.getElementById('resizer');
+    let isResizing = false;
+    resizer.addEventListener('mousedown', () => isResizing = true);
+    window.addEventListener('mousemove', (e) => {
+        if(!isResizing) return;
+        let width = (e.clientX / window.innerWidth) * 100;
+        if(width > 10 && width < 90) leftPanel.style.width = width + '%';
+    });
+    window.addEventListener('mouseup', () => isResizing = false);
+
+    // Bootstrap
+    updateLineNumbers();
+    initPython();
+</script>
+</body>
+</html>

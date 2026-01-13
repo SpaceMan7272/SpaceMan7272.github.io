@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Code Studio</title>
+    <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500&family=Red+Hat+Display:wght@400;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-primary: #0E0B07;
+            --surface-paper: #1A140C;
+            --text-ink: #F1E7CF;
+            --text-muted: #8A7B5E;
+            --border-rule: #3A2F1B;
+            --accent: #D4AF37;
+        }
+
+        body, html {
+            margin: 0; padding: 0; height: 100%; width: 100%;
+            background-color: var(--bg-primary); color: var(--text-ink);
+            font-family: 'Red Hat Display', sans-serif; overflow: hidden;
+        }
+
+        .main-nav {
+            height: 50px; background: var(--surface-paper);
+            border-bottom: 2px solid var(--border-rule);
+            display: flex; align-items: center; justify-content: space-between;
+            padding: 0 20px; z-index: 100;
+        }
+
+        .nav-group { display: flex; gap: 10px; align-items: center; }
+
+        .btn {
+            background: transparent; border: 1px solid var(--border-rule);
+            color: var(--text-ink); padding: 6px 12px; cursor: pointer;
+            font-size: 0.8rem; text-transform: uppercase; letter-spacing: 1px;
+        }
+
+        .btn:hover { background: var(--border-rule); }
+        .btn.active { border-color: var(--accent); color: var(--accent); }
+
+        .workspace { display: flex; height: calc(100vh - 50px); width: 100vw; }
+
+        .editor-section {
+            width: 50%; height: 100%; display: flex; flex-direction: column;
+            border-right: 2px solid var(--border-rule); position: relative;
+        }
+
+        .tab-bar {
+            height: 35px; background: #141009; display: flex;
+            border-bottom: 1px solid var(--border-rule);
+        }
+
+        .tab {
+            padding: 0 20px; display: flex; align-items: center;
+            font-size: 0.75rem; border-right: 1px solid var(--border-rule);
+            cursor: pointer; color: var(--text-muted);
+        }
+
+        .tab.active { background: var(--surface-paper); color: var(--text-ink); font-weight: 600; }
+
+        .editor-container {
+            flex-grow: 1; display: flex; position: relative;
+            background: #000; overflow: hidden;
+        }
+
+        .line-numbers {
+            width: 45px; padding: 15px 5px; text-align: right;
+            font-family: 'Fira Code', monospace; font-size: 13px;
+            color: #3A2F1B; background: #080604; user-select: none;
+            line-height: 1.5;
+        }
+
+        textarea {
+            flex-grow: 1; background: transparent; border: none; outline: none;
+            color: var(--text-ink); font-family: 'Fira Code', monospace;
+            font-size: 14px; padding: 15px; resize: none; line-height: 1.5;
+            white-space: pre; overflow: auto;
+        }
+
+        .preview-section { flex-grow: 1; height: 100%; background: white; }
+        iframe { width: 100%; height: 100%; border: none; background: #fff; }
+
+        #resizer {
+            width: 6px; cursor: col-resize; background: transparent;
+            position: absolute; right: -3px; top: 0; bottom: 0; z-index: 10;
+        }
+        #resizer:hover { background: var(--accent); }
+    </style>
+</head>
+<body>
+
+    <nav class="main-nav">
+        <div class="nav-group">
+            <span style="font-weight: 600; font-size: 0.9rem; color: var(--accent); margin-right: 15px;">STUDIO</span>
+            <button class="btn" onclick="exportCode()">Export JSON</button>
+            <button class="btn" onclick="document.getElementById('file-input').click()">Import</button>
+            <input type="file" id="file-input" style="display:none" onchange="importCode(event)">
+        </div>
+        <div class="nav-group">
+            <span style="font-size: 0.7rem; color: var(--text-muted);">AUTO-REFRESH</span>
+            <input type="checkbox" id="auto-toggle" checked>
+            <button class="btn active" onclick="updatePreview()">Refresh Now</button>
+        </div>
+    </nav>
+
+    <div class="workspace">
+        <div class="editor-section" id="left-panel">
+            <div id="resizer"></div>
+            <div class="tab-bar">
+                <div class="tab active" onclick="switchTab('html')">INDEX.HTML</div>
+                <div class="tab" onclick="switchTab('css')">STYLE.CSS</div>
+                <div class="tab" onclick="switchTab('js')">SCRIPT.JS</div>
+            </div>
+            <div class="editor-container">
+                <div class="line-numbers" id="line-box">1</div>
+                <textarea id="code-editor" spellcheck="false" oninput="onCodeInput()" onkeydown="handleTabs(event)"></textarea>
+            </div>
+        </div>
+        <div class="preview-section">
+            <iframe id="preview"></iframe>
+        </div>
+    </div>
+
+<script>
+    let files = {
+        html: `<!DOCTYPE html>\n<html>\n<head>\n  <link rel="stylesheet" href="style.css">\n</head>\n<body>\n  <h1 id="title">Hello World</h1>\n  <p id="welcome">Welcome to the Studio.</p>\n  <script src="script.js"><\/script>\n</body>\n</html>`,
+        css: `body {\n  background: #0E0B07;\n  color: #F1E7CF;\n  padding: 40px;\n  font-family: sans-serif;\n}\n\n#title {\n  color: #D4AF37;\n  font-weight: bold;\n  transition: font-size 0.4s ease;\n}\n\n#welcome {\n  color: #87ceeb;\n  font-weight: bold;\n}\n\n.grow {\n  font-size: 80px !important;\n}`,
+        js: `// Listen for Ctrl+Z to toggle the "grow" class\nwindow.addEventListener('keydown', (e) => {\n  if (e.ctrlKey && e.key === 'z') {\n    e.preventDefault();\n    const title = document.getElementById('title');\n    title.classList.toggle('grow');\n    console.log("Font size toggled!");\n  }\n});`
+    };
+
+    let currentTab = 'html';
+    const editor = document.getElementById('code-editor');
+    const preview = document.getElementById('preview');
+    const lineBox = document.getElementById('line-box');
+
+    function switchTab(tab) {
+        files[currentTab] = editor.value;
+        currentTab = tab;
+        editor.value = files[tab];
+        document.querySelectorAll('.tab').forEach(t => {
+            t.classList.toggle('active', t.innerText.toLowerCase().includes(tab));
+        });
+        updateLineNumbers();
+    }
+
+    function updateLineNumbers() {
+        const lines = editor.value.split('\n').length;
+        lineBox.innerHTML = Array.from({length: lines}, (_, i) => i + 1).join('<br>');
+    }
+
+    function onCodeInput() {
+        updateLineNumbers();
+        if(document.getElementById('auto-toggle').checked) updatePreview();
+    }
+
+    function handleTabs(e) {
+        if(e.key === 'Tab') {
+            e.preventDefault();
+            const start = editor.selectionStart;
+            const end = editor.selectionEnd;
+            editor.value = editor.value.substring(0, start) + "  " + editor.value.substring(end);
+            editor.selectionStart = editor.selectionEnd = start + 2;
+        }
+    }
+
+    function updatePreview() {
+        files[currentTab] = editor.value;
+        // Construct the blob by replacing the relative links with the actual tab content
+        const fullContent = files.html
+            .replace('<link rel="stylesheet" href="style.css">', `<style>${files.css}</style>`)
+            .replace('<script src="script.js"><\/script>', `<script>${files.js}<\/script>`);
+            
+        const blob = new Blob([fullContent], {type: 'text/html'});
+        preview.src = URL.createObjectURL(blob);
+    }
+
+    function exportCode() {
+        files[currentTab] = editor.value;
+        const blob = new Blob([JSON.stringify(files, null, 2)], {type: 'application/json'});
+        const a = document.createElement('a');
+        a.href = URL.createObjectURL(blob);
+        a.download = 'studio-project.json';
+        a.click();
+    }
+
+    function importCode(e) {
+        const reader = new FileReader();
+        reader.onload = function() {
+            files = JSON.parse(reader.result);
+            editor.value = files[currentTab];
+            updatePreview();
+        };
+        reader.readAsText(e.target.files[0]);
+    }
+
+    // Resizer logic
+    const leftPanel = document.getElementById('left-panel');
+    const resizer = document.getElementById('resizer');
+    let isResizing = false;
+    resizer.addEventListener('mousedown', () => isResizing = true);
+    window.addEventListener('mousemove', (e) => {
+        if(!isResizing) return;
+        let width = (e.clientX / window.innerWidth) * 100;
+        if(width > 5 && width < 95) leftPanel.style.width = width + '%';
+    });
+    window.addEventListener('mouseup', () => isResizing = false);
+
+    // Init
+    editor.value = files.html;
+    updateLineNumbers();
+    updatePreview();
+</script>
+</body>
+</html>
