@@ -1,0 +1,317 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>UN-Locked</title>
+
+  <!-- Red Hat Display font -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Red+Hat+Display:ital,wght@0,300..900;1,300..900&display=swap" rel="stylesheet">
+
+  <style>
+    :root {
+      /* Dark (default) */
+      --bg: #0e0b07;
+      --paper: #1a140c;
+      --paper-ink: #e7dcc3;
+      --ink: #f1e7cf;
+      --muted: #c7b995;
+      --border: #5a4a2a;
+      --nav: #120e08;
+      --shadow: rgba(0,0,0,0.45);
+    }
+
+    body.light {
+      /* Light parchment */
+      --bg: #efe6cf;
+      --paper: #fbf6e8;
+      --paper-ink: #2b2416;
+      --ink: #2b2416;
+      --muted: #4a3f2a;
+      --border: #cdbf9b;
+      --nav: #f3ead3;
+      --shadow: rgba(0,0,0,0.18);
+    }
+
+    * {
+      box-sizing: border-box;
+      font-family: "Red Hat Display", sans-serif;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      background:
+        radial-gradient(circle at top left, rgba(0,0,0,0.12), transparent 45%),
+        radial-gradient(circle at bottom right, rgba(0,0,0,0.18), transparent 45%),
+        var(--bg);
+      color: var(--ink);
+    }
+
+    /* Navbar */
+    nav {
+      background: var(--nav);
+      border-bottom: 2px solid var(--border);
+      padding: 14px 24px;
+      display: flex;
+      align-items: center;
+      gap: 24px;
+      position: sticky;
+      top: 0;
+      z-index: 50;
+    }
+
+    nav a {
+      text-decoration: none;
+      color: var(--ink);
+      font-weight: 600;
+      cursor: pointer;
+    }
+
+    nav .spacer { flex: 1; }
+
+    /* Toggle */
+    .toggle {
+      border: 1px solid var(--border);
+      background: var(--paper);
+      color: var(--paper-ink);
+      padding: 6px 10px;
+      border-radius: 6px;
+      font-weight: 600;
+      cursor: pointer;
+      box-shadow: 0 2px 4px var(--shadow);
+    }
+
+    /* Logo */
+    .logo { height: 75px; width: auto; }
+
+    /* Pages */
+    .page {
+      display: none;
+      padding: 36px 28px;
+      max-width: 900px;
+      margin: 0 auto;
+    }
+
+    .page.active { display: block; }
+
+    h1 {
+      margin-top: 0;
+      font-weight: 600;
+      font-size: 2rem;
+      border-bottom: 2px solid var(--border);
+      padding-bottom: 10px;
+    }
+
+    .list {
+      display: flex;
+      flex-direction: column;
+      gap: 18px;
+      margin-top: 24px;
+    }
+
+    .item-btn {
+      width: 100%;
+      text-align: left;
+      padding: 24px 26px;
+      border-radius: 4px;
+      border: 1px solid var(--border);
+      background: var(--paper);
+      color: var(--paper-ink);
+      cursor: pointer;
+      box-shadow: 0 4px 10px var(--shadow);
+    }
+
+    .item-title { font-size: 1.15rem; font-weight: 600; margin-bottom: 6px; }
+    .item-desc { font-size: 0.95rem; color: var(--muted); line-height: 1.45; }
+
+    /* Embed overlay */
+    .overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.6);
+      z-index: 1000;
+    }
+
+    .overlay.active { display: block; }
+
+    .embed-container {
+      position: absolute;
+      top: 15px;
+      left: 15px;
+      right: 15px;
+      bottom: 15px;
+      background: var(--paper);
+      border: 1px solid var(--border);
+      box-shadow: 0 10px 24px var(--shadow);
+    }
+
+    .close-btn {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      background: #7a2d2d;
+      color: #fff;
+      border: none;
+      border-radius: 999px;
+      width: 32px;
+      height: 32px;
+      font-size: 18px;
+      cursor: pointer;
+      z-index: 10;
+    }
+
+    iframe { width: 100%; height: 100%; border: none; background: #fff; }
+
+    .blocked { pointer-events: none; opacity: 0.55; }
+  </style>
+</head>
+<body>
+
+  <nav>
+    <a onclick="showPage('home')">Home</a>
+    <a onclick="showPage('tools')">Tools</a>
+    <a onclick="showPage('games')">Games</a>
+    <a onclick="showPage('others')">Others</a>
+    <a onclick="showPage('credits')">Credits</a>
+    <div class="spacer"></div>
+    <button class="toggle" onclick="toggleTheme()">Light / Dark</button>
+    <img id="logo" src="logo_dark.png" alt="Logo" class="logo" />
+  </nav>
+
+  <div id="home" class="page active"><h1>Home</h1><div id="homeList" class="list"></div></div>
+  <div id="tools" class="page"><h1>Tools</h1><div id="toolsList" class="list"></div></div>
+  <div id="games" class="page"><h1>Games</h1><div id="gamesList" class="list"></div></div>
+  <div id="others" class="page"><h1>Others</h1><div id="othersList" class="list"></div></div>
+  <div id="credits" class="page">
+    <h1>Credits</h1>
+    <div class="list">
+      <div class="item-btn" style="cursor:default">
+        <div class="item-title">Site Design & Development</div>
+        <div class="item-desc">π π π π π</div>
+    </div>
+    </div>
+  </div></div>
+
+  <div id="overlay" class="overlay">
+    <div class="embed-container">
+      <button class="close-btn" onclick="closeEmbed()">×</button>
+      <iframe id="embedFrame"></iframe>
+    </div>
+  </div>
+
+  <script>
+    const data = {
+      home: [
+        { name: 'Visual Arts 1', desc: 'A simple example embedded website.', url: 'class/art.html' },
+        { name: 'AP US Gov & Pol', desc: 'Free online encyclopedia.', url: 'class/gov.html' },
+        { name: 'Math 3 Hon', desc: 'Free online encyclopedia.', url: 'class/math3hon.html' },
+        { name: 'Health Science 1 Hon', desc: 'Free online encyclopedia.', url: 'class/healthsc1.html' },
+      ],
+      tools: [
+        { name: 'Calculator', desc: 'Online calculator utility.', url: 'tools/calc.html' },
+        { name: 'Desmos - Graphing', desc: 'Online calculator utility.', url: 'tools/gracalc.html' },
+        { name: 'HTML IDE', desc: 'Online calculator utility.', url: 'tools/ht.html' },
+        { name: 'Python Studio', desc: 'Online calculator utility.', url: 'tools/py.html' },
+        { name: 'Probablity Simulator', desc: 'Online calculator utility.', url: 'tools/prob.html' },
+        { name: 'Photopea - Photoshop', desc: 'Online calculator utility.', url: 'tools/photope.html' },
+        { name: 'Simple Browser', desc: 'Online calculator utility.', url: 'tools/simbr.html' },
+
+      ],
+      games: [
+        { name: 'Chess vs Human', desc: 'Play chess online.', url: 'games/chsh.html' },
+        { name: 'Chess vs Bot', desc: 'Online calculator utility.', url: 'tools/chbo.html' },
+        { name: 'Four Player Chess', desc: 'Online calculator utility.', url: 'tools/fpch.html' },
+
+        { name: 'Chess up HIGGGGH', desc: 'Online calculator utility.', url: 'tools/drch.html' },
+
+        { name: 'Block Blast', desc: 'Online calculator utility.', url: 'tools/blobla.html' },
+
+        { name: 'Balatro', desc: 'Online calculator utility.', url: 'tools/balatro.html' },
+
+        { name: 'Dino', desc: 'Online calculator utility.', url: 'tools/dino.html' },
+
+      ],
+      others: [
+        { name: 'Intellegence', desc: 'Web development documentation.', url: 'others/ai.html' },
+                { name: 'Grade Calculator', desc: 'Web development documentation.', url: 'others/grdclc.html' },
+
+      ]
+    };
+
+    function renderList(page) {
+      const container = document.getElementById(page + 'List');
+      container.innerHTML = '';
+      data[page].forEach(item => {
+        const btn = document.createElement('button');
+        btn.className = 'item-btn';
+        btn.innerHTML = `<div class="item-title">${item.name}</div><div class="item-desc">${item.desc}</div>`;
+        btn.onclick = () => openEmbed(item.url);
+        container.appendChild(btn);
+      });
+    }
+
+    function showPage(id) {
+      document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+      document.getElementById(id).classList.add('active');
+    }
+
+    function openEmbed(url) {
+      document.getElementById('embedFrame').src = url;
+      document.getElementById('overlay').classList.add('active');
+    }
+
+    function closeEmbed() {
+      document.getElementById('overlay').classList.remove('active');
+      document.getElementById('embedFrame').src = '';
+    }
+
+    function toggleTheme() {
+      document.body.classList.toggle('light');
+      const light = document.body.classList.contains('light');
+      document.getElementById('logo').src = light ? 'logo_light.png' : 'logo_dark.png';
+      localStorage.setItem('theme', light ? 'light' : 'dark');
+    }
+
+    document.addEventListener('keydown', e => { if (e.key === 'Escape') closeEmbed(); });
+
+    // Init
+    renderList('home');
+    renderList('tools');
+    renderList('games');
+    renderList('others');
+    // credits page is static
+
+    if (localStorage.getItem('theme') === 'light') {
+      document.body.classList.add('light');
+      document.getElementById('logo').src = 'logo_light.png';
+    }
+  </script>
+<script>
+  const THEME_KEY = 'lightordark';
+
+  function applyTheme(mode) {
+    const isLight = mode === 'light';
+    document.body.classList.toggle('light', isLight);
+    document.getElementById('logo').src = isLight
+      ? 'logo_light.png'
+      : 'logo_dark.png';
+  }
+
+  function toggleTheme() {
+    const current = localStorage.getItem(THEME_KEY) || 'dark';
+    const next = current === 'dark' ? 'light' : 'dark';
+    localStorage.setItem(THEME_KEY, next);
+    applyTheme(next);
+  }
+
+  // Apply saved theme on load (default = dark)
+  const savedTheme = localStorage.getItem(THEME_KEY) || 'dark';
+  applyTheme(savedTheme);
+</script>
+
+</body>
+</html>
