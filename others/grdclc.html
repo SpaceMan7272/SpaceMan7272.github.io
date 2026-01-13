@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Archival Grade Architect</title>
+    <link href="https://fonts.googleapis.com/css2?family=Red+Hat+Display:wght@400;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-primary: #0E0B07;
+            --surface-paper: #1A140C;
+            --text-ink: #F1E7CF;
+            --text-muted: #8A7B5E;
+            --border-rule: #3A2F1B;
+            --accent: #D4AF37;
+        }
+
+        body {
+            margin: 0; background-color: var(--bg-primary); color: var(--text-ink);
+            font-family: 'Red Hat Display', sans-serif; display: flex;
+            flex-direction: column; align-items: center; min-height: 100vh; padding: 20px;
+        }
+
+        .calc-card {
+            background: var(--surface-paper); border: 4px solid var(--border-rule);
+            width: 100%; max-width: 500px; padding: 30px; box-sizing: border-box;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+        }
+
+        .mode-toggle {
+            display: flex; border: 1px solid var(--border-rule); margin-bottom: 25px;
+        }
+
+        .mode-btn {
+            flex: 1; padding: 10px; border: none; background: transparent;
+            color: var(--text-muted); cursor: pointer; text-transform: uppercase;
+            font-size: 0.75rem; letter-spacing: 1px; font-weight: 600;
+        }
+
+        .mode-btn.active { background: var(--border-rule); color: var(--text-ink); }
+
+        .section-title {
+            font-size: 0.7rem; color: var(--accent); text-transform: uppercase;
+            letter-spacing: 2px; margin-bottom: 15px; border-bottom: 1px solid var(--border-rule);
+            padding-bottom: 5px; display: block;
+        }
+
+        .input-group { margin-bottom: 15px; display: flex; align-items: center; justify-content: space-between; }
+        
+        label { font-size: 0.9rem; color: var(--text-ink); }
+
+        input {
+            background: #000; border: 1px solid var(--border-rule); color: var(--text-ink);
+            padding: 8px; width: 80px; text-align: center; font-family: inherit;
+        }
+
+        .advanced-row {
+            display: grid; grid-template-columns: 2fr 1fr 1fr; gap: 10px; margin-bottom: 10px;
+        }
+
+        .result-display {
+            margin-top: 30px; padding: 20px; border: 1px dashed var(--border-rule);
+            text-align: center;
+        }
+
+        #final-score { font-size: 3rem; font-weight: 600; color: var(--accent); margin: 0; }
+        .letter-grade { font-size: 1.2rem; color: var(--text-muted); }
+
+        button.action-btn {
+            width: 100%; background: var(--border-rule); border: 1px solid var(--accent);
+            color: var(--text-ink); padding: 12px; cursor: pointer;
+            text-transform: uppercase; font-weight: 600; margin-top: 10px;
+        }
+
+        .hidden { display: none; }
+    </style>
+</head>
+<body>
+
+    <div class="calc-card">
+        <div class="mode-toggle">
+            <button class="mode-btn active" id="btn-simple" onclick="setMode('simple')">Simple</button>
+            <button class="mode-btn" id="btn-adv" onclick="setMode('advanced')">Advanced</button>
+        </div>
+
+        <div id="simple-ui">
+            <span class="section-title">Semester Calculator (80/20 Split)</span>
+            <div class="input-group">
+                <label>Quarter 1 Grade (%)</label>
+                <input type="number" id="s-q1" placeholder="90">
+            </div>
+            <div class="input-group">
+                <label>Quarter 2 Grade (%)</label>
+                <input type="number" id="s-q2" placeholder="85">
+            </div>
+            <div class="input-group">
+                <label>Final Exam Grade (%)</label>
+                <input type="number" id="s-exam" placeholder="?">
+            </div>
+            <div class="input-group">
+                <label>Target Class Grade</label>
+                <select id="target-letter" style="background:#000; color:#fff; border:1px solid var(--border-rule); padding:8px;">
+                    <option value="90">A (90)</option>
+                    <option value="80" selected>B (80)</option>
+                    <option value="70">C (70)</option>
+                    <option value="60">D (60)</option>
+                </select>
+            </div>
+            <button class="action-btn" onclick="calculateSimple()">Calculate Requirement</button>
+        </div>
+
+        <div id="advanced-ui" class="hidden">
+            <span class="section-title">Weighted Breakdown</span>
+            <div id="weights-container">
+                <div class="advanced-row" style="font-size: 0.6rem; color: var(--text-muted);">
+                    <span>CATEGORY</span><span>SCORE</span><span>WEIGHT %</span>
+                </div>
+                </div>
+            <button class="btn" style="font-size:0.6rem; margin-bottom:15px;" onclick="addWeightRow()">+ Add Category</button>
+            
+            <div class="input-group">
+                <label>Final Exam Score</label>
+                <input type="number" id="adv-exam" value="70">
+            </div>
+            <button class="action-btn" onclick="calculateAdvanced()">Calculate Final</button>
+        </div>
+
+        <div class="result-display">
+            <p id="result-label" style="font-size: 0.7rem; color: var(--text-muted); margin: 0;">FINAL CLASS GRADE</p>
+            <h1 id="final-score">--</h1>
+            <div id="letter-res" class="letter-grade">Enter values to begin</div>
+        </div>
+    </div>
+
+<script>
+    function setMode(mode) {
+        document.getElementById('simple-ui').classList.toggle('hidden', mode === 'advanced');
+        document.getElementById('advanced-ui').classList.toggle('hidden', mode === 'simple');
+        document.getElementById('btn-simple').classList.toggle('active', mode === 'simple');
+        document.getElementById('btn-adv').classList.toggle('active', mode === 'advanced');
+    }
+
+    // --- SIMPLE LOGIC ---
+    function calculateSimple() {
+        const q1 = parseFloat(document.getElementById('s-q1').value);
+        const q2 = parseFloat(document.getElementById('s-q2').value);
+        const exam = parseFloat(document.getElementById('s-exam').value);
+        const target = parseFloat(document.getElementById('target-letter').value);
+
+        const scoreDisplay = document.getElementById('final-score');
+        const letterDisplay = document.getElementById('letter-res');
+
+        // If Exam is missing, calculate what you need
+        if (isNaN(exam)) {
+            if (isNaN(q1) || isNaN(q2)) {
+                alert("Please enter both Quarter grades to find the Exam requirement.");
+                return;
+            }
+            const currentAvg = (q1 + q2) / 2;
+            // Formula: (Current * 0.8) + (Exam * 0.2) = Target
+            const needed = (target - (currentAvg * 0.8)) / 0.2;
+            
+            scoreDisplay.innerText = Math.max(0, Math.ceil(needed));
+            letterDisplay.innerText = `Required on Final Exam for a ${target}% total`;
+        } 
+        // If one Quarter is missing
+        else if (isNaN(q1) || isNaN(q2)) {
+            const knownQ = isNaN(q1) ? q2 : q1;
+            // Formula: ((knownQ + neededQ)/2 * 0.8) + (exam * 0.2) = Target
+            // (knownQ + neededQ) * 0.4 + (exam * 0.2) = Target
+            const neededQ = (target - (exam * 0.2) - (knownQ * 0.4)) / 0.4;
+            
+            scoreDisplay.innerText = Math.max(0, Math.ceil(neededQ));
+            letterDisplay.innerText = `Required in missing Quarter for a ${target}% total`;
+        }
+        // If all three are entered, just show the final grade
+        else {
+            const final = ((q1 + q2) / 2 * 0.8) + (exam * 0.2);
+            scoreDisplay.innerText = final.toFixed(1);
+            letterDisplay.innerText = "Final Class Grade: " + getLetter(final);
+        }
+    }
+
+    // --- ADVANCED LOGIC ---
+    function addWeightRow() {
+        const container = document.getElementById('weights-container');
+        const row = document.createElement('div');
+        row.className = 'advanced-row';
+        row.innerHTML = `
+            <input type="text" placeholder="e.g. Tests" style="width:100%; text-align:left;">
+            <input type="number" class="adv-score" placeholder="90">
+            <input type="number" class="adv-weight" placeholder="25">
+        `;
+        container.appendChild(row);
+    }
+
+    function calculateAdvanced() {
+        const scores = document.querySelectorAll('.adv-score');
+        const weights = document.querySelectorAll('.adv-weight');
+        const exam = parseFloat(document.getElementById('adv-exam').value) || 0;
+        
+        let totalWeightedPoints = 0;
+        let totalWeight = 0;
+
+        for (let i = 0; i < scores.length; i++) {
+            const s = parseFloat(scores[i].value);
+            const w = parseFloat(weights[i].value);
+            if (!isNaN(s) && !isNaN(w)) {
+                totalWeightedPoints += (s * (w / 100));
+                totalWeight += w;
+            }
+        }
+
+        // If user didn't input 100% weight, normalize it
+        const quarterFinal = totalWeight > 0 ? (totalWeightedPoints / (totalWeight / 100)) : 0;
+        
+        // Final Class Grade = (Quarter Avg * 0.8) + (Exam * 0.2)
+        const final = (quarterFinal * 0.8) + (exam * 0.2);
+        
+        document.getElementById('final-score').innerText = final.toFixed(1);
+        document.getElementById('letter-res').innerText = `Quarter Avg: ${quarterFinal.toFixed(1)}% | Grade: ${getLetter(final)}`;
+    }
+
+    function getLetter(num) {
+        if (num >= 90) return "A";
+        if (num >= 80) return "B";
+        if (num >= 70) return "C";
+        if (num >= 60) return "D";
+        return "F";
+    }
+
+    // Initialize with 3 categories
+    addWeightRow(); addWeightRow(); addWeightRow();
+</script>
+</body>
+</html>
