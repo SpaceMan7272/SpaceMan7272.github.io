@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HS1 Notes</title>
+    <link href="https://fonts.googleapis.com/css2?family=Red+Hat+Display:wght@400;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-primary: #0E0B07;
+            --surface-paper: #1A140C;
+            --text-ink: #F1E7CF;
+            --text-muted: #8A7B5E;
+            --border-rule: #3A2F1B;
+            --accent: #D4AF37;
+            --error-ink: #8B2626;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Red Hat Display', sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-ink);
+            padding: 20px;
+            line-height: 1.6;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1400px;
+            width: 100%;
+            margin: 0 auto;
+        }
+
+        header {
+            border: 4px solid var(--border-rule);
+            padding: 30px;
+            margin-bottom: 20px;
+            background: var(--surface-paper);
+            box-shadow: 0 20px 50px rgba(0,0,0,0.6);
+        }
+
+        h1 {
+            color: var(--accent);
+            font-weight: 600;
+            font-size: 1.2rem;
+            text-transform: uppercase;
+            letter-spacing: 5px;
+            margin-bottom: 25px;
+            text-align: center;
+        }
+
+        .download-options {
+            display: flex;
+            gap: 20px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        .download-card {
+            background: rgba(212, 175, 55, 0.03);
+            border: 1px solid var(--border-rule);
+            padding: 20px;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            flex: 1;
+            min-width: 280px;
+            max-width: 500px;
+            text-align: left;
+        }
+
+        .download-card:hover {
+            background: var(--surface-paper);
+            border-color: var(--accent);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            transform: translateY(-3px);
+        }
+
+        .card-title {
+            color: var(--accent);
+            font-size: 0.8rem;
+            font-weight: 600;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .card-title::after {
+            content: "";
+            height: 1px;
+            flex-grow: 1;
+            background: var(--border-rule);
+        }
+
+        .card-description {
+            color: var(--text-muted);
+            font-size: 0.85rem;
+            line-height: 1.5;
+        }
+
+        .pdf-container {
+            border: 4px solid var(--border-rule);
+            background: #000;
+            box-shadow: 0 30px 60px rgba(0,0,0,0.8);
+            height: calc(100vh - 320px);
+            min-height: 600px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+        }
+
+        .pdf-container iframe {
+            width: 100%;
+            height: 100%;
+            border: none;
+            background: #000;
+        }
+
+        .error-message {
+            color: var(--error-ink);
+            text-align: center;
+            font-size: 0.85rem;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            padding: 20px;
+        }
+
+        .loading {
+            color: var(--accent);
+            text-align: center;
+            font-size: 0.75rem;
+            letter-spacing: 3px;
+            text-transform: uppercase;
+            animation: archivalPulse 2s infinite;
+        }
+
+        @keyframes archivalPulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.3; }
+        }
+
+        ::selection {
+            background: var(--accent);
+            color: #000;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>[ Health Science I NOTes ]</h1>
+            <div class="download-options">
+                <div class="download-card" id="pdf-download">
+                    <div class="card-title">PDF</div>
+                    <div class="card-description">Unabridged documentation. Optimized for viewing, limited print formatting.</div>
+                </div>
+                <div class="download-card" id="gdoc-download">
+                    <div class="card-title">Docs Copy</div>
+                    <div class="card-description">Editable summary. Optimized for physical print and collaborative transcription.</div>
+                </div>
+            </div>
+        </header>
+
+        <div class="pdf-container" id="pdf-container">
+            <div class="loading">Loading PDF (takes a while)...</div>
+        </div>
+    </div>
+
+    <script>
+        // ============ CONFIGURATION ============
+        const PDF_PATH = 'hs.pdf';
+        const GOOGLE_DOC_URL = 'https://docs.google.com/document/d/1nHDeYgqeO5vyg30tFM1kWlbzAaescBaBCIIFVji4ojQ/edit?usp=sharing';
+        // =======================================
+
+        function loadPDF() {
+            const container = document.getElementById('pdf-container');
+            
+            const iframe = document.createElement('iframe');
+            iframe.src = PDF_PATH;
+            iframe.title = 'Archival PDF Viewer';
+            
+            iframe.onload = function() {
+                container.innerHTML = '';
+                container.appendChild(iframe);
+            };
+            
+            iframe.onerror = function() {
+                container.innerHTML = `
+                    <div class="error-message">
+                        [ Extraction Failed ]<br>
+                        Reference: ${PDF_PATH}
+                    </div>`;
+            };
+        }
+
+        document.getElementById('pdf-download').addEventListener('click', () => {
+            const a = document.createElement('a');
+            a.href = PDF_PATH;
+            a.download = 'health_science_archive.pdf';
+            a.click();
+        });
+
+        document.getElementById('gdoc-download').addEventListener('click', () => {
+            if (GOOGLE_DOC_URL === 'YOUR_GOOGLE_DOC_URL_HERE') {
+                alert('[ ALERT ] Manuscript link not established.');
+            } else {
+                window.open(GOOGLE_DOC_URL, '_blank');
+            }
+        });
+
+        // Initialize Ledger
+        loadPDF();
+    </script>
+</body>
+</html>
